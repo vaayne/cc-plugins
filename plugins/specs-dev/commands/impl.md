@@ -22,9 +22,12 @@ You are executing a disciplined implementation workflow that keeps Codex (GPT-5)
 2. Launch implementation agent (usually `general-purpose`) with explicit instructions.
 3. Run required tests or checks.
 4. Request Codex review (`codex-analyzer`) on the diff or files.
-5. Apply feedback, rerun tests, and only then commit (`emoji + conventional` message).
-6. Mark task `done` in TodoWrite and mirror status in `tasks.md`.
-7. Move to the next task.
+5. Apply feedback, rerun tests.
+6. Commit code changes with `emoji + conventional` message.
+7. Document implementation in `tasks.md` (files changed, approach, gotchas, commit hash).
+8. Document deviations in `plan.md` (only if approach changed or new decisions made).
+9. Mark task `done` in TodoWrite.
+10. Move to the next task.
 
 ## Detailed Reference
 
@@ -68,13 +71,22 @@ You are executing a disciplined implementation workflow that keeps Codex (GPT-5)
 
 Repeat the cycle for each task:
 
-1. **Start** – Mark the TodoWrite item `in_progress`; update `tasks.md` if you track owners or notes.
+1. **Start** – Mark the TodoWrite item `in_progress`.
 2. **Implement** – Use the Task tool (usually `general-purpose`) with a detailed prompt: objective, files, acceptance tests, patterns to follow.
 3. **Validate** – Run unit/integration tests relevant to the change. Document commands you run.
 4. **Codex Review** – Call `codex-analyzer` with the diff or affected files. Request severity-ranked findings covering bugs, security/performance issues, and regressions.
 5. **Address Feedback** – Apply fixes, rerun tests, and if changes are significant, re-run the review.
 6. **Commit** – Ensure a clean diff, then commit with emoji-prefixed Conventional Commit messages (e.g., `✨ feat: add onboarding API handler`). One logical change per commit.
-7. **Close Task** – Set TodoWrite to `done`, tick the checkbox in `tasks.md`, and note any follow-up work.
+7. **Document Implementation** – Update `tasks.md` for this task:
+   - Check off the task checkbox
+   - Add implementation notes: files changed, one-sentence approach summary, any gotchas discovered
+   - Link the commit hash
+8. **Document Deviations** (if applicable) – Update `plan.md` ONLY if:
+   - Implementation approach deviated from the original plan
+   - New architectural decision was made
+   - Risk or constraint discovered that affects future work
+   - Add entry under "Implementation Progress" or "Deviations" section with date, what changed, and why
+9. **Close Task** – Set TodoWrite to `done`. Confirm `tasks.md` is updated and documentation is complete.
 
 **Quality Gates per Task:**
 
@@ -82,13 +94,16 @@ Repeat the cycle for each task:
 - [ ] Codex review feedback implemented.
 - [ ] No TODOs or commented-out code left behind.
 - [ ] Commit message follows emoji + Conventional Commit format.
+- [ ] `tasks.md` updated with implementation notes and commit hash.
+- [ ] `plan.md` updated if implementation deviated from original plan or new decisions were made.
 
 ### Phase 4 – Final Validation
 
 1. Run the agreed regression/acceptance suite (from `plan.md`).
-2. Update `plan.md`/`tasks.md` with final status and notes (e.g., follow-up work, decisions, known issues).
-3. Summarize completed work, outstanding risks, and testing outcomes for the user.
-4. Confirm the session is ready for merge/release.
+2. Update `plan.md` with aggregate insights: overall testing results, final status, known issues, follow-up work, and next steps. Do not repeat per-task details already captured during Phase 3.
+3. Verify `tasks.md` shows all tasks completed with their implementation notes.
+4. Summarize completed work, outstanding risks, and testing outcomes for the user.
+5. Confirm the session is ready for merge/release.
 
 **Completion Checklist:**
 
@@ -105,12 +120,55 @@ Repeat the cycle for each task:
 - **Review agent:** `codex-analyzer`; include stack details, modules touched, and request severity-ranked output.
 - **Todo management:** Use TodoWrite to keep one active task. Mirroring status in `tasks.md` avoids drift.
 
+### Documentation Guidelines
+
+**Information Architecture:**
+
+- **TodoWrite:** Runtime task status only (in_progress/completed). Ephemeral, session-scoped. Cleared between sessions.
+- **tasks.md:** Tactical implementation record. Persists across sessions. Contains task checklist with implementation notes.
+- **plan.md:** Strategic feature record. Persists across sessions. Contains original plan plus deviations and aggregate insights.
+
+**tasks.md Entry Format:**
+
+Each completed task should follow this format:
+
+```markdown
+- [x] Task name
+  - **Files:** `path/to/file1.ts`, `path/to/file2.ts`
+  - **Approach:** Brief 1-sentence description of what was done
+  - **Gotchas:** Any surprises, edge cases, or challenges discovered
+  - **Commit:** {commit-hash}
+```
+
+**plan.md Updates:**
+
+Update `plan.md` during implementation ONLY when:
+- Implementation approach deviated from the original plan
+- New architectural decision was made
+- Risk or constraint emerged that affects future tasks
+- External dependency or integration requirements changed
+
+Add entries under an "Implementation Progress" or "Deviations" section:
+
+```markdown
+## Implementation Progress
+
+**[Task Name]** (YYYY-MM-DD):
+- **Original plan:** What was originally intended
+- **Actual approach:** What was actually done
+- **Reason:** Why the change was necessary
+- **Impact:** How this affects future tasks (if any)
+```
+
+**Rule of Thumb:** If it only matters for THIS task → `tasks.md`. If it affects FUTURE tasks or understanding of the overall feature → `plan.md`.
+
 ### Best Practices
 
 - Match existing code patterns and conventions before introducing new ones.
 - Keep commits atomic and readable; amend only the latest commit if necessary.
-- Document any deviations from the plan inside `plan.md` so future readers understand why.
+- Keep code commits separate from documentation updates to maintain clean git history.
 - Re-run impacted tests after each feedback iteration, not just once at the end.
+- Document while context is fresh: update docs immediately after committing, not at the end of the day.
 
 ### Troubleshooting
 
@@ -119,6 +177,7 @@ Repeat the cycle for each task:
 - **Codex requests major rework:** Pause, revisit the plan with the user, and update `plan.md` before continuing.
 - **Persistent test failures:** Switch to the `debugger` agent or request deeper Codex analysis targeting the failing module.
 - **Messy commit history:** Use `git commit --amend` for the latest commit only. Avoid rewriting history beyond that without user approval.
+- **Documentation debt accumulating:** If `tasks.md` hasn't been updated in 3+ completed tasks, pause and catch up before proceeding. Documentation loses value when written too long after implementation.
 
 ### Communication Tips
 
