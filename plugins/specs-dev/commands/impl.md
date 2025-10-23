@@ -33,7 +33,7 @@ You are executing a disciplined implementation workflow that keeps Codex (GPT-5)
 **Goal:** Internalize the session plan before touching code.
 
 **Steps:**
-1. Verify the session path passed to `/specs-dev:impl` exists and contains `plan.md`, `tasks.md`, and `tmp/`.
+1. Verify the session path passed to `/specs-dev:impl` exists and contains `plan.md` and `tasks.md`.
 2. Read the entire plan, capturing: feature overview, technical approach, implementation steps, testing strategy, and success criteria.
 3. Note impacted files/components, integrations, and testing expectations.
 4. Summarize the plan back to the user and confirm readiness to proceed.
@@ -104,7 +104,6 @@ Repeat the cycle for each task:
 - **Implementation agent:** `general-purpose` (most tasks), or `debugger` for failing tests.
 - **Review agent:** `codex-analyzer`; include stack details, modules touched, and request severity-ranked output.
 - **Todo management:** Use TodoWrite to keep one active task. Mirroring status in `tasks.md` avoids drift.
-- **Scratch space:** Place temporary artifacts in the session’s `tmp/` directory; it is gitignored.
 
 ### Best Practices
 

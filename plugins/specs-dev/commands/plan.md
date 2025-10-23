@@ -27,7 +27,7 @@ You are facilitating a collaborative planning workflow that produces an approved
 - [ ] Known constraints, integrations, and risks captured.
 - [ ] Plan sections populated (overview → testing → considerations).
 - [ ] Codex feedback captured, decisions documented.
-- [ ] Session folder created with `plan.md`, `tasks.md`, and `tmp/` (gitignored).
+- [ ] Session folder created with `plan.md` and `tasks.md`.
 
 ## Detailed Reference
 
@@ -78,8 +78,7 @@ Quality bar checklist:
 
 1. Create the session directory at `.agents/sessions/{YYYY-MM-DD-feature-name}/`.
 2. Save the finalized plan as `plan.md` and seed `tasks.md` with the implementation steps (checkbox list, owners/notes optional).
-3. Add a `tmp/` folder for scratch artifacts; it is auto-ignored by git.
-4. Confirm the session path with the user, summarize next steps, and remind them that `/specs-dev:impl` consumes this directory.
+3. Confirm the session path with the user, summarize next steps, and remind them that `/specs-dev:impl` consumes this directory.
 
 ## Additional Guidance
 
@@ -87,7 +86,6 @@ Quality bar checklist:
 
 - Sessions live under `.agents/sessions/`. Use YYYY-MM-DD and kebab-case feature names.
 - `plan.md` and `tasks.md` stay authoritative; update them whenever requirements change.
-- Keep `tmp/` for intermediate files or logs you don’t want committed.
 
 ### Communication Tips
 
