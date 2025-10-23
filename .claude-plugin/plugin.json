@@ -1,0 +1,17 @@
+{
+  "name": "cc-plugins",
+  "description": "Personal collection of Claude Code plugins.",
+  "version": "0.0.1",
+  "owner": {
+    "name": "Vaayne",
+    "email": "liu.vaayne@mail.com"
+  },
+  "plugins": [
+    {
+      "name": "specs-dev",
+      "description": "Spec-driven feature development workflow with GPT-5 (Codex) review. Combines iterative requirements gathering, comprehensive planning, and structured implementation with continuous AI-powered code review. Produces production-ready code with proper planning documentation and clean, incremental commits.",
+      "source": "./plugins/specs-dev",
+      "category": "development"
+    }
+  ]
+}
