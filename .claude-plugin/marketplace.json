@@ -1,7 +1,9 @@
 {
   "name": "cc-plugins",
-  "description": "Personal collection of Claude Code plugins.",
+  "description": "A curated collection of Claude Code plugins for enhanced development workflows.",
   "version": "0.0.1",
+  "repository": "https://github.com/vaayne/cc-plugins",
+  "homepage": "https://github.com/vaayne/cc-plugins",
   "owner": {
     "name": "Vaayne",
     "email": "liu.vaayne@mail.com"
