@@ -12,13 +12,9 @@ Install this plugin marketplace in Claude Code by running:
 
 ## Available Plugins
 
-### specs-dev
+### [specs-dev](./plugins/specs-dev/)
 
-Spec-driven feature development workflow with GPT-5 (Codex) review. Combines iterative requirements gathering, comprehensive planning, and structured implementation with continuous AI-powered code review. Produces production-ready code with proper planning documentation and clean, incremental commits.
-
-**Commands:**
-- `/spec:plan` - Collaborative planning workflow with Codex review before implementation
-- `/spec:impl` - Implement feature from spec with iterative codex review and commits
+Spec-driven feature development workflow with Codex review. Combines iterative requirements gathering, comprehensive planning, and structured implementation with continuous AI-powered code review. Produces production-ready code with proper planning documentation and clean, incremental commits.
 
 ## Development
 
@@ -71,4 +67,4 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](./LICENSE).
