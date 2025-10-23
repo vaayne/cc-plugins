@@ -1,0 +1,2 @@
+# Ignore session scratch space
+.agents/sessions/*/tmp/

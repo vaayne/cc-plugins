@@ -11,7 +11,7 @@ You are executing a systematic implementation workflow with continuous codex rev
 
 Implement the feature defined in: **$ARGUMENTS**
 
-The argument should be a path to a spec file (e.g., `specs/2025-10-12-feature-name.md`)
+The argument should be the path to a session directory (e.g., `.agents/sessions/2025-10-12-feature-name/`)
 
 ## Workflow Overview
 
@@ -26,9 +26,10 @@ This command follows a 4-phase approach:
 
 ### Process
 
-1. **Read Spec File**:
-   - Verify the spec file exists at the provided path
-   - Read the complete implementation plan
+1. **Load Session Docs**:
+   - Verify the session directory exists at the provided path
+   - Confirm `plan.md` is present; read the complete implementation plan
+   - Open `tasks.md` to review or seed the current task list
    - Extract key sections:
      - Feature overview and goals
      - Technical approach
@@ -41,6 +42,7 @@ This command follows a 4-phase approach:
    - Identify integration points and dependencies
    - Note existing patterns to follow
    - Locate relevant test files
+   - Plan how any temporary artifacts will be stored in the session `tmp/` folder
 
 3. **Confirm Understanding**:
    - Summarize the feature to implement
@@ -81,10 +83,10 @@ This command follows a 4-phase approach:
    - Mark first task as "pending"
    - Keep other tasks as "pending" initially
 
-4. **Update Spec File**:
-   - Add "## Implementation Progress" section if not exists
-   - List all tasks with checkboxes
-   - Update status to "In Progress"
+4. **Update Session Docs**:
+   - Sync the ordered task list into `tasks.md` with checkboxes
+   - Update `plan.md` status to "In Progress" (if applicable)
+   - Note any session-specific context needed for the upcoming work
 
 ### Example Task Breakdown
 
@@ -155,6 +157,10 @@ Repeat this cycle for each task in the breakdown:
    Follow existing code patterns in the codebase.
    Make complete, working changes (no placeholders).
    ```
+
+4. **Scratch Space**:
+   - Place any temporary files or generated artifacts in the session's `tmp/` directory
+   - Clean up unneeded items before marking the task complete
 
 #### Step 2: Codex Review
 
@@ -253,8 +259,8 @@ Repeat this cycle for each task in the breakdown:
 
 4. **Update Progress**:
    - Mark task as completed in TodoWrite
-   - Update spec file's Implementation Progress section
-   - Check off completed task
+   - Check off the task inside `tasks.md` and note outcomes
+   - Update any status markers in `plan.md` if required
 
 #### Step 5: Continue to Next Task
 
@@ -269,7 +275,7 @@ Repeat this cycle for each task in the breakdown:
 - **No Placeholders**: Never commit TODO comments or unfinished code
 - **Test as You Go**: Run tests after each task when applicable
 - **Stay Focused**: One task at a time, don't mix concerns
-- **Keep Context**: Reference spec file throughout implementation
+- **Keep Context**: Reference the session's `plan.md` and `tasks.md` throughout implementation
 
 ## Phase 4: Final Validation
 
@@ -285,15 +291,15 @@ Repeat this cycle for each task in the breakdown:
    - Confirm all requirements met
    - Test the feature end-to-end if applicable
 
-3. **Update Spec File**:
-   - Change status from "In Progress" to "Completed"
-   - Add completion date
-   - Add "## Implementation Summary" section with:
+3. **Update Session Docs**:
+   - Mark `plan.md` status as "Completed" and add completion date
+   - Append an "Implementation Summary" section capturing:
      - What was implemented
      - Number of commits made
      - Any deviations from original plan
      - Testing results
      - Known limitations or future work
+   - Ensure `tasks.md` shows all items checked off with relevant notes
 
 4. **Final Summary**:
    - List all commits made
@@ -309,17 +315,17 @@ Before marking complete:
 - [ ] All commits follow conventional format with emoji
 - [ ] Codex reviewed all significant changes
 - [ ] Tests pass (if applicable)
-- [ ] Success criteria from spec are met
-- [ ] Spec file updated with completion status
+- [ ] Success criteria from `plan.md` are met
+- [ ] Session docs updated with completion status
 - [ ] No TODO or placeholder code committed
 
 ## Example Workflow
 
 ```
-User: /impl specs/2025-10-12-user-authentication.md
+User: /impl .agents/sessions/2025-10-12-user-authentication/
 
 Assistant (Phase 1):
-[Reads spec file]
+[Reads `plan.md` and `tasks.md` from session folder]
 "I've analyzed the authentication system plan. The implementation involves:
 - User model with JWT authentication
 - Login/logout endpoints
@@ -340,7 +346,7 @@ User: "Yes"
 
 Assistant (Phase 2):
 [Creates task breakdown with TodoWrite]
-[Updates spec file with task list and "In Progress" status]
+[Syncs tasks into `tasks.md` and marks `plan.md` as In Progress]
 
 "Created 8 implementation tasks. Starting with Task 1: User model and schema..."
 
@@ -353,7 +359,7 @@ Codex: "Consider adding email validation and indexing the email field for perfor
 
 [Makes modifications based on feedback]
 [Commits with: "✨ feat: add user model with email validation and indexes"]
-[Updates TodoWrite and spec progress]
+[Updates TodoWrite and `tasks.md` progress]
 
 Assistant (Phase 3 - Task 2):
 [Repeats cycle for password hashing utility]
@@ -362,7 +368,7 @@ Assistant (Phase 3 - Task 2):
 
 Assistant (Phase 4):
 [Runs full test suite]
-[Updates spec file to "Completed"]
+[Updates session docs to "Completed"]
 
 "Implementation complete! Made 8 commits:
 1. ✨ feat: add user model with email validation
@@ -417,14 +423,14 @@ Most implementation tasks should use **general-purpose** agent.
 ### Progress Tracking
 
 - Keep TodoWrite updated in real-time
-- Update spec file after each commit
+- Update session docs (`tasks.md`, `plan.md`) after each commit
 - Maintain clear status in both places
 - Help user understand progress
 
 ## Troubleshooting
 
-**Issue**: Spec file not found
-**Solution**: Verify path is correct, check if file exists in specs/ directory
+**Issue**: Session folder not found
+**Solution**: Verify path is correct; confirm `.agents/sessions/{date-feature}/` exists with `plan.md`
 
 **Issue**: Task is too large
 **Solution**: Break it down further into smaller subtasks
@@ -439,13 +445,13 @@ Most implementation tasks should use **general-purpose** agent.
 **Solution**: Use git commit --amend for last commit only, or rebase carefully
 
 **Issue**: Lost track of progress
-**Solution**: Check spec file and TodoWrite, sync them up
+**Solution**: Check `tasks.md` and TodoWrite, sync them up
 
 ## Important Notes
 
 ### Context Management
 
-- Keep spec file open for reference
+- Keep `plan.md` and `tasks.md` open for reference
 - Review related code before implementing
 - Maintain consistency with existing code
 - Don't duplicate functionality

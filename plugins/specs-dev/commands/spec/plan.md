@@ -18,7 +18,7 @@ This command follows a 4-phase approach:
 1. **Requirements Discussion** - Iterative conversation to understand needs
 2. **Plan Creation** - Draft detailed implementation plan
 3. **Codex Review** - Expert review and refinement
-4. **Plan Documentation** - Write final approved plan to specs/
+4. **Plan Documentation** - Create session files under `.agents/sessions/`
 
 ## Phase 1: Requirements Discussion
 
@@ -160,20 +160,23 @@ Be thorough and critical. Identify any issues, gaps, or improvements needed."
 
 ### Process
 
-1. **Generate Filename**:
-   - Format: `specs/{YYYY-MM-DD}-{feature-slug}.md`
+1. **Generate Session Folder Name**:
+   - Format: `.agents/sessions/{YYYY-MM-DD}-{feature-slug}/`
    - Use today's date from system
    - Convert feature name to kebab-case slug
-   - Example: `specs/2025-10-12-user-authentication.md`
+   - Example: `.agents/sessions/2025-10-12-user-authentication/`
 
-2. **Create specs/ Directory**:
-   - Check if specs/ exists in project root
-   - Create if missing using Write tool
+2. **Create Session Structure**:
+   - Ensure `.agents/` and `.agents/sessions/` exist at project root
+   - Create the session folder if missing
+   - Within the session folder:
+     - Write the finalized plan to `plan.md`
+     - Seed `tasks.md` with the ordered task list (checkboxes, owners if relevant)
+     - Create an empty `tmp/` directory for scratch artifacts (gitignored)
 
 3. **Write Plan Document**:
-   - Use Write tool to create the markdown file
-   - Include complete plan with all sections
-   - Add metadata header:
+   - Use the Write tool to save the complete plan into `plan.md`
+   - Include metadata header:
      ```markdown
      # [Feature Name]
 
@@ -186,10 +189,21 @@ Be thorough and critical. Identify any issues, gaps, or improvements needed."
      [Plan content...]
      ```
 
-4. **Confirmation**:
-   - Provide full path to created file
+4. **Initialize Tasks Document**:
+   - Use the implementation steps to populate `tasks.md`
+   - Format example:
+     ```markdown
+     # Implementation Tasks
+
+     - [ ] Task 1 — brief description (owner/notes if needed)
+     - [ ] Task 2 — …
+     ```
+   - Include any dependencies or test notes per task
+
+5. **Confirmation**:
+   - Provide the session folder path
    - Summarize next steps for implementation
-   - Suggest relevant implementation commands if applicable
+   - Suggest that the user review `plan.md` and `tasks.md`, edit as needed (directly or via agent), then proceed with implementation when satisfied
 
 ## Example Workflow
 
@@ -236,13 +250,13 @@ Assistant (continued Phase 3):
 User: "Yes"
 
 Assistant (Phase 4):
-[Creates specs/2025-10-12-user-authentication.md with complete plan]
+[Creates `.agents/sessions/2025-10-12-user-authentication/plan.md`, seeds `tasks.md`, and ensures `tmp/` exists]
 
-"Plan saved to specs/2025-10-12-user-authentication.md
+"Session ready at `.agents/sessions/2025-10-12-user-authentication/`
 
 Next steps:
-- Review the plan in the specs/ directory
-- Use /spec:init or begin implementation directly
+- Review `plan.md` and `tasks.md` in the session folder; edit directly or request an agent update until they reflect the desired plan
+- When finalized, start implementation with `/spec:impl .agents/sessions/2025-10-12-user-authentication/`
 - Consider breaking into smaller tasks if needed"
 ```
 
@@ -275,10 +289,10 @@ Before sending plan to Codex:
 
 ### File Organization
 
-- Plans go in `specs/` at project root
+- Sessions live in `.agents/sessions/` at project root
 - Use consistent date format (YYYY-MM-DD)
 - Use kebab-case for feature names
-- Include status metadata for tracking
+- Ensure `plan.md` and `tasks.md` remain the source of truth
 
 ## Tips
 
