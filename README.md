@@ -72,8 +72,3 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 ## License
 
 MIT
-
-## Author
-
-**Vaayne**
-Email: liu.vaayne@mail.com
