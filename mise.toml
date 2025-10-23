@@ -1,0 +1,6 @@
+[tools]
+dprint = "latest"
+
+[tasks.fmt]
+description = "Format code using dprint"
+run = "dprint fmt"
