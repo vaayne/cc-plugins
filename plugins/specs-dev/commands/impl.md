@@ -9,17 +9,17 @@ You are executing a disciplined implementation workflow that keeps Codex (GPT-5)
 
 ## Quickstart Flow
 
-| Phase | What you do | Exit criteria |
-| --- | --- | --- |
-| 1. Plan Analysis | Open the provided session directory, read `plan.md` + `tasks.md`, understand scope and constraints. | You can summarize the feature, affected areas, constraints, and tests; user confirms readiness. |
-| 2. Task Breakdown | Break work into small, independent tasks (1–3 files each), sync TodoWrite and `tasks.md`. | Ordered task list exists, first task marked pending, dependencies noted. |
-| 3. Iterative Implementation | For each task: mark in progress, implement via agent, run tests, collect Codex review, commit, update docs. | All tasks complete, Codex feedback addressed, commits passing. |
-| 4. Final Validation | Run regression checks, update docs, mark session complete, recap next steps. | Tests green, docs updated, user approves completion. |
+| Phase                       | What you do                                                                                                 | Exit criteria                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 1. Plan Analysis            | Open the provided session directory, read `plan.md` + `tasks.md`, understand scope and constraints.         | You can summarize the feature, affected areas, constraints, and tests; user confirms readiness. |
+| 2. Task Breakdown           | Break work into small, independent tasks (1–3 files each), sync TodoWrite and `tasks.md`.                   | Ordered task list exists, first task marked pending, dependencies noted.                        |
+| 3. Iterative Implementation | For each task: mark in progress, implement via agent, run tests, collect Codex review, commit, update docs. | All tasks complete, Codex feedback addressed, commits passing.                                  |
+| 4. Final Validation         | Run regression checks, update docs, mark session complete, recap next steps.                                | Tests green, docs updated, user approves completion.                                            |
 
 ### Workflow Loop (Phase 3)
 
 1. Update TodoWrite → current task `in_progress`.
-2. Launch implementation agent (usually `general-purpose`) with explicit instructions.
+2. Launch implementation agent (`task-implementer`) with explicit instructions.
 3. Run required tests or checks.
 4. Request Codex review (`codex-analyzer`) on the diff or files.
 5. Apply feedback, rerun tests.
@@ -36,6 +36,7 @@ You are executing a disciplined implementation workflow that keeps Codex (GPT-5)
 **Goal:** Internalize the session plan before touching code.
 
 **Steps:**
+
 1. Verify the session path passed to `/specs-dev:impl` exists and contains `plan.md` and `tasks.md`.
 2. Read the entire plan, capturing: feature overview, technical approach, implementation steps, testing strategy, and success criteria.
 3. Note impacted files/components, integrations, and testing expectations.
@@ -53,6 +54,7 @@ You are executing a disciplined implementation workflow that keeps Codex (GPT-5)
 **Goal:** Create actionable, incremental tasks mapped to the plan.
 
 **Steps:**
+
 1. Translate the plan’s implementation steps into granular tasks (1–3 files each, independently testable).
 2. Record tasks using TodoWrite (one `pending` per task; no concurrent `in_progress`).
 3. Mirror the same list in `tasks.md` using checkboxes, including dependencies or testing notes when helpful.
@@ -72,7 +74,7 @@ You are executing a disciplined implementation workflow that keeps Codex (GPT-5)
 Repeat the cycle for each task:
 
 1. **Start** – Mark the TodoWrite item `in_progress`.
-2. **Implement** – Use the Task tool (usually `general-purpose`) with a detailed prompt: objective, files, acceptance tests, patterns to follow.
+2. **Implement** – Use the Task tool (`task-implementer`) with a detailed prompt: objective, files, acceptance tests, patterns to follow.
 3. **Validate** – Run unit/integration tests relevant to the change. Document commands you run.
 4. **Codex Review** – Call `codex-analyzer` with the diff or affected files. Request severity-ranked findings covering bugs, security/performance issues, and regressions.
 5. **Address Feedback** – Apply fixes, rerun tests, and if changes are significant, re-run the review.
@@ -116,7 +118,7 @@ Repeat the cycle for each task:
 
 ### Agent & Tool Guidance
 
-- **Implementation agent:** `general-purpose` (most tasks), or `debugger` for failing tests.
+- **Implementation agent:** `task-implementer` (all implementation tasks), or `debugger` for troubleshooting failing tests.
 - **Review agent:** `codex-analyzer`; include stack details, modules touched, and request severity-ranked output.
 - **Todo management:** Use TodoWrite to keep one active task. Mirroring status in `tasks.md` avoids drift.
 
@@ -143,6 +145,7 @@ Each completed task should follow this format:
 **plan.md Updates:**
 
 Update `plan.md` during implementation ONLY when:
+
 - Implementation approach deviated from the original plan
 - New architectural decision was made
 - Risk or constraint emerged that affects future tasks
@@ -154,6 +157,7 @@ Add entries under an "Implementation Progress" or "Deviations" section:
 ## Implementation Progress
 
 **[Task Name]** (YYYY-MM-DD):
+
 - **Original plan:** What was originally intended
 - **Actual approach:** What was actually done
 - **Reason:** Why the change was necessary

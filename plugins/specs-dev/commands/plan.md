@@ -9,16 +9,16 @@ You are facilitating a collaborative planning workflow that produces an approved
 
 ## Quickstart Flow
 
-| Phase | What you do | Exit criteria |
-| --- | --- | --- |
-| 1. Requirements Discussion | Interpret the request, ask targeted questions, refine scope with the user. | User explicitly approves your summary ("OK", "ready", etc.). |
-| 2. Plan Creation | Draft the implementation plan covering overview, technical approach, steps, testing, and considerations. | Plan addresses every agreed requirement and is internally consistent. |
-| 3. Codex Review | Send the full plan to `codex-analyzer`, integrate its feedback, repeat if needed (≤3 rounds). | Codex confirms the plan is solid and feedback is incorporated. |
-| 4. Plan Documentation | Save `plan.md` and `tasks.md` into `.agents/sessions/{YYYY-MM-DD-feature}/`, seed todos, and confirm next steps. | Session folder exists with up-to-date docs and TODOs. |
+| Phase                      | What you do                                                                                                      | Exit criteria                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 1. Requirements Discussion | Interpret the request, ask targeted questions, refine scope with the user.                                       | User explicitly approves your summary ("OK", "ready", etc.).          |
+| 2. Plan Creation           | Draft the implementation plan covering overview, technical approach, steps, testing, and considerations.         | Plan addresses every agreed requirement and is internally consistent. |
+| 3. Codex Review            | Send the full plan to `codex-analyzer`, integrate its feedback, repeat if needed (≤3 rounds).                    | Codex confirms the plan is solid and feedback is incorporated.        |
+| 4. Plan Documentation      | Save `plan.md` and `tasks.md` into `.agents/sessions/{YYYY-MM-DD-feature}/`, seed todos, and confirm next steps. | Session folder exists with up-to-date docs and TODOs.                 |
 
 ### Approval Gates
 
-- **Gate A (end of Phase 1):** Summarize the requirements and ask, *"Do I understand correctly? Should I proceed to create the plan?"* Stop until the user says yes.
+- **Gate A (end of Phase 1):** Summarize the requirements and ask, _"Do I understand correctly? Should I proceed to create the plan?"_ Stop until the user says yes.
 - **Gate B (end of Phase 3):** Confirm with Codex feedback addressed and user satisfied before writing files.
 
 ### On-Run Checklist
@@ -36,6 +36,7 @@ You are facilitating a collaborative planning workflow that produces an approved
 **Goal:** Reach a shared understanding of what to build before writing the plan.
 
 **Steps:**
+
 1. State your initial interpretation of the feature request.
 2. Ask clarifying questions about functionality, user goals, constraints, success metrics, integrations, and out-of-scope items.
 3. Iterate: reflect the user’s answers, tighten your understanding, and ask follow-ups where fuzzy.
