@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "specs-dev",
-      "description": "Spec-driven feature development workflow with GPT-5 (Codex) review. Combines iterative requirements gathering, comprehensive planning, and structured implementation with continuous AI-powered code review. Produces production-ready code with proper planning documentation and clean, incremental commits.",
+      "description": "Spec-driven feature development workflow with Codex review. Combines iterative requirements gathering, comprehensive planning, and structured implementation with continuous AI-powered code review. Produces production-ready code with proper planning documentation and clean, incremental commits.",
       "source": "./plugins/specs-dev",
       "category": "development"
     }

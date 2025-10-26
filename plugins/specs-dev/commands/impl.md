@@ -5,7 +5,7 @@ allowed-tools: Read(*), Write(*), Edit(*), Glob(*), Grep(*), Task, TodoWrite, Ba
 
 # Feature Implementation with Codex Review
 
-You are executing a disciplined implementation workflow that keeps Codex (GPT-5) in the loop and lands focused, validated commits.
+You are executing a disciplined implementation workflow that keeps Codex in the loop and lands focused, validated commits.
 
 ## Quickstart Flow
 
