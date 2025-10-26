@@ -6,7 +6,7 @@
 
 Specs-Dev puts you in control of AI-assisted development with a disciplined, review-gated workflow:
 
-- **Codex-reviewed plans** – Every plan is reviewed by GPT-5 before you see it, catching architectural issues and edge cases early.
+- **Codex-reviewed plans** – Every plan is reviewed by Codex before you see it, catching architectural issues and edge cases early.
 - **Codex-reviewed implementations** – Every code change gets AI review before commit, ensuring quality and consistency.
 - **Approval gates at every stage** – No surprise implementations. You approve the plan before coding starts, and review changes before they're committed.
 - **Human-in-the-loop control** – You decide when to proceed after seeing Codex-validated plans and code. No vibe coding chaos.
@@ -48,7 +48,7 @@ For iterative development, keep this repository registered as a local marketplac
 
 **Planning Phase** (with approval gates):
 1. `/specs-dev:plan {feature}` – Gather requirements through guided questions
-2. **→ Codex reviews plan** – GPT-5 analyzes the plan for issues, edge cases, and improvements
+2. **→ Codex reviews plan** – Codex analyzes the plan for issues, edge cases, and improvements
 3. **→ You approve** – Review the Codex-validated plan before any code is written
 4. Session folder created with `plan.md` and `tasks.md`
 
