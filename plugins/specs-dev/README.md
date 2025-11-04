@@ -27,7 +27,7 @@ Specs-Dev puts you in control of AI-assisted development with a disciplined, rev
 
 ## Getting Started
 
-1. **Add marketplace** – In Claude Code, run `/plugin marketplace add  vaayne/ccplugins`.
+1. **Add marketplace** – In Claude Code, run `/plugin` to add the repo as marketplace.
 2. **Install** – Open `/plugin`, choose “Browse Plugins,” and install `specs-dev`. Enable it if it’s listed as disabled.
 3. **Verify** – Run `/plugin` to confirm the `specs-dev:*` commands are registered.
 4. **First run** – In any project, execute `/specs-dev:plan onboarding-flow`. Answer the guided questions, approve the summary, and let the command generate a session at `.agents/sessions/{date}-onboarding-flow/`.
