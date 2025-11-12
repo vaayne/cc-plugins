@@ -14,6 +14,13 @@
       "description": "Spec-driven feature development workflow with Codex review. Combines iterative requirements gathering, comprehensive planning, and structured implementation with continuous AI-powered code review. Produces production-ready code with proper planning documentation and clean, incremental commits.",
       "source": "./plugins/specs-dev",
       "category": "development"
+    },
+    {
+      "name": "mcp-tools-executor",
+      "description": "Generate and execute CLI tools from MCP (Model Context Protocol) servers. Use this skill when needing to interact with MCP tools via command-line interfaces, including generating tools from server configurations and executing them with proper arguments.",
+      "source": "./plugins",
+      "category": "development",
+      "skills": ["./mcp-tools-executor"]
     }
   ]
 }
