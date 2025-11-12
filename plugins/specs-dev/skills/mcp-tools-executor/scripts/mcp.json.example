@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "server_name": {
+      "transport": "http",
+      "url": "https://api.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer token"
+      },
+      "auth": "oauth"
+    },
+    "local_server": {
+      "transport": "stdio",
+      "command": "python",
+      "args": [
+        "./server.py",
+        "--verbose"
+      ],
+      "env": {
+        "DEBUG": "true"
+      },
+      "cwd": "/path/to/server"
+    }
+  }
+}
