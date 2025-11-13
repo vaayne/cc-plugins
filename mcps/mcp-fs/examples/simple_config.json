@@ -1,0 +1,15 @@
+{
+  "backends": [
+    {
+      "name": "local",
+      "url": "fs:///",
+      "description": "Local filesystem access",
+      "default": true
+    },
+    {
+      "name": "temp",
+      "url": "memory:///",
+      "description": "Temporary in-memory storage"
+    }
+  ]
+}

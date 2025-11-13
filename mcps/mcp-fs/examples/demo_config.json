@@ -1,0 +1,23 @@
+{
+  "backends": [
+    {
+      "name": "local-demo",
+      "url": "fs:///",
+      "description": "Local filesystem for demo",
+      "default": true,
+      "readonly": false,
+      "timeout": 30,
+      "retry_attempts": 3,
+      "validate_connection": false
+    },
+    {
+      "name": "memory-demo",
+      "url": "memory:///",
+      "description": "In-memory storage for demo",
+      "readonly": false,
+      "timeout": 10,
+      "retry_attempts": 1,
+      "validate_connection": false
+    }
+  ]
+}

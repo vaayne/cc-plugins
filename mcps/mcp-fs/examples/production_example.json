@@ -1,0 +1,59 @@
+{
+  "backends": [
+    {
+      "name": "local",
+      "url": "fs:///",
+      "description": "Local filesystem access",
+      "default": true,
+      "readonly": false,
+      "timeout": 30,
+      "retry_attempts": 3,
+      "validate_connection": true
+    },
+    {
+      "name": "s3-prod",
+      "url": "s3://my-production-bucket?region=us-east-1&access_key_id=AKIA...&secret_access_key=...",
+      "description": "Production S3 bucket for application data",
+      "readonly": false,
+      "timeout": 60,
+      "retry_attempts": 5,
+      "validate_connection": true
+    },
+    {
+      "name": "s3-backup",
+      "url": "s3://my-backup-bucket?region=us-west-2&access_key_id=AKIA...&secret_access_key=...",
+      "description": "Read-only backup storage",
+      "readonly": true,
+      "timeout": 90,
+      "retry_attempts": 3,
+      "validate_connection": false
+    },
+    {
+      "name": "webdav-docs",
+      "url": "webdav://docs.company.com/shared?username=api_user&password=secure_pass",
+      "description": "Company document server via WebDAV",
+      "readonly": false,
+      "timeout": 45,
+      "retry_attempts": 2,
+      "validate_connection": true
+    },
+    {
+      "name": "memory-cache",
+      "url": "memory:///",
+      "description": "In-memory temporary storage for testing and caching",
+      "readonly": false,
+      "timeout": 10,
+      "retry_attempts": 1,
+      "validate_connection": false
+    },
+    {
+      "name": "ftp-legacy",
+      "url": "ftp://legacy.server.com:21?username=ftpuser&password=ftppass",
+      "description": "Legacy FTP server (read-only access)",
+      "readonly": true,
+      "timeout": 120,
+      "retry_attempts": 3,
+      "validate_connection": true
+    }
+  ]
+}
