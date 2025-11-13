@@ -1,6 +1,6 @@
 [project]
 name = "mcp-executor"
-version = "0.1.0"
+version = "0.1.1"
 description = "Run a FastMCP proxy that lists and invokes every MCP tool from the CLI or an HTTP server."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -52,6 +52,8 @@ source-include = ["README.md", "LICENSE", "mcp.json.example"]
 
 [tool.pyproject-runner.tasks]
 lint = "uvx ruff check --fix"
+build = "uv build"
+publish = "uv publish --token $PYPI_API_TOKEN"
 
 [tool.ruff]
 target-version = "py311"

@@ -1,6 +1,6 @@
 [project]
 name = "mcp-fs"
-version = "0.1.8"
+version = "0.1.1"
 description = "MCP-FS is an MCP server that supports managing multiple types of file systems, such as local FS, S3, R2, B2, WebDAV, and others, in one MCP server. It is built on top of OpenDAL."
 readme = "README.md"
 authors = [{ name = "Vaayne", email = "liu.vaayne@gmail.com" }]
@@ -56,6 +56,8 @@ source-include = ["README.md", "LICENSE"]
 
 [tool.pyproject-runner.tasks]
 lint = "uvx ruff check --fix"
+build = "uv build"
+publish = "uv publish --token $PYPI_API_TOKEN"
 
 [tool.ruff]
 target-version = "py311"
