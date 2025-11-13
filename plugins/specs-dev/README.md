@@ -15,13 +15,13 @@ Specs-Dev puts you in control of AI-assisted development with a disciplined, rev
 
 ## How It Differs from Standard AI Coding
 
-| Standard AI Coding | Specs-Dev Workflow |
-| --- | --- |
-| AI starts coding immediately | Plan first, then approve before any code |
-| You review code after it's written | Codex reviews plans before you see them |
-| Fix issues after implementation | Catch architectural issues during planning |
-| Context scattered across conversation | Focused sub-agents with clear responsibilities |
-| Ad-hoc commits | Structured tasks with Codex-reviewed implementations |
+| Standard AI Coding                    | Specs-Dev Workflow                                   |
+| ------------------------------------- | ---------------------------------------------------- |
+| AI starts coding immediately          | Plan first, then approve before any code             |
+| You review code after it's written    | Codex reviews plans before you see them              |
+| Fix issues after implementation       | Catch architectural issues during planning           |
+| Context scattered across conversation | Focused sub-agents with clear responsibilities       |
+| Ad-hoc commits                        | Structured tasks with Codex-reviewed implementations |
 
 **The Specs-Dev Advantage**: Double validation at every stage (AI review + human approval) means fewer surprises, better quality, and you stay in control.
 
@@ -46,12 +46,14 @@ For iterative development, keep this repository registered as a local marketplac
 ## Workflow at a Glance
 
 **Planning Phase** (with approval gates):
+
 1. `/specs-dev:plan {feature}` – Gather requirements through guided questions
 2. **→ Codex reviews plan** – Codex analyzes the plan for issues, edge cases, and improvements
 3. **→ You approve** – Review the Codex-validated plan before any code is written
 4. Session folder created with `plan.md` and `tasks.md`
 
 **Implementation Phase** (with review loops):
+
 1. `/specs-dev:impl {session-folder}` – Implements tasks one by one using specialized sub-agents
 2. For each task:
    - Task-implementer agent writes focused code changes (1-3 files)

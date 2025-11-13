@@ -28,11 +28,13 @@ uv build
 ## Architecture
 
 **Core Components:**
+
 - `mcp_server.py` - MCP server with 13 tools (7 file ops + 6 backend management)
 - `backend_manager.py` - Multi-backend management with health monitoring
 - `dal.py` - OpenDAL abstraction layer
 
 **Key Features:**
+
 - Multi-backend support (local, S3, WebDAV, FTP, HTTP, memory, etc.)
 - Dual transport: stdio (local) and HTTP (remote)
 - Single-backend mode with --url option

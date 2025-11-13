@@ -3,4 +3,9 @@ dprint = "latest"
 
 [tasks.fmt]
 description = "Format code using dprint"
-run = "dprint fmt"
+run = """
+# Format Python code
+uvx ruff check --fix
+# Format other supported files using dprint
+dprint fmt
+"""

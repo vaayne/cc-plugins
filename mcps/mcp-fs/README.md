@@ -29,6 +29,7 @@ mcp-fs "memory://"
 ### Multi-Backend with Config File
 
 Create `backends.json`:
+
 ```json
 {
   "backends": [
@@ -48,6 +49,7 @@ Create `backends.json`:
 ```
 
 Run with config:
+
 ```bash
 # Stdio (default)
 mcp-fs backends.json
@@ -73,6 +75,7 @@ Options:
 ### Available Tools
 
 **File Operations:**
+
 - `list_files(path, backend=None)` - List files and directories
 - `read_file(path, backend=None)` - Read file contents
 - `write_file(path, content, backend=None)` - Write to file
@@ -82,6 +85,7 @@ Options:
 - `stat_file(path, backend=None)` - Get file metadata
 
 **Backend Management:**
+
 - `register_backend(name, url, ...)` - Add new backend
 - `list_backends()` - Show all backends
 - `set_default_backend(name)` - Set default backend
@@ -90,31 +94,27 @@ Options:
 
 ## Supported Backends
 
-| Type | URL Example |
-|------|-------------|
-| Local | `fs://` |
-| S3 | `s3://bucket?region=us-east-1&access_key_id=...` |
+| Type   | URL Example                                            |
+| ------ | ------------------------------------------------------ |
+| Local  | `fs://`                                                |
+| S3     | `s3://bucket?region=us-east-1&access_key_id=...`       |
 | WebDAV | `webdav://server.com/path?username=user&password=pass` |
-| Memory | `memory://` |
-| FTP | `ftp://server.com?username=user&password=pass` |
-| HTTP | `https://api.example.com` |
+| Memory | `memory://`                                            |
+| FTP    | `ftp://server.com?username=user&password=pass`         |
+| HTTP   | `https://api.example.com`                              |
 
 ## Examples
 
 ### Cross-Backend Copy
+
 ```python
-# Backup to S3
-copy_file("/local/file.txt", "/backup/file.txt",
-          src_backend="local", dst_backend="s3-backup")
+Found 2 errors (2 fixed, 0 remaining).
 ```
 
 ### Runtime Backend Management
-```python
-# Add temporary backend
-register_backend("temp", "memory://", description="Temp storage")
 
-# Use it
-write_file("/test.txt", "content", backend="temp")
+```python
+All checks passed!
 ```
 
 ## Development

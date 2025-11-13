@@ -8,10 +8,10 @@ license = { file = "LICENSE" }
 requires-python = ">=3.12"
 
 dependencies = [
-    "fastmcp>=2.13.0",
-    "opendal>=0.45.20",
-    "uvicorn>=0.35.0",
-    "click>=8.1.0",
+  "fastmcp>=2.13.0",
+  "opendal>=0.45.20",
+  "uvicorn>=0.35.0",
+  "click>=8.1.0",
 ]
 keywords = ["mcp", "filesystem", "opendal", "s3", "webdav"]
 classifiers = [
@@ -34,10 +34,10 @@ Issues = "https://github.com/vaayne/cc-plugins/issues"
 
 [dependency-groups]
 dev = [
-    "ruff>=0.8.0",
-    "mypy>=1.13.0",
-    "pytest>=8.0.0",
-    "pyproject-runner>=0.3",
+  "ruff>=0.8.0",
+  "mypy>=1.13.0",
+  "pytest>=8.0.0",
+  "pyproject-runner>=0.3",
 ]
 
 [tool.uv]
@@ -63,16 +63,16 @@ line-length = 88
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
+  "E", # pycodestyle errors
+  "W", # pycodestyle warnings
+  "F", # pyflakes
+  "I", # isort
+  "B", # flake8-bugbear
+  "C4", # flake8-comprehensions
+  "UP", # pyupgrade
 ]
 ignore = [
-    "E501", # line too long, handled by formatter
+  "E501", # line too long, handled by formatter
 ]
 
 [tool.ruff.format]
