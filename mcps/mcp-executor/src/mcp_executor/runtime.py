@@ -1,4 +1,4 @@
-"""Core runtime helpers for the tools-executor CLI and FastMCP server."""
+"""Core runtime helpers for the mcp-executor CLI and FastMCP server."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from mcp.types import Tool
 
 __all__ = ["ToolExecutor", "executor", "mcp", "list_tools", "call_tool"]
 
-mcp = FastMCP("ToolsExecutor", version="v0.0.1")
+mcp = FastMCP("MCPExecutor", version="v0.0.1")
 
 LIST_TOOLS_TMPL = Template(
     """

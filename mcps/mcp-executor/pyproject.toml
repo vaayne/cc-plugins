@@ -1,5 +1,5 @@
 [project]
-name = "tools-executor"
+name = "mcp-executor"
 version = "0.1.0"
 description = "Run a FastMCP proxy that lists and invokes every MCP tool from the CLI or an HTTP server."
 readme = "README.md"
@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tools-executor = "tools_executor.cli:cli"
+mcp-executor = "mcp_executor.cli:cli"
 
 [build-system]
 requires = ["uv_build>=0.9.5,<0.10.0"]

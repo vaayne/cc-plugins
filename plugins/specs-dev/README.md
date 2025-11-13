@@ -43,11 +43,11 @@ For iterative development, keep this repository registered as a local marketplac
 - `commands/` – Markdown specs that power the `/spec:*` commands.
 - `hooks/` – Optional automation hooks (empty placeholder today).
 - `skills/` – Reusable skills that provide specialized capabilities and workflows:
-  - `mcp-tools-executor/` – Generate and execute CLI tools from MCP (Model Context Protocol) servers
+  - `mcp-executor/` – Generate and execute CLI tools from MCP (Model Context Protocol) servers
 
 ## Available Skills
 
-### mcp-tools-executor
+### mcp-executor
 
 Generate and execute CLI tools from MCP (Model Context Protocol) servers.
 
@@ -69,7 +69,7 @@ Generate and execute CLI tools from MCP (Model Context Protocol) servers.
 - Discovering what MCP tools are available in the environment
 - Executing MCP tool operations through Python scripts
 
-See `skills/mcp-tools-executor/SKILLS.md` for complete documentation.
+See `skills/mcp-executor/SKILLS.md` for complete documentation.
 
 ## Workflow at a Glance
 

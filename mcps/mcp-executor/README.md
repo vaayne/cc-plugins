@@ -1,6 +1,6 @@
-# tools-executor
+# mcp-executor
 
-`tools-executor` is a lightweight FastMCP driver that discovers every MCP tool
+`mcp-executor` is a lightweight FastMCP driver that discovers every MCP tool
 exposed by your configured backends, prints Python-like signatures, and lets you
 invoke them either from the command line or through a minimal FastMCP server.
 
@@ -16,13 +16,13 @@ invoke them either from the command line or through a minimal FastMCP server.
 ## Installation
 
 ```bash
-pip install tools-executor
+pip install mcp-executor
 ```
 
 or, if you prefer the `uv` toolchain:
 
 ```bash
-uv tool install tools-executor
+uv tool install mcp-executor
 ```
 
 ## Configuration
@@ -32,7 +32,7 @@ workspace, adjust the upstream server definitions, and pass the path with
 `-c/--config`.
 
 ```bash
-cp mcp.json.example ~/.config/tools-executor/mcp.json
+cp mcp.json.example ~/.config/mcp-executor/mcp.json
 ```
 
 ## Usage
@@ -40,19 +40,19 @@ cp mcp.json.example ~/.config/tools-executor/mcp.json
 List available tools and inspect their signatures:
 
 ```bash
-tools-executor list -c ~/.config/tools-executor/mcp.json
+mcp-executor list -c ~/.config/mcp-executor/mcp.json
 ```
 
 Call a tool directly:
 
 ```bash
-tools-executor call -c ~/.config/tools-executor/mcp.json weather --arg city="Lisbon"
+mcp-executor call -c ~/.config/mcp-executor/mcp.json weather --arg city="Lisbon"
 ```
 
 Run the FastMCP server (HTTP by default):
 
 ```bash
-tools-executor serve -c ~/.config/tools-executor/mcp.json --transport http --host 0.0.0.0 --port 23456
+mcp-executor serve -c ~/.config/mcp-executor/mcp.json --transport http --host 0.0.0.0 --port 23456
 ```
 
 Every command shares the `--config` option so you can point at different MCP
@@ -63,7 +63,7 @@ client definitions per invocation.
 ```bash
 uv venv --seed
 uv sync
-uv run tools-executor list -c mcp.json.example
+uv run mcp-executor list -c mcp.json.example
 ```
 
 The repository still ships `main.py` so you can run `./main.py list ...` directly
@@ -75,7 +75,7 @@ with `uv run` if you prefer scripting locally.
 2. Build and verify the artifacts:
    ```bash
    uv build
-   uv run python -m tools_executor.cli --help
+   uv run python -m mcp_executor.cli --help
    ```
 3. Publish to PyPI with an API token (create one under your PyPI account and
    store it securely):
