@@ -4,17 +4,18 @@ version = "0.1.0"
 description = "Run a FastMCP proxy that lists and invokes every MCP tool from the CLI or an HTTP server."
 readme = "README.md"
 requires-python = ">=3.12"
-authors = [
-    { name = "LiuVaayne" },
-]
+authors = [{ name = "Vaayne", email = "liu.vaayne@gmail.com" }]
 license = { file = "LICENSE" }
 keywords = ["mcp", "fastmcp", "automation", "cli", "tools"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 dependencies = [
@@ -30,14 +31,61 @@ mcp-executor = "mcp_executor.cli:cli"
 requires = ["uv_build>=0.9.5,<0.10.0"]
 build-backend = "uv_build"
 
+[project.urls]
+Homepage = "https://github.com/vaayne/cc-plugins"
+Repository = "https://github.com/vaayne/cc-plugins"
+Issues = "https://github.com/vaayne/cc-plugins/issues"
+
 [dependency-groups]
-dev = ["pyproject-runner>=0.3"]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.0.0",
+    "pyproject-runner>=0.3",
+]
 
 [tool.uv]
 package = true
 
 [tool.uv.build-backend]
-source-include = ["mcp.json.example"]
+source-include = ["README.md", "LICENSE", "mcp.json.example"]
 
 [tool.pyproject-runner.tasks]
 lint = "uvx ruff check --fix"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
+]
+ignore = [
+    "E501",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+strict_optional = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
