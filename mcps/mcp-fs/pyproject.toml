@@ -1,0 +1,89 @@
+[project]
+name = "mcp-fs"
+version = "0.1.8"
+description = "MCP-FS is an MCP server that supports managing multiple types of file systems, such as local FS, S3, R2, B2, WebDAV, and others, in one MCP server. It is built on top of OpenDAL."
+readme = "README.md"
+authors = [{ name = "Vaayne", email = "liu.vaayne@gmail.com" }]
+license = { text = "MIT" }
+requires-python = ">=3.12"
+
+dependencies = [
+    "mcp>=1.11.0",
+    "opendal>=0.45.20",
+    "uvicorn>=0.35.0",
+]
+keywords = ["mcp", "filesystem", "opendal", "s3", "webdav"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: System :: Filesystems",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/vaayne/cc-plugins"
+Repository = "https://github.com/vaayne/cc-plugins"
+Issues = "https://github.com/vaayne/cc-plugins/issues"
+
+[dependency-groups]
+dev = ["ruff>=0.8.0", "mypy>=1.13.0", "pytest>=8.0.0"]
+
+[tool.uv]
+package = true
+
+[project.scripts]
+mcp-fs = "mcp_fs.mcp_server:main"
+mfs = "mcp_fs.mcp_server:main"
+
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_fs"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/README.md", "/LICENSE", "/pyproject.toml"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long, handled by formatter
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+strict_optional = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
