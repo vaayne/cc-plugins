@@ -182,6 +182,7 @@ name = "mcp-fs"
 version = "0.1.8"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "mcp" },
     { name = "opendal" },
     { name = "uvicorn" },
@@ -196,6 +197,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.1.0" },
     { name = "mcp", specifier = ">=1.11.0" },
     { name = "opendal", specifier = ">=0.45.20" },
     { name = "uvicorn", specifier = ">=0.35.0" },

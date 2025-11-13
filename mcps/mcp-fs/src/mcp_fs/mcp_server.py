@@ -3,7 +3,6 @@ import logging
 from typing import Any
 
 import opendal
-import uvicorn
 from mcp.server.fastmcp import FastMCP
 
 from mcp_fs.backend_manager import BackendManager
@@ -439,78 +438,3 @@ def load_config_from_file(config_path: str) -> None:
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON in configuration file: {e}")
         raise
-
-
-def main() -> int:
-    """Main entry point for the MCP server."""
-    import argparse
-
-    parser = argparse.ArgumentParser(description="MCP-FS Server")
-    parser.add_argument(
-        "--config", help="JSON configuration file with backend definitions"
-    )
-    parser.add_argument(
-        "--transport",
-        choices=["stdio", "http"],
-        default="stdio",
-        help="Transport mechanism",
-    )
-    parser.add_argument(
-        "--port", type=int, default=8000, help="Port for HTTP transport (default: 8000)"
-    )
-    parser.add_argument(
-        "--host",
-        default="localhost",
-        help="Host for HTTP transport (default: localhost)",
-    )
-
-    # For backward compatibility with single URL argument
-    parser.add_argument("url", nargs="?", help="Backend URL (for single backend mode)")
-
-    args = parser.parse_args()
-
-    logger.info("Starting MCP-FS Server")
-
-    # Handle configuration and backend setup
-    if args.config:
-        # Explicit config file specified
-        try:
-            load_config_from_file(args.config)
-            logger.info(f"Loaded configuration from {args.config}")
-        except Exception as e:
-            logger.error(f"Failed to load configuration: {e}")
-            return 1
-    elif args.url:
-        # Check if the URL argument is actually a config file or a URL
-        if args.url.endswith(".json"):
-            # It's a config file
-            try:
-                load_config_from_file(args.url)
-                logger.info(f"Loaded configuration from {args.url}")
-            except Exception as e:
-                logger.error(f"Failed to load configuration: {e}")
-                return 1
-        else:
-            # It's a URL for single backend mode
-            logger.info(f"Single backend mode with URL: {args.url}")
-            backend_manager.register_backend(
-                name="default",
-                url=args.url,
-                description="Legacy single backend",
-                set_as_default=True,
-            )
-
-    # Start the server
-    if args.transport == "stdio":
-        logger.info("Starting server with stdio transport")
-        mcp.run(transport="stdio")
-    elif args.transport == "http":
-        logger.info(f"Starting server with HTTP transport on {args.host}:{args.port}")
-        app = mcp.streamable_http_app()
-        uvicorn.run(app, host=args.host, port=args.port)
-
-    return 0
-
-
-if __name__ == "__main__":
-    exit(main())

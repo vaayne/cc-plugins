@@ -11,6 +11,7 @@ dependencies = [
     "mcp>=1.11.0",
     "opendal>=0.45.20",
     "uvicorn>=0.35.0",
+    "click>=8.1.0",
 ]
 keywords = ["mcp", "filesystem", "opendal", "s3", "webdav"]
 classifiers = [
@@ -38,8 +39,8 @@ dev = ["ruff>=0.8.0", "mypy>=1.13.0", "pytest>=8.0.0"]
 package = true
 
 [project.scripts]
-mcp-fs = "mcp_fs.mcp_server:main"
-mfs = "mcp_fs.mcp_server:main"
+mcp-fs = "mcp_fs.cli:main"
+mfs = "mcp_fs.cli:main"
 
 [build-system]
 requires = ["hatchling>=1.21.0"]
