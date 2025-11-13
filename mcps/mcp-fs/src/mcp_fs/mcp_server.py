@@ -3,7 +3,7 @@ import logging
 from typing import Any
 
 import opendal
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 from mcp_fs.backend_manager import BackendManager
 

@@ -9,13 +9,14 @@ uv sync
 # Run tests (NOTE: No tests currently exist)
 uv run pytest
 
-# Run server locally
-uv run mcp-fs "memory://"
-uv run mcp-fs --transport http "memory://"
+# Run server locally (defaults to memory:// backend)
+uv run mcp-fs
+uv run mcp-fs -u "fs:///tmp"
+uv run mcp-fs -t http
 
 # Run with config
-uv run mcp-fs examples/demo_config.json
-uv run mcp-fs --transport http --config examples/demo_config.json --port 8080
+uv run mcp-fs --config examples/demo_config.json
+uv run mcp-fs -c examples/demo_config.json -t http -p 8080
 
 # Build package
 uv build
@@ -34,15 +35,15 @@ uv build
 **Key Features:**
 - Multi-backend support (local, S3, WebDAV, FTP, HTTP, memory, etc.)
 - Dual transport: stdio (local) and HTTP (remote)
-- Backward compatible single-backend mode
+- Single-backend mode with --url option
 - Read-only backend protection
 - Runtime backend registration/removal
 
 ## Testing
 
 ```bash
-# Memory backend for testing
-uv run mcp-fs "memory://"
+# Memory backend for testing (default)
+uv run mcp-fs
 
 # Multi-backend test config
 echo '{
@@ -52,7 +53,7 @@ echo '{
   ]
 }' > test_config.json
 
-uv run mcp-fs test_config.json
+uv run mcp-fs --config test_config.json
 ```
 
 ## Development Tasks

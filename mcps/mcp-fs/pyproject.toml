@@ -8,7 +8,7 @@ license = { text = "MIT" }
 requires-python = ">=3.12"
 
 dependencies = [
-    "mcp>=1.11.0",
+    "fastmcp>=2.13.0",
     "opendal>=0.45.20",
     "uvicorn>=0.35.0",
     "click>=8.1.0",
