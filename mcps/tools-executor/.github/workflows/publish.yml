@@ -1,0 +1,42 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run smoke tests
+        run: |
+          uv run python -m compileall tools_executor
+          uv run python -m tools_executor.cli --help
+
+      - name: Build artifacts
+        run: uv build
+
+      - name: Verify PyPI token
+        run: |
+          if [ -z "$PYPI_API_TOKEN" ]; then
+            echo "PYPI_API_TOKEN secret is not configured." >&2
+            exit 1
+          fi
+
+      - name: Publish to PyPI
+        run: uv publish --token "$PYPI_API_TOKEN"
