@@ -1,0 +1,43 @@
+[project]
+name = "mcp-executor"
+version = "0.1.0"
+description = "Run a FastMCP proxy that lists and invokes every MCP tool from the CLI or an HTTP server."
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "LiuVaayne" },
+]
+license = { file = "LICENSE" }
+keywords = ["mcp", "fastmcp", "automation", "cli", "tools"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = [
+    "click>=8.3.0",
+    "fastmcp>=2.13.0.2",
+    "jinja2>=3.1.6",
+]
+
+[project.scripts]
+mcp-executor = "mcp_executor.cli:cli"
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["pyproject-runner>=0.3"]
+
+[tool.uv]
+package = true
+
+[tool.uv.build-backend]
+source-include = ["mcp.json.example"]
+
+[tool.pyproject-runner.tasks]
+lint = "uvx ruff check --fix"
