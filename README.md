@@ -1,70 +1,94 @@
 # cc-plugins
 
-A curated collection of Claude Code plugins for enhanced development workflows.
+A curated collection of Claude Code plugins and MCP servers for enhanced development workflows.
 
-## Installation
+## Overview
 
-Install this plugin marketplace in Claude Code by running:
+This repository provides two types of development tools:
+
+- **Claude Code Plugins**: Extend Claude Code with custom slash commands and workflows
+- **MCP Servers**: Standalone Model Context Protocol servers for tool integration
+
+## Plugin Marketplace
+
+### Installation
+
+Install this plugin marketplace in Claude Code:
 
 ```bash
 /plugin marketplace add vaayne/cc-plugins
 ```
 
-## Available Plugins
+### Available Plugins
 
-### [specs-dev](./plugins/specs-dev/)
+#### [specs-dev](./plugins/specs-dev/)
 
-Spec-driven feature development workflow with Codex review. Combines iterative requirements gathering, comprehensive planning, and structured implementation with continuous AI-powered code review. Produces production-ready code with proper planning documentation and clean, incremental commits.
+Spec-driven development with Codex review. Features AI-reviewed planning, human approval gates, and structured implementation workflow.
+
+**Commands:** `/specs-dev:plan`, `/specs-dev:impl`
+
+## MCP Servers
+
+Independent MCP servers that can be used with any MCP client.
+
+### [mcp-fs](./mcps/mcp-fs/)
+
+Unified file system access across multiple backends (S3, WebDAV, FTP, local).
+
+```bash
+uvx mcp-fs "fs://"  # Local filesystem
+```
+
+### [mcp-executor](./mcps/mcp-executor/)
+
+MCP tool discovery and execution with CLI interface.
+
+```bash
+uvx mcp-executor list -c mcp.json
+```
 
 ## Development
 
-This project uses [mise](https://mise.jdx.dev/) for dependency management and task automation.
-
 ### Prerequisites
 
-Install mise:
+- [mise](https://mise.jdx.dev/) - Development environment management
+- [uv](https://github.com/astral-sh/uv) - Python package management
+
+### Quick Start
 
 ```bash
-# macOS
-brew install mise
-
-# Or use the official installer
-curl https://mise.run | sh
+git clone https://github.com/vaayne/cc-plugins.git
+cd cc-plugins
+mise install
 ```
 
-### Setup
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/vaayne/cc-plugins.git
-   cd cc-plugins
-   ```
-
-2. Install dependencies with mise:
-   ```bash
-   mise install
-   ```
-
-3. Run available tasks:
-   ```bash
-   mise tasks
-   ```
-
-## Plugin Structure
+### Project Structure
 
 ```
-.claude-plugin/
-  marketplace.json       # Plugin marketplace metadata
-plugins/
-  specs-dev/            # Spec-driven development plugin
-    README.md           # Plugin documentation
-    commands/           # Slash commands
+cc-plugins/
+├── plugins/          # Claude Code plugins
+├── mcps/            # MCP servers
+├── .claude-plugin/  # Marketplace metadata
+├── dprint.json      # Code formatting
+└── mise.toml        # Task automation
+```
+
+See individual directories for detailed development guides.
+
+### Code Quality
+
+```bash
+# Format all code
+mise run fmt
 ```
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+- **Plugins**: Add to `plugins/` with README documentation
+- **MCP Servers**: Add to `mcps/` with standalone README
+- Run `mise run fmt` before committing
+- See subdirectories for specific contribution guidelines
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE).
+[MIT License](./LICENSE)
