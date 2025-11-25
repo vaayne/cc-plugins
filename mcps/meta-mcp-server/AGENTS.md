@@ -13,11 +13,11 @@
 
 ## Build, Test, and Development Commands
 
-- `npm install` — install all dependencies.
-- `npm run build` — compile TypeScript to `dist/`.
-- `npm run dev -- -c config.json` — run in development mode with auto-reload.
-- `npm start -- -c config.json` — run the built server with a config file.
-- `npm run clean` — remove the `dist/` directory.
+- `bun install` — install all dependencies.
+- `bun run build` — compile TypeScript to `dist/` using tsc.
+- `bun run dev -- -c config.json` — run in development mode with auto-reload.
+- `bun start -- -c config.json` — run the built server with a config file.
+- `bun run clean` — remove the `dist/` directory.
 
 ## Coding Style & Naming Conventions
 
@@ -31,7 +31,7 @@
 
 - Test the server with sample configurations before deployment.
 - Use MCP Inspector for interactive testing: `npx @modelcontextprotocol/inspector`.
-- Verify TypeScript compilation with `npm run build`.
+- Verify TypeScript compilation with `bun run build`.
 
 ## Commit & Pull Request Guidelines
 
