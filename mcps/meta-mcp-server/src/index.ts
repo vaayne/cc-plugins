@@ -29,7 +29,7 @@ import { ToolGenerator } from "./generator/index.js";
 import { codeSearchIndex } from "./search/index.js";
 import { tsEvalRuntime } from "./runtime/eval-ts.js";
 import { mcpServer } from "./mcp-server.js";
-import { MetaServerConfigSchema, type MetaServerConfig } from "./types.js";
+import { MetaServerConfigSchema, type MetaServerConfig, type ServerConfig, type McpServerEntry } from "./types.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -39,8 +39,37 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 class MetaMcpOrchestrator {
   private config: MetaServerConfig | null = null;
+  private servers: ServerConfig[] = [];
   private generator: ToolGenerator | null = null;
   private initialized = false;
+
+  /**
+   * Convert mcpServers config to internal ServerConfig array
+   */
+  private parseServers(mcpServers: Record<string, McpServerEntry>): ServerConfig[] {
+    return Object.entries(mcpServers).map(([id, entry]) => {
+      // Determine transport type
+      let transport: "http" | "sse" | "stdio";
+      if (entry.transport) {
+        transport = entry.transport;
+      } else if (entry.url) {
+        transport = "http";
+      } else if (entry.command) {
+        transport = "stdio";
+      } else {
+        throw new Error(`Server '${id}' must have either 'url' or 'command'`);
+      }
+
+      return {
+        id,
+        transport,
+        url: entry.url,
+        command: entry.command,
+        args: entry.args,
+        env: entry.env,
+      };
+    });
+  }
 
   /**
    * Load configuration from file
@@ -55,7 +84,10 @@ class MetaMcpOrchestrator {
     this.config.toolsOutputDir = path.resolve(configDir, this.config.toolsOutputDir);
     this.config.searchIndexPath = path.resolve(configDir, this.config.searchIndexPath);
 
-    console.error(`Loaded config with ${this.config.servers.length} server(s)`);
+    // Parse servers from mcpServers object
+    this.servers = this.parseServers(this.config.mcpServers);
+
+    console.error(`Loaded config with ${this.servers.length} server(s)`);
   }
 
   /**
@@ -69,7 +101,7 @@ class MetaMcpOrchestrator {
     console.error("Initializing Meta MCP Server...");
 
     // Configure external servers manager
-    externalServersManager.configure(this.config.servers);
+    externalServersManager.configure(this.servers);
 
     // Create generator
     this.generator = new ToolGenerator(this.config.toolsOutputDir);
@@ -207,21 +239,20 @@ Options:
 
 Configuration File Format:
 {
-  "servers": [
-    {
-      "id": "serverA",
-      "name": "Server A",
-      "transport": "http",
-      "endpoint": "http://localhost:4001/mcp"
+  "mcpServers": {
+    "serverA": {
+      "url": "http://localhost:4001/mcp"
     },
-    {
-      "id": "serverB",
-      "name": "Server B",
+    "serverB": {
+      "transport": "sse",
+      "url": "http://localhost:64342/sse"
+    },
+    "serverC": {
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "some-mcp-server"]
     }
-  ],
+  },
   "toolsOutputDir": "./src/tools",
   "searchIndexPath": "./search-index"
 }

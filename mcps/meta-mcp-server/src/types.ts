@@ -8,25 +8,39 @@ import { z } from "zod";
 // Configuration Types
 // ============================================================================
 
-export const ServerConfigSchema = z.object({
-  id: z.string().describe("Unique identifier for the server"),
-  name: z.string().describe("Human-readable name for the server"),
-  transport: z.enum(["http", "stdio"]).describe("Transport protocol"),
-  endpoint: z.string().optional().describe("HTTP endpoint URL (required for http transport)"),
+/**
+ * Server configuration schema matching Claude Desktop's MCP config format.
+ * The server ID is derived from the key in the mcpServers object.
+ */
+export const McpServerEntrySchema = z.object({
+  transport: z.enum(["http", "sse", "stdio"]).optional().describe("Transport protocol (defaults to http/sse if url is present, stdio if command is present)"),
+  url: z.string().optional().describe("HTTP/SSE endpoint URL"),
   command: z.string().optional().describe("Command to run (required for stdio transport)"),
   args: z.array(z.string()).optional().describe("Arguments for stdio command"),
   env: z.record(z.string()).optional().describe("Environment variables for stdio command"),
 });
 
-export type ServerConfig = z.infer<typeof ServerConfigSchema>;
+export type McpServerEntry = z.infer<typeof McpServerEntrySchema>;
 
 export const MetaServerConfigSchema = z.object({
-  servers: z.array(ServerConfigSchema),
+  mcpServers: z.record(McpServerEntrySchema).describe("Map of server ID to server configuration"),
   toolsOutputDir: z.string().default("./src/tools").describe("Output directory for generated TS wrappers"),
   searchIndexPath: z.string().default("./search-index").describe("Path for search index storage"),
 });
 
 export type MetaServerConfig = z.infer<typeof MetaServerConfigSchema>;
+
+/**
+ * Internal server config with resolved ID and transport type.
+ */
+export interface ServerConfig {
+  id: string;
+  transport: "http" | "sse" | "stdio";
+  url?: string;
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
 
 // ============================================================================
 // External Tool Types

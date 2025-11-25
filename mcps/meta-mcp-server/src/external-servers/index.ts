@@ -7,6 +7,7 @@
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import type { ServerConfig, ExternalToolMeta } from "../types.js";
@@ -31,8 +32,8 @@ export class ExternalServersManager {
    * Validate server configuration
    */
   private validateConfig(config: ServerConfig): void {
-    if (config.transport === "http" && !config.endpoint) {
-      throw new Error(`Server '${config.id}' with http transport requires an endpoint`);
+    if ((config.transport === "http" || config.transport === "sse") && !config.url) {
+      throw new Error(`Server '${config.id}' with ${config.transport} transport requires a url`);
     }
     if (config.transport === "stdio" && !config.command) {
       throw new Error(`Server '${config.id}' with stdio transport requires a command`);
@@ -70,7 +71,11 @@ export class ExternalServersManager {
   private createTransport(config: ServerConfig) {
     if (config.transport === "http") {
       return new StreamableHTTPClientTransport(
-        new URL(config.endpoint!)
+        new URL(config.url!)
+      );
+    } else if (config.transport === "sse") {
+      return new SSEClientTransport(
+        new URL(config.url!)
       );
     } else {
       return new StdioClientTransport({

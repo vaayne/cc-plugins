@@ -1,20 +1,19 @@
 {
-  "servers": [
-    {
-      "id": "example-http",
-      "name": "Example HTTP Server",
-      "transport": "http",
-      "endpoint": "http://localhost:4001/mcp"
+  "mcpServers": {
+    "grep": {
+      "url": "https://mcp.grep.app"
     },
-    {
-      "id": "example-stdio",
-      "name": "Example Stdio Server",
+    "jetbrains": {
+      "transport": "sse",
+      "url": "http://localhost:64342/sse"
+    },
+    "memory": {
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {}
     }
-  ],
+  },
   "toolsOutputDir": "./src/tools",
   "searchIndexPath": "./search-index"
 }
