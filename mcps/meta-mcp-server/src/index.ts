@@ -82,7 +82,6 @@ class MetaMcpOrchestrator {
     // Resolve paths relative to config file
     const configDir = path.dirname(path.resolve(configPath));
     this.config.toolsOutputDir = path.resolve(configDir, this.config.toolsOutputDir);
-    this.config.searchIndexPath = path.resolve(configDir, this.config.searchIndexPath);
 
     // Parse servers from mcpServers object
     this.servers = this.parseServers(this.config.mcpServers);
@@ -253,8 +252,7 @@ Configuration File Format:
       "args": ["-y", "some-mcp-server"]
     }
   },
-  "toolsOutputDir": "./src/tools",
-  "searchIndexPath": "./search-index"
+  "toolsOutputDir": "./src/tools"
 }
 `);
       process.exit(0);

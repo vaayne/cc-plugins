@@ -25,7 +25,6 @@ export type McpServerEntry = z.infer<typeof McpServerEntrySchema>;
 export const MetaServerConfigSchema = z.object({
   mcpServers: z.record(McpServerEntrySchema).describe("Map of server ID to server configuration"),
   toolsOutputDir: z.string().default("./src/tools").describe("Output directory for generated TS wrappers"),
-  searchIndexPath: z.string().default("./search-index").describe("Path for search index storage"),
 });
 
 export type MetaServerConfig = z.infer<typeof MetaServerConfigSchema>;
