@@ -163,11 +163,11 @@ export type ${functionName}Output = z.infer<typeof ${functionName}OutputSchema>;
 /**
  * ${escapedDescription}
  *
- * @param input - Tool input parameters
+ * @param input - Tool input parameters (defaults to empty object)
  * @returns Tool execution result
  */
 export async function ${functionName}(
-  input: ${functionName}Input
+  input: ${functionName}Input = {} as ${functionName}Input
 ): Promise<${functionName}Output> {
   // Validate input
   const parsed = ${functionName}InputSchema.parse(input);
@@ -179,8 +179,8 @@ export async function ${functionName}(
     parsed
   );
 
-  // Validate and return result
-  return ${functionName}OutputSchema.parse(result);
+  // Return result (skip strict validation to handle various MCP response formats)
+  return result as ${functionName}Output;
 }
 `;
 }

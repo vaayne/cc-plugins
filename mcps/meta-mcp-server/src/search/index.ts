@@ -269,49 +269,79 @@ export class CodeSearchIndex {
   }
 
   /**
-   * Get a code snippet around matching terms
+   * Get a useful code snippet that includes function signature and input schema
    */
-  private getSnippet(doc: GeneratedToolInfo, query: string): string {
-    const lines = doc.sourceCode.split("\n");
-    const queryTerms = query.toLowerCase().split(/\s+/);
-
-    // Find the first line containing any query term
-    for (let i = 0; i < lines.length; i++) {
-      const lineLower = lines[i].toLowerCase();
-      if (queryTerms.some((term) => lineLower.includes(term))) {
-        // Return context around the match (3 lines before and after)
-        const start = Math.max(0, i - 2);
-        const end = Math.min(lines.length, i + 3);
-        return lines.slice(start, end).join("\n");
-      }
-    }
-
-    // Fallback: return the function signature
-    const funcMatch = doc.sourceCode.match(/export async function \w+\([^)]*\)/);
-    if (funcMatch) {
-      return funcMatch[0];
-    }
-
-    // Ultimate fallback: first 200 chars
-    return doc.sourceCode.slice(0, 200) + (doc.sourceCode.length > 200 ? "..." : "");
+  private getSnippet(doc: GeneratedToolInfo, _query: string): string {
+    return this.extractUsefulSnippet(doc);
   }
 
   /**
-   * Get a code snippet around regex matches
+   * Extract the most useful parts of the tool: signature and input schema
    */
-  private getRegexSnippet(doc: GeneratedToolInfo, regex: RegExp): string {
+  private extractUsefulSnippet(doc: GeneratedToolInfo): string {
     const lines = doc.sourceCode.split("\n");
+    const snippetParts: string[] = [];
 
-    for (let i = 0; i < lines.length; i++) {
-      regex.lastIndex = 0;
-      if (regex.test(lines[i])) {
-        const start = Math.max(0, i - 2);
-        const end = Math.min(lines.length, i + 3);
-        return lines.slice(start, end).join("\n");
+    // Find and extract the input schema (z.object({...}))
+    let inSchema = false;
+    let braceCount = 0;
+    let schemaLines: string[] = [];
+
+    for (const line of lines) {
+      // Start capturing input schema
+      if (line.includes("InputSchema = z.object(")) {
+        inSchema = true;
+        braceCount = 0;
+      }
+
+      if (inSchema) {
+        schemaLines.push(line);
+        braceCount += (line.match(/\{/g) || []).length;
+        braceCount -= (line.match(/\}/g) || []).length;
+
+        // End of schema object
+        if (braceCount <= 0 && schemaLines.length > 0) {
+          inSchema = false;
+          break;
+        }
       }
     }
 
-    return doc.sourceCode.slice(0, 200) + (doc.sourceCode.length > 200 ? "..." : "");
+    // Add input schema if found
+    if (schemaLines.length > 0) {
+      snippetParts.push("// Input Schema:");
+      snippetParts.push(schemaLines.join("\n"));
+    }
+
+    // Find and extract function signature with its JSDoc
+    const funcMatch = doc.sourceCode.match(
+      /\/\*\*[\s\S]*?\*\/\s*export async function \w+\([^)]*\):\s*Promise<[^>]+>/
+    );
+    if (funcMatch) {
+      snippetParts.push("\n// Function:");
+      snippetParts.push(funcMatch[0]);
+    } else {
+      // Try simpler function signature match
+      const simpleMatch = doc.sourceCode.match(/export async function \w+\([^)]*\):\s*Promise<[^>]+>/);
+      if (simpleMatch) {
+        snippetParts.push("\n// Function:");
+        snippetParts.push(simpleMatch[0]);
+      }
+    }
+
+    if (snippetParts.length === 0) {
+      // Fallback: first 300 chars
+      return doc.sourceCode.slice(0, 300) + (doc.sourceCode.length > 300 ? "..." : "");
+    }
+
+    return snippetParts.join("\n");
+  }
+
+  /**
+   * Get a code snippet around regex matches (now uses same useful snippet)
+   */
+  private getRegexSnippet(doc: GeneratedToolInfo, _regex: RegExp): string {
+    return this.extractUsefulSnippet(doc);
   }
 
   /**

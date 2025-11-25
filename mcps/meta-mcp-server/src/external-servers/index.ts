@@ -177,6 +177,36 @@ export class ExternalServersManager {
   }
 
   /**
+   * Eagerly connect to all configured servers
+   */
+  async connectAll(): Promise<{
+    success: string[];
+    failed: Array<{ id: string; error: string; required: boolean }>;
+  }> {
+    const success: string[] = [];
+    const failed: Array<{ id: string; error: string; required: boolean }> = [];
+
+    for (const serverId of this.getServerIds()) {
+      const config = this.configs.get(serverId)!;
+      try {
+        await this.getClient(serverId);
+        success.push(serverId);
+        console.error(`✓ Connected to '${serverId}'`);
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        failed.push({
+          id: serverId,
+          error: errorMsg,
+          required: config.required !== false,
+        });
+        console.error(`✗ Failed to connect to '${serverId}': ${errorMsg}`);
+      }
+    }
+
+    return { success, failed };
+  }
+
+  /**
    * Close all client connections
    */
   async closeAll(): Promise<void> {

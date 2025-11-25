@@ -67,6 +67,7 @@ class MetaMcpOrchestrator {
         command: entry.command,
         args: entry.args,
         env: entry.env,
+        required: entry.required,
       };
     });
   }
@@ -101,13 +102,24 @@ class MetaMcpOrchestrator {
     // Configure external servers manager
     externalServersManager.configure(this.servers);
 
+    // Eagerly connect to all configured MCPs
+    console.error("Connecting to external MCP servers...");
+    const connectionResult = await externalServersManager.connectAll();
+
+    // Check for required server failures
+    const requiredFailures = connectionResult.failed.filter((f) => f.required);
+    if (requiredFailures.length > 0) {
+      const failedIds = requiredFailures.map((f) => f.id).join(", ");
+      throw new Error(`Required MCP server(s) failed to connect: ${failedIds}`);
+    }
+
     // Create generator
     this.generator = new ToolGenerator(toolsOutputDir);
 
     // Configure eval runtime with tools directory
     tsEvalRuntime.setToolsDir(toolsOutputDir);
 
-    // Initial tool refresh
+    // Initial tool refresh (only for successfully connected servers)
     await this.refreshTools();
 
     this.initialized = true;
