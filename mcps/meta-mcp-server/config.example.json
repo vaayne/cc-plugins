@@ -29,6 +29,5 @@
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {}
     }
-  },
-  "toolsOutputDir": "./src/tools"
+  }
 }

@@ -79,10 +79,6 @@ class MetaMcpOrchestrator {
     const configData = JSON.parse(configContent);
     this.config = MetaServerConfigSchema.parse(configData);
 
-    // Resolve paths relative to config file
-    const configDir = path.dirname(path.resolve(configPath));
-    this.config.toolsOutputDir = path.resolve(configDir, this.config.toolsOutputDir);
-
     // Parse servers from mcpServers object
     this.servers = this.parseServers(this.config.mcpServers);
 
@@ -99,14 +95,17 @@ class MetaMcpOrchestrator {
 
     console.error("Initializing Meta MCP Server...");
 
+    // Default tools output directory
+    const toolsOutputDir = path.join(__dirname, "tools");
+
     // Configure external servers manager
     externalServersManager.configure(this.servers);
 
     // Create generator
-    this.generator = new ToolGenerator(this.config.toolsOutputDir);
+    this.generator = new ToolGenerator(toolsOutputDir);
 
     // Configure eval runtime with tools directory
-    tsEvalRuntime.setToolsDir(this.config.toolsOutputDir);
+    tsEvalRuntime.setToolsDir(toolsOutputDir);
 
     // Initial tool refresh
     await this.refreshTools();
@@ -251,8 +250,7 @@ Configuration File Format:
       "command": "npx",
       "args": ["-y", "some-mcp-server"]
     }
-  },
-  "toolsOutputDir": "./src/tools"
+  }
 }
 `);
       process.exit(0);
