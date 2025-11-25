@@ -1,0 +1,20 @@
+{
+  "servers": [
+    {
+      "id": "example-http",
+      "name": "Example HTTP Server",
+      "transport": "http",
+      "endpoint": "http://localhost:4001/mcp"
+    },
+    {
+      "id": "example-stdio",
+      "name": "Example Stdio Server",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {}
+    }
+  ],
+  "toolsOutputDir": "./src/tools",
+  "searchIndexPath": "./search-index"
+}

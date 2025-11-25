@@ -1,0 +1,41 @@
+{
+  "name": "meta-mcp-server",
+  "version": "1.0.0",
+  "description": "A Meta MCP Server that aggregates multiple MCP servers and exposes search_tools and eval_ts capabilities",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "meta-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "meta-server",
+    "tool-aggregation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "esbuild": "^0.24.0",
+    "express": "^4.21.0",
+    "flexsearch": "^0.7.43",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
