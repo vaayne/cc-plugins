@@ -1,28 +1,56 @@
 {
-  "name": "mcp-hub",
-  "version": "1.0.0",
+  "name": "@vaayne/mcp-hub",
+  "version": "1.0.1",
   "description": "MCP Hub - aggregates multiple MCP servers with tool discovery (search) and programmatic execution (exec)",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "mcp-hub": "dist/index.js"
   },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "config.example.json",
+    "README.md"
+  ],
   "scripts": {
     "start": "bun run dist/index.js",
     "dev": "bun --watch src/index.ts",
     "build": "tsc",
     "clean": "rm -rf dist",
     "lint": "biome check src",
-    "format": "biome check --write src"
+    "format": "biome check --write src",
+    "publish": "npm publish --access public"
   },
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "meta-server",
-    "tool-aggregation"
+    "mcp-server",
+    "tool-aggregator",
+    "ai-tools",
+    "claude",
+    "anthropic"
   ],
-  "author": "",
+  "author": "Vaayne",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vaayne/cc-plugins.git",
+    "directory": "mcps/mcp-hub"
+  },
+  "homepage": "https://github.com/vaayne/cc-plugins/tree/main/mcps/mcp-hub#readme",
+  "bugs": {
+    "url": "https://github.com/vaayne/cc-plugins/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
     "express": "^4.21.0",
@@ -35,6 +63,5 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.0",
     "typescript": "^5.7.2"
-  },
-  "private": true
+  }
 }

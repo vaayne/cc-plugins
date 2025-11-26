@@ -367,4 +367,3 @@ export default async function() {
 		}
 	},
 );
-

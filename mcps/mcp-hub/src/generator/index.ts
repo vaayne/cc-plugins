@@ -58,9 +58,7 @@ function jsonSchemaToCompactType(
 	switch (type) {
 		case "string": {
 			if (schema.enum) {
-				const values = (schema.enum as string[])
-					.map((v) => `"${v}"`)
-					.join("|");
+				const values = (schema.enum as string[]).map((v) => `"${v}"`).join("|");
 				return values;
 			}
 			return "string";

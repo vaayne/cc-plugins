@@ -7,7 +7,7 @@
 - `src/generator/` handles TypeScript wrapper code generation from tool definitions.
 - `src/search/` provides BM25 and regex search capabilities over generated code.
 - `src/runtime/` handles TypeScript code execution in a sandboxed environment.
-- `src/mcp-server.ts` registers the MCP tools (search_tools, eval_ts).
+- `src/mcp-server.ts` registers the MCP tools (`search`, `exec`).
 - `src/types.ts` contains all TypeScript type definitions and Zod schemas.
 - Generated tool wrappers go into `src/tools/<serverId>/` at runtime.
 
@@ -23,7 +23,7 @@
 
 - TypeScript strict mode enabled; avoid `any` type.
 - Use camelCase for functions/variables, PascalCase for types/classes.
-- MCP tool names use snake_case with `meta_` prefix (e.g., `meta_search_tools`).
+- MCP tool names use short, descriptive snake_case (e.g., `search`, `exec`).
 - Input schemas use Zod for validation with `.describe()` for documentation.
 - Use `as const` for literal types in MCP responses.
 
