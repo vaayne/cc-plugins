@@ -16,12 +16,12 @@ import type { SearchResultItem } from "./types.js";
 // ============================================================================
 
 export const mcpServer = new McpServer({
-	name: "meta-mcp-server",
+	name: "mcp-hub",
 	version: "1.0.0",
 });
 
 // ============================================================================
-// Tool: search_tools
+// Tool: search
 // ============================================================================
 
 const SearchToolsInputSchema = {
@@ -46,18 +46,18 @@ const SearchToolsInputSchema = {
 };
 
 mcpServer.registerTool(
-	"meta_search_tools",
+	"search",
 	{
 		title: "Search Tools",
 		description: `Search for available TypeScript tool wrappers by keyword or regex pattern.
 
-This tool discovers available MCP tools from connected servers. Use it to find tools before calling them with meta_eval_ts.
+This tool discovers available MCP tools from connected servers. Use it to find tools before calling them with exec.
 
 ## Workflow
 
 1. Search for tools using keywords or patterns
 2. Review the results to find the right tool(s)
-3. Use meta_eval_ts to execute code that imports and calls the discovered tools
+3. Use exec to execute code that imports and calls the discovered tools
 
 ## Search Modes
 
@@ -92,7 +92,7 @@ Find tools by server:
 
 - Start broad, then narrow down: search "file" before "file upload aws s3"
 - Use the returns field to understand what data you'll get back
-- Combine multiple tools in meta_eval_ts for complex workflows`,
+- Combine multiple tools in exec for complex workflows`,
 		inputSchema: SearchToolsInputSchema,
 		annotations: {
 			readOnlyHint: true,
@@ -174,10 +174,10 @@ Find tools by server:
 );
 
 // ============================================================================
-// Tool: eval_ts
+// Tool: exec
 // ============================================================================
 
-const EvalTsInputSchema = {
+const ExecInputSchema = {
 	code: z
 		.string()
 		.min(1, "Code must not be empty")
@@ -187,12 +187,12 @@ const EvalTsInputSchema = {
 };
 
 mcpServer.registerTool(
-	"meta_eval_ts",
+	"exec",
 	{
-		title: "Evaluate TypeScript",
+		title: "Execute Code",
 		description: `Execute TypeScript code that imports and calls discovered tool wrappers.
 
-Use meta_search_tools first to discover available tools, then use this tool to execute code that calls them.
+Use search first to discover available tools, then use this tool to execute code that calls them.
 
 ## Code Requirements
 
@@ -299,7 +299,7 @@ export default async function() {
 - Transform/filter data before returning to save context tokens
 - Use settle() when some calls might fail but you want partial results
 - Console.log for debugging - output appears in logs`,
-		inputSchema: EvalTsInputSchema,
+		inputSchema: ExecInputSchema,
 		annotations: {
 			readOnlyHint: false,
 			destructiveHint: true,

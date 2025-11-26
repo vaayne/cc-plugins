@@ -1,11 +1,11 @@
 {
-  "name": "meta-mcp-server",
+  "name": "mcp-hub",
   "version": "1.0.0",
-  "description": "A Meta MCP Server that aggregates multiple MCP servers and exposes search_tools and eval_ts capabilities",
+  "description": "MCP Hub - aggregates multiple MCP servers with tool discovery (search) and programmatic execution (exec)",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "meta-mcp-server": "dist/index.js"
+    "mcp-hub": "dist/index.js"
   },
   "scripts": {
     "start": "bun run dist/index.js",
