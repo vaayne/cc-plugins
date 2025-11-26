@@ -9,10 +9,9 @@ Instead of exposing all downstream MCP tools directly to LLMs, this server:
 1. **Collects** tool definitions from multiple external MCP servers
 2. **Generates** TypeScript wrapper code for each tool with Zod schemas
 3. **Indexes** the generated code for full-text (BM25) and regex search
-4. **Exposes** only 3 high-level tools:
+4. **Exposes** only 2 high-level tools:
    - `meta_search_tools`: Search for tools by keyword or pattern
    - `meta_eval_ts`: Execute TypeScript code that imports and combines tools
-   - `meta_refresh_tools`: Refresh tool definitions from external servers
 
 This approach reduces LLM context consumption by collapsing many tools into "search + execute" capabilities.
 

@@ -14,7 +14,6 @@
  * Tools exposed:
  * - meta_search_tools: Search for available tools by keyword or pattern
  * - meta_eval_ts: Execute TypeScript code using the generated tool wrappers
- * - meta_refresh_tools: Refresh tool definitions from external servers
  */
 
 import * as fs from "node:fs/promises";
