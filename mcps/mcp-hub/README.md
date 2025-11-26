@@ -32,11 +32,13 @@ Create a configuration file (e.g., [config.json](./config.example.json)`):
 ### Running
 
 **stdio transport (for local use):**
+
 ```bash
 bun start -- -c config.json
 ```
 
 **HTTP transport (for remote access):**
+
 ```bash
 bun start -- -c config.json -t http -p 3000
 ```
@@ -48,6 +50,7 @@ bun start -- -c config.json -t http -p 3000
 Search for available TypeScript tool wrappers.
 
 **Input:**
+
 ```json
 {
   "query": "search user email",
@@ -57,6 +60,7 @@ Search for available TypeScript tool wrappers.
 ```
 
 **Output:**
+
 ```json
 {
   "items": [
@@ -77,6 +81,7 @@ Search for available TypeScript tool wrappers.
 Execute TypeScript code that imports and uses tool wrappers.
 
 **Input:**
+
 ```json
 {
   "code": "import { searchUser } from \"@tools/serverA/searchUser\";\nimport { getOrders } from \"@tools/serverB/getOrders\";\n\nexport default async function() {\n  const user = await searchUser({ email: \"user@example.com\" });\n  const orders = await getOrders({ userId: user.id });\n  return { user, ordersCount: orders.length };\n}"
@@ -84,6 +89,7 @@ Execute TypeScript code that imports and uses tool wrappers.
 ```
 
 **Output:**
+
 ```json
 {
   "result": {

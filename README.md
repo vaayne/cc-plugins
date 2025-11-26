@@ -47,6 +47,14 @@ MCP tool discovery and execution with CLI interface.
 uvx mcp-executor list -c mcp.json
 ```
 
+### [mcp-hub](./mcps/mcp-hub/)
+
+MCP server aggregator that combines multiple external MCP servers into a unified search + execute interface, reducing LLM context consumption.
+
+```bash
+bun start -- -c config.json
+```
+
 ## Development
 
 ### Prerequisites
@@ -79,14 +87,14 @@ See individual directories for detailed development guides.
 
 ```bash
 # Format all code
-mise run fmt
+mise run format
 ```
 
 ## Contributing
 
 - **Plugins**: Add to `plugins/` with README documentation
 - **MCP Servers**: Add to `mcps/` with standalone README
-- Run `mise run fmt` before committing
+- Run `mise run format` before committing
 - See subdirectories for specific contribution guidelines
 
 ## License

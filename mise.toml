@@ -1,7 +1,7 @@
 [tools]
 dprint = "latest"
 
-[tasks.fmt]
+[tasks.format]
 description = "Format code using dprint"
 run = """
 # Format Python code
