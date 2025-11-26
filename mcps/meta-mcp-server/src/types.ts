@@ -18,7 +18,7 @@ export const McpServerEntrySchema = z.object({
   command: z.string().optional().describe("Command to run (required for stdio transport)"),
   args: z.array(z.string()).optional().describe("Arguments for stdio command"),
   env: z.record(z.string()).optional().describe("Environment variables for stdio command"),
-  required: z.boolean().default(true).describe("If true, server must connect successfully at startup"),
+  required: z.boolean().default(false).describe("If true, server must connect successfully at startup"),
 });
 
 export type McpServerEntry = z.infer<typeof McpServerEntrySchema>;

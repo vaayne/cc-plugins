@@ -197,7 +197,7 @@ export class ExternalServersManager {
         failed.push({
           id: serverId,
           error: errorMsg,
-          required: config.required !== false,
+          required: config.required === true,
         });
         console.error(`✗ Failed to connect to '${serverId}': ${errorMsg}`);
       }
