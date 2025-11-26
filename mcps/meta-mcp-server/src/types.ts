@@ -81,6 +81,7 @@ export interface GeneratedToolInfo {
 	filePath: string;
 	sourceCode: string;
 	description?: string;
+	returns?: string;
 }
 
 // ============================================================================
@@ -112,6 +113,7 @@ export interface SearchResultItem {
 	filePath: string;
 	description?: string;
 	snippet: string;
+	returns?: string;
 }
 
 export interface SearchResult {

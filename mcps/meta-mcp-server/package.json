@@ -12,7 +12,7 @@
     "dev": "bun --watch src/index.ts",
     "build": "tsc",
     "clean": "rm -rf dist",
-    "lint": "biome lint src",
+    "lint": "biome check src",
     "format": "biome check --write src"
   },
   "keywords": [

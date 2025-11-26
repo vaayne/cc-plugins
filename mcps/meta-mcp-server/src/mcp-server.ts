@@ -51,34 +51,48 @@ mcpServer.registerTool(
 		title: "Search Tools",
 		description: `Search for available TypeScript tool wrappers by keyword or regex pattern.
 
-This tool searches through all generated TypeScript wrappers for external MCP tools.
-It returns matching tool definitions with code snippets that can be used with eval_ts.
+This tool discovers available MCP tools from connected servers. Use it to find tools before calling them with meta_eval_ts.
 
-Search Modes:
-- 'bm25': Full-text keyword search with BM25 scoring (best for natural language queries)
-- 'regex': Regular expression pattern matching on source code
-- 'auto': Automatically detect mode based on query (default)
+## Workflow
 
-Returns:
-{
-  "items": [
-    {
-      "id": "serverId.toolName",
-      "serverId": "server identifier",
-      "toolName": "original MCP tool name",
-      "functionName": "TypeScript function name to import",
-      "filePath": "path to the generated wrapper file",
-      "description": "tool description",
-      "snippet": "relevant code snippet"
-    }
-  ],
-  "total": number
-}
+1. Search for tools using keywords or patterns
+2. Review the results to find the right tool(s)
+3. Use meta_eval_ts to execute code that imports and calls the discovered tools
 
-Example Usage:
-- Search for user-related tools: query="user search" mode="bm25"
-- Find all tools with email parameter: query="email.*string" mode="regex"
-- Auto-detect search type: query="createOrder" mode="auto"`,
+## Search Modes
+
+- 'bm25': Full-text keyword search with BM25 scoring. Best for natural language queries like "search user" or "send email".
+- 'regex': Regular expression pattern matching. Best for structural queries like "email.*string" or finding specific patterns.
+- 'auto' (default): Automatically detects mode. Uses regex if query contains special characters (.*+?^$|[]), otherwise uses bm25.
+
+## Output Format
+
+Each result includes:
+- fn: Function name to import (camelCase)
+- import: Import path, e.g., "@tools/serverId/toolName"
+- desc: Tool description (truncated to 100 chars)
+- params: Input parameters signature, e.g., "{ query: string, limit?: number }"
+- returns: Return type signature, e.g., "{ users: Array<object>, total: number }"
+
+## Examples
+
+Search for user-related tools:
+  query: "user search"
+  mode: "bm25"
+
+Find tools with email parameter:
+  query: "email.*string"
+  mode: "regex"
+
+Find tools by server:
+  query: "github"
+  mode: "bm25"
+
+## Tips
+
+- Start broad, then narrow down: search "file" before "file upload aws s3"
+- Use the returns field to understand what data you'll get back
+- Combine multiple tools in meta_eval_ts for complex workflows`,
 		inputSchema: SearchToolsInputSchema,
 		annotations: {
 			readOnlyHint: true,
@@ -105,6 +119,7 @@ Example Usage:
 					import: `@tools/${item.serverId}/${item.toolName}`,
 					desc: item.description ? item.description.slice(0, 100) : undefined,
 					params: item.snippet,
+					returns: item.returns,
 				})),
 				total: result.total,
 			};
@@ -129,6 +144,9 @@ Example Usage:
 					);
 					lines.push(`   ${desc}`);
 					lines.push(`   Params: ${item.snippet}`);
+					if (item.returns) {
+						lines.push(`   Returns: ${item.returns}`);
+					}
 					lines.push("");
 				});
 
@@ -172,40 +190,115 @@ mcpServer.registerTool(
 	"meta_eval_ts",
 	{
 		title: "Evaluate TypeScript",
-		description: `Execute TypeScript code that can import and use the generated tool wrappers.
+		description: `Execute TypeScript code that imports and calls discovered tool wrappers.
 
-This tool compiles and runs TypeScript code in a sandboxed environment.
-The code can import tools using the @tools/* alias pattern.
+Use meta_search_tools first to discover available tools, then use this tool to execute code that calls them.
 
-Code Requirements:
-- Must export a default async function that returns the result
-- Can import tool wrappers using: import { functionName } from "@tools/serverId/toolName";
-- Console output (log, warn, error) is captured and returned in 'logs'
+## Code Requirements
 
-Example Code:
+- Must export a default async function
+- Import tools using: import { fn } from "@tools/serverId/toolName"
+- Import helpers using: import { parallel, settle } from "@tools/utils"
+- Console output is captured in 'logs'
+- Timeout: 30 seconds
+
+## Usage Patterns
+
+### 1. Single Tool Call
 \`\`\`typescript
-import { searchUser } from "@tools/serverA/searchUser";
-import { getOrders } from "@tools/serverB/getOrders";
+import { searchUser } from "@tools/grep/searchUser";
 
-export default async function main() {
-  const user = await searchUser({ email: "user@example.com" });
-  const orders = await getOrders({ userId: user.id });
-  return { user, ordersCount: orders.length };
+export default async function() {
+  return await searchUser({ pattern: "admin" });
 }
 \`\`\`
 
-Returns:
-{
-  "result": <return value of the default function>,
-  "logs": ["captured console output"],
-  "error": "error message if execution failed"
-}
+### 2. Sequential Calls (when results depend on each other)
+\`\`\`typescript
+import { getUser } from "@tools/db/getUser";
+import { getOrders } from "@tools/db/getOrders";
 
-Security Notes:
-- Code runs in a sandboxed environment
-- File system access is restricted
-- Network access is limited to MCP tool calls
-- Execution timeout: 30 seconds`,
+export default async function() {
+  const user = await getUser({ email: "user@example.com" });
+  const orders = await getOrders({ userId: user.id });
+  return { user, orders };
+}
+\`\`\`
+
+### 3. Parallel Calls (independent operations - faster!)
+\`\`\`typescript
+import { parallel } from "@tools/utils";
+import { searchUsers } from "@tools/db/searchUsers";
+import { getStats } from "@tools/analytics/getStats";
+
+export default async function() {
+  const [users, stats] = await parallel(
+    searchUsers({ role: "admin" }),
+    getStats({ period: "week" })
+  );
+  return { users, stats };
+}
+\`\`\`
+
+### 4. Parallel with Error Handling
+\`\`\`typescript
+import { settle } from "@tools/utils";
+import { fetchData } from "@tools/api/fetchData";
+
+export default async function() {
+  const results = await settle(
+    fetchData({ endpoint: "/users" }),
+    fetchData({ endpoint: "/orders" }),
+    fetchData({ endpoint: "/products" })
+  );
+
+  // Filter successful results
+  const data = results
+    .filter(r => r.status === "fulfilled")
+    .map(r => r.value);
+  return data;
+}
+\`\`\`
+
+### 5. Data Transformation (reduce context usage)
+\`\`\`typescript
+import { listFiles } from "@tools/fs/listFiles";
+
+export default async function() {
+  const allFiles = await listFiles({ path: "/logs", recursive: true });
+  // Only return what's needed - saves tokens!
+  return allFiles
+    .filter(f => f.name.endsWith(".error.log"))
+    .map(f => ({ name: f.name, size: f.size }));
+}
+\`\`\`
+
+### 6. Batch Operations
+\`\`\`typescript
+import { parallelMap } from "@tools/utils";
+import { processItem } from "@tools/worker/processItem";
+
+export default async function() {
+  const items = ["a", "b", "c", "d", "e"];
+  const results = await parallelMap(items, item =>
+    processItem({ id: item })
+  );
+  return results;
+}
+\`\`\`
+
+## Output
+
+- result: Return value of your function
+- logs: Array of console.log/warn/error output
+- error: Error message if execution failed
+
+## Tips
+
+- Use parallel() for independent calls - significantly faster
+- Transform/filter data before returning to save context tokens
+- Use settle() when some calls might fail but you want partial results
+- Console.log for debugging - output appears in logs`,
 		inputSchema: EvalTsInputSchema,
 		annotations: {
 			readOnlyHint: false,

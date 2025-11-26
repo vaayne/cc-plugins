@@ -223,6 +223,7 @@ export class CodeSearchIndex {
 				filePath: doc.filePath,
 				description: doc.description,
 				snippet: this.getSnippet(doc, query),
+				returns: doc.returns,
 			});
 		}
 
@@ -256,6 +257,7 @@ export class CodeSearchIndex {
 					filePath: doc.filePath,
 					description: doc.description,
 					snippet: this.getRegexSnippet(doc, regex),
+					returns: doc.returns,
 				});
 
 				if (items.length >= limit) break;

@@ -43,6 +43,62 @@ function toFileName(toolName: string): string {
 }
 
 /**
+ * Convert JSON Schema to compact TypeScript-like type signature
+ * e.g., "{ users: Array<object>, total: number }"
+ */
+function jsonSchemaToCompactType(
+	schema: Record<string, unknown> | undefined,
+): string {
+	if (!schema) {
+		return "unknown";
+	}
+
+	const type = schema.type as string | undefined;
+
+	switch (type) {
+		case "string": {
+			if (schema.enum) {
+				const values = (schema.enum as string[])
+					.map((v) => `"${v}"`)
+					.join("|");
+				return values;
+			}
+			return "string";
+		}
+		case "number":
+		case "integer":
+			return "number";
+		case "boolean":
+			return "boolean";
+		case "array": {
+			const items = schema.items as Record<string, unknown> | undefined;
+			const itemType = jsonSchemaToCompactType(items);
+			return `Array<${itemType}>`;
+		}
+		case "object": {
+			const properties = schema.properties as
+				| Record<string, Record<string, unknown>>
+				| undefined;
+			const required = (schema.required as string[]) || [];
+
+			if (!properties || Object.keys(properties).length === 0) {
+				return "object";
+			}
+
+			const props: string[] = [];
+			for (const [propName, propSchema] of Object.entries(properties)) {
+				const propType = jsonSchemaToCompactType(propSchema);
+				const isRequired = required.includes(propName);
+				props.push(`${propName}${isRequired ? "" : "?"}: ${propType}`);
+			}
+			return `{ ${props.join(", ")} }`;
+		}
+		default:
+			return "unknown";
+	}
+}
+
+/**
  * Convert JSON Schema type to Zod schema string
  */
 function jsonSchemaToZod(
@@ -199,6 +255,125 @@ export async function ${functionName}(
 }
 
 /**
+ * Generate parallel execution utilities
+ */
+function generateUtilsModule(): string {
+	return `/**
+ * Parallel execution utilities for tool orchestration.
+ *
+ * These helpers make it easy to run multiple tool calls concurrently,
+ * reducing latency when operations are independent of each other.
+ */
+
+/**
+ * Execute multiple promises in parallel and return all results.
+ * Fails fast: if any promise rejects, the entire operation fails.
+ *
+ * @example
+ * const [users, orders] = await parallel(
+ *   getUsers({ limit: 10 }),
+ *   getOrders({ status: "pending" })
+ * );
+ *
+ * @param promises - Promises to execute in parallel
+ * @returns Array of resolved values in the same order as input
+ */
+export async function parallel<T extends readonly unknown[]>(
+  ...promises: { [K in keyof T]: Promise<T[K]> }
+): Promise<T> {
+  return Promise.all(promises) as Promise<T>;
+}
+
+/**
+ * Map over an array and execute async operations in parallel.
+ * Useful for batch processing items with the same operation.
+ *
+ * @example
+ * const results = await parallelMap(
+ *   ["user1", "user2", "user3"],
+ *   userId => getUser({ id: userId })
+ * );
+ *
+ * @param items - Array of items to process
+ * @param fn - Async function to apply to each item
+ * @returns Array of results in the same order as input
+ */
+export async function parallelMap<T, R>(
+  items: T[],
+  fn: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  return Promise.all(items.map((item, index) => fn(item, index)));
+}
+
+/**
+ * Execute multiple promises and return all results, including failures.
+ * Unlike parallel(), this never fails - it returns the status of each promise.
+ *
+ * @example
+ * const results = await settle(
+ *   fetchData({ endpoint: "/users" }),
+ *   fetchData({ endpoint: "/orders" })
+ * );
+ *
+ * // Handle results
+ * results.forEach(result => {
+ *   if (result.status === "fulfilled") {
+ *     console.log("Success:", result.value);
+ *   } else {
+ *     console.log("Failed:", result.reason);
+ *   }
+ * });
+ *
+ * @param promises - Promises to execute in parallel
+ * @returns Array of PromiseSettledResult objects
+ */
+export async function settle<T extends readonly unknown[]>(
+  ...promises: { [K in keyof T]: Promise<T[K]> }
+): Promise<{ [K in keyof T]: PromiseSettledResult<T[K]> }> {
+  return Promise.allSettled(promises) as Promise<{
+    [K in keyof T]: PromiseSettledResult<T[K]>;
+  }>;
+}
+
+/**
+ * Execute promises in parallel with a concurrency limit.
+ * Useful when you need to avoid overwhelming external services.
+ *
+ * @example
+ * const results = await parallelLimit(
+ *   urls.map(url => () => fetch(url)),
+ *   5 // Max 5 concurrent requests
+ * );
+ *
+ * @param tasks - Array of functions that return promises
+ * @param limit - Maximum number of concurrent executions
+ * @returns Array of results in the same order as input
+ */
+export async function parallelLimit<T>(
+  tasks: (() => Promise<T>)[],
+  limit: number
+): Promise<T[]> {
+  const results: T[] = new Array(tasks.length);
+  let currentIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (currentIndex < tasks.length) {
+      const index = currentIndex++;
+      results[index] = await tasks[index]();
+    }
+  }
+
+  const workers = Array(Math.min(limit, tasks.length))
+    .fill(null)
+    .map(() => worker());
+
+  await Promise.all(workers);
+  return results;
+}
+`;
+}
+
+/**
  * Generate the runtime helper for calling MCP tools
  */
 function generateCallMcpToolRuntime(): string {
@@ -266,12 +441,21 @@ export class ToolGenerator {
 	async generateAll(tools: ExternalToolMeta[]): Promise<GeneratedToolInfo[]> {
 		const generatedTools: GeneratedToolInfo[] = [];
 
+		// Ensure output directory exists
+		await fs.mkdir(this.outputDir, { recursive: true });
+
 		// Ensure runtime directory exists and generate call-mcp-tool.ts
 		const runtimeDir = path.join(this.outputDir, "..", "runtime");
 		await fs.mkdir(runtimeDir, { recursive: true });
 		await fs.writeFile(
 			path.join(runtimeDir, "call-mcp-tool.ts"),
 			generateCallMcpToolRuntime(),
+		);
+
+		// Generate utils.ts with parallel execution helpers
+		await fs.writeFile(
+			path.join(this.outputDir, "utils.ts"),
+			generateUtilsModule(),
 		);
 
 		// Group tools by server
@@ -316,6 +500,9 @@ export class ToolGenerator {
 
 		await fs.writeFile(filePath, sourceCode);
 
+		// Extract compact return type signature from output schema
+		const returns = jsonSchemaToCompactType(tool.outputSchema);
+
 		return {
 			serverId: tool.serverId,
 			toolName: tool.toolName,
@@ -323,6 +510,7 @@ export class ToolGenerator {
 			filePath,
 			sourceCode,
 			description: tool.description,
+			returns,
 		};
 	}
 
