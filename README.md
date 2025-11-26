@@ -52,7 +52,8 @@ uvx mcp-executor list -c mcp.json
 MCP server aggregator that combines multiple external MCP servers into a unified search + execute interface, reducing LLM context consumption.
 
 ```bash
-bun start -- -c config.json
+bunx @vaayne/mcp-hub -c config.json -t http -p 23456  # HTTP
+bunx @vaayne/mcp-hub -c config.json                  # stdio
 ```
 
 ## Development

@@ -31,6 +31,11 @@ Create a configuration file (e.g., [config.json](./config.example.json)`):
 
 ### Running
 
+Quick start using the published npm package (no local build required):
+
+- **HTTP transport:** `bunx @vaayne/mcp-hub -c config.json -t http -p 23456`
+- **stdio transport:** `bunx @vaayne/mcp-hub -c config.json`
+
 **stdio transport (for local use):**
 
 ```bash
