@@ -1,0 +1,7 @@
+src/
+tsconfig.json
+biome.json
+*.map
+.gitignore
+CLAUDE.md
+AGENTS.md
