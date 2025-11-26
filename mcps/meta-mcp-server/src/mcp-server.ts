@@ -96,44 +96,34 @@ Example Usage:
 
       const output: Record<string, unknown> = {
         items: result.items.map((item: SearchResultItem) => ({
-          id: item.id,
-          serverId: item.serverId,
-          toolName: item.toolName,
-          functionName: item.functionName,
-          filePath: item.filePath,
-          description: item.description,
-          snippet: item.snippet,
+          fn: item.functionName,
+          import: `@tools/${item.serverId}/${item.toolName}`,
+          desc: item.description ? item.description.slice(0, 100) : undefined,
+          params: item.snippet,
         })),
         total: result.total,
       };
 
-      // Format as markdown for readability
+      // Format as compact text for token efficiency
       let textContent: string;
       if (result.items.length === 0) {
-        textContent = `No tools found matching '${query}'`;
+        textContent = `No tools found for "${query}"`;
       } else {
-        const lines = [
-          `# Search Results for '${query}'`,
-          "",
-          `Found ${result.total} matching tool(s):`,
-          "",
-        ];
+        const lines = [`Found ${result.total} tool(s):\n`];
 
-        for (const item of result.items) {
-          lines.push(`## ${item.functionName} (${item.id})`);
+        result.items.forEach((item, idx) => {
+          // Truncate long descriptions
+          const desc = item.description
+            ? item.description.length > 100
+              ? item.description.slice(0, 100).trim() + "..."
+              : item.description
+            : "No description";
+
+          lines.push(`${idx + 1}. ${item.functionName} (@tools/${item.serverId}/${item.toolName})`);
+          lines.push(`   ${desc}`);
+          lines.push(`   Params: ${item.snippet}`);
           lines.push("");
-          if (item.description) {
-            lines.push(`**Description:** ${item.description}`);
-            lines.push("");
-          }
-          lines.push(`**Import:** \`import { ${item.functionName} } from "@tools/${item.serverId}/${item.toolName}";\``);
-          lines.push("");
-          lines.push("**Code Snippet:**");
-          lines.push("```typescript");
-          lines.push(item.snippet);
-          lines.push("```");
-          lines.push("");
-        }
+        });
 
         textContent = lines.join("\n");
       }

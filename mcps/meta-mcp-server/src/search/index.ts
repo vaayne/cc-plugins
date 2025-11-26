@@ -269,79 +269,85 @@ export class CodeSearchIndex {
   }
 
   /**
-   * Get a useful code snippet that includes function signature and input schema
+   * Get a compact parameter signature for the tool
    */
   private getSnippet(doc: GeneratedToolInfo, _query: string): string {
-    return this.extractUsefulSnippet(doc);
+    return this.extractCompactParams(doc);
   }
 
   /**
-   * Extract the most useful parts of the tool: signature and input schema
+   * Extract compact TypeScript-like parameter signature from Zod schema
+   * e.g., "{ url?: string, type?: 'a'|'b' }"
    */
-  private extractUsefulSnippet(doc: GeneratedToolInfo): string {
-    const lines = doc.sourceCode.split("\n");
-    const snippetParts: string[] = [];
+  private extractCompactParams(doc: GeneratedToolInfo): string {
+    const source = doc.sourceCode;
 
-    // Find and extract the input schema (z.object({...}))
-    let inSchema = false;
-    let braceCount = 0;
-    let schemaLines: string[] = [];
+    // Find the z.object({...}) schema
+    const schemaMatch = source.match(/InputSchema\s*=\s*z\.object\(\{([\s\S]*?)\}\);/);
+    if (!schemaMatch) {
+      return "{}";
+    }
 
-    for (const line of lines) {
-      // Start capturing input schema
-      if (line.includes("InputSchema = z.object(")) {
-        inSchema = true;
-        braceCount = 0;
-      }
+    const schemaContent = schemaMatch[1];
+    const params: string[] = [];
 
-      if (inSchema) {
-        schemaLines.push(line);
-        braceCount += (line.match(/\{/g) || []).length;
-        braceCount -= (line.match(/\}/g) || []).length;
+    // Match each property: name: z.type().optional()
+    const propRegex = /(\w+):\s*z\.(\w+)\(([^)]*)\)([^,\n]*)/g;
+    let match;
 
-        // End of schema object
-        if (braceCount <= 0 && schemaLines.length > 0) {
-          inSchema = false;
+    while ((match = propRegex.exec(schemaContent)) !== null) {
+      const [, name, zodType, enumValues, modifiers] = match;
+      const isOptional = modifiers.includes(".optional()");
+
+      let tsType: string;
+      switch (zodType) {
+        case "string":
+          tsType = "string";
           break;
-        }
+        case "number":
+          tsType = "number";
+          break;
+        case "boolean":
+          tsType = "boolean";
+          break;
+        case "enum":
+          // Extract enum values: ["a", "b"] -> "a"|"b"
+          const values = enumValues.match(/\["([^"]+)"(?:,\s*"([^"]+)")*\]/);
+          if (values) {
+            const enumVals = enumValues.match(/"([^"]+)"/g);
+            tsType = enumVals ? enumVals.map(v => v).join("|") : "string";
+          } else {
+            tsType = "string";
+          }
+          break;
+        case "array":
+          tsType = "array";
+          break;
+        case "object":
+          tsType = "object";
+          break;
+        case "record":
+          tsType = "Record<string, unknown>";
+          break;
+        default:
+          tsType = "unknown";
       }
+
+      params.push(`${name}${isOptional ? "?" : ""}: ${tsType}`);
     }
 
-    // Add input schema if found
-    if (schemaLines.length > 0) {
-      snippetParts.push("// Input Schema:");
-      snippetParts.push(schemaLines.join("\n"));
+    if (params.length === 0) {
+      return "{}";
     }
 
-    // Find and extract function signature with its JSDoc
-    const funcMatch = doc.sourceCode.match(
-      /\/\*\*[\s\S]*?\*\/\s*export async function \w+\([^)]*\):\s*Promise<[^>]+>/
-    );
-    if (funcMatch) {
-      snippetParts.push("\n// Function:");
-      snippetParts.push(funcMatch[0]);
-    } else {
-      // Try simpler function signature match
-      const simpleMatch = doc.sourceCode.match(/export async function \w+\([^)]*\):\s*Promise<[^>]+>/);
-      if (simpleMatch) {
-        snippetParts.push("\n// Function:");
-        snippetParts.push(simpleMatch[0]);
-      }
-    }
-
-    if (snippetParts.length === 0) {
-      // Fallback: first 300 chars
-      return doc.sourceCode.slice(0, 300) + (doc.sourceCode.length > 300 ? "..." : "");
-    }
-
-    return snippetParts.join("\n");
+    return `{ ${params.join(", ")} }`;
   }
 
   /**
-   * Get a code snippet around regex matches (now uses same useful snippet)
+   * Get a code snippet around regex matches (uses compact params)
    */
   private getRegexSnippet(doc: GeneratedToolInfo, _regex: RegExp): string {
-    return this.extractUsefulSnippet(doc);
+    return this.extractCompactParams(doc);
   }
 
   /**
