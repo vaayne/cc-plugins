@@ -33,6 +33,10 @@ export const McpServerEntrySchema = z.object({
     .boolean()
     .default(false)
     .describe("If true, server must connect successfully at startup"),
+  enable: z
+    .boolean()
+    .default(true)
+    .describe("If false, server will be skipped during initialization"),
 });
 
 export type McpServerEntry = z.infer<typeof McpServerEntrySchema>;
@@ -56,6 +60,7 @@ export interface ServerConfig {
   args?: string[];
   env?: Record<string, string>;
   required?: boolean;
+  enable?: boolean;
 }
 
 // ============================================================================

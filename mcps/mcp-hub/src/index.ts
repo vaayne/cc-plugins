@@ -48,29 +48,39 @@ class MetaMcpOrchestrator {
   private parseServers(
     mcpServers: Record<string, McpServerEntry>,
   ): ServerConfig[] {
-    return Object.entries(mcpServers).map(([id, entry]) => {
-      // Determine transport type
-      let transport: "http" | "sse" | "stdio";
-      if (entry.transport) {
-        transport = entry.transport;
-      } else if (entry.url) {
-        transport = "http";
-      } else if (entry.command) {
-        transport = "stdio";
-      } else {
-        throw new Error(`Server '${id}' must have either 'url' or 'command'`);
-      }
+    return Object.entries(mcpServers)
+      .filter(([id, entry]) => {
+        // Skip disabled servers
+        if (entry.enable === false) {
+          console.error(`⊘ Server '${id}' is disabled (enable: false)`);
+          return false;
+        }
+        return true;
+      })
+      .map(([id, entry]) => {
+        // Determine transport type
+        let transport: "http" | "sse" | "stdio";
+        if (entry.transport) {
+          transport = entry.transport;
+        } else if (entry.url) {
+          transport = "http";
+        } else if (entry.command) {
+          transport = "stdio";
+        } else {
+          throw new Error(`Server '${id}' must have either 'url' or 'command'`);
+        }
 
-      return {
-        id,
-        transport,
-        url: entry.url,
-        command: entry.command,
-        args: entry.args,
-        env: entry.env,
-        required: entry.required,
-      };
-    });
+        return {
+          id,
+          transport,
+          url: entry.url,
+          command: entry.command,
+          args: entry.args,
+          env: entry.env,
+          required: entry.required,
+          enable: entry.enable !== false, // Default to true if not specified
+        };
+      });
   }
 
   /**
