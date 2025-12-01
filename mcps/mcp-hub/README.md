@@ -27,7 +27,42 @@ bun run build
 
 ### Configuration
 
-Create a configuration file (e.g., [config.json](./config.example.json)`):
+Create a configuration file (e.g., [config.json](./config.example.json)):
+
+```json
+{
+  "mcpServers": {
+    "serverA": {
+      "url": "http://localhost:4001/mcp",
+      "enable": true // Optional, defaults to true
+    },
+    "serverB": {
+      "transport": "sse",
+      "url": "http://localhost:4002/sse",
+      "enable": false // This server will be skipped
+    },
+    "serverC": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "some-mcp-server"],
+      "required": true, // Server must connect successfully
+      "enable": true
+    }
+  }
+}
+```
+
+**Configuration Options:**
+
+- `transport`: Protocol type (`"http"`, `"sse"`, or `"stdio"`)
+- `url`: HTTP/SSE endpoint URL (required for HTTP/SSE transport)
+- `command`: Command to run (required for stdio transport)
+- `args`: Arguments for stdio command (optional)
+- `env`: Environment variables for stdio command (optional)
+- `required`: If `true`, server must connect successfully at startup (default: `false`)
+- `enable`: If `false`, server will be skipped during initialization (default: `true`)
+
+The `enable` field is useful for temporarily disabling servers without removing them from the configuration.
 
 ### Running
 
