@@ -198,13 +198,13 @@ export class ExternalServersManager {
 
     for (const serverId of this.getServerIds()) {
       const config = this.configs.get(serverId)!;
-      
+
       // Skip disabled servers (double-check, should already be filtered in configure)
       if (config.enable === false) {
         console.error(`⊘ Skipping disabled server '${serverId}'`);
         continue;
       }
-      
+
       try {
         await this.getClient(serverId);
         success.push(serverId);

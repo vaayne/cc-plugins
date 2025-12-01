@@ -34,18 +34,18 @@ Create a configuration file (e.g., [config.json](./config.example.json)):
   "mcpServers": {
     "serverA": {
       "url": "http://localhost:4001/mcp",
-      "enable": true  // Optional, defaults to true
+      "enable": true // Optional, defaults to true
     },
     "serverB": {
       "transport": "sse",
       "url": "http://localhost:4002/sse",
-      "enable": false  // This server will be skipped
+      "enable": false // This server will be skipped
     },
     "serverC": {
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "some-mcp-server"],
-      "required": true,  // Server must connect successfully
+      "required": true, // Server must connect successfully
       "enable": true
     }
   }
@@ -55,7 +55,7 @@ Create a configuration file (e.g., [config.json](./config.example.json)):
 **Configuration Options:**
 
 - `transport`: Protocol type (`"http"`, `"sse"`, or `"stdio"`)
-- `url`: HTTP/SSE endpoint URL (required for HTTP/SSE transport)  
+- `url`: HTTP/SSE endpoint URL (required for HTTP/SSE transport)
 - `command`: Command to run (required for stdio transport)
 - `args`: Arguments for stdio command (optional)
 - `env`: Environment variables for stdio command (optional)
