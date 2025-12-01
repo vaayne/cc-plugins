@@ -17,21 +17,75 @@ MCP Hub Go is a secure, production-ready hub that:
 
 ### Transport Support
 
-**MVP Status: stdio transport only**
+The hub now supports multiple transport types for connecting to remote MCP servers:
 
-The current implementation supports only `stdio` transport for connecting to remote MCP servers. Other transport types (`http`, `sse`) will fail fast with a clear error message during configuration validation.
+#### Stdio Transport
+Traditional command-based transport for local MCP servers:
 
 ```json
 {
   "mcpServers": {
-    "my-server": {
-      "transport": "stdio",  // ✅ Supported
-      "command": "node",
-      "args": ["server.js"]
+    "filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": {
+        "CUSTOM_VAR": "value"
+      }
     }
   }
 }
 ```
+
+#### HTTP Transport
+Streamable HTTP transport for remote MCP servers:
+
+```json
+{
+  "mcpServers": {
+    "api-server": {
+      "transport": "http",
+      "url": "https://api.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${API_TOKEN}",
+        "X-Custom-Header": "value"
+      },
+      "timeout": 30,
+      "tlsSkipVerify": false
+    }
+  }
+}
+```
+
+Features:
+- Custom headers with environment variable expansion
+- Configurable timeout (seconds)
+- TLS verification control (use `tlsSkipVerify: true` only for development)
+- Automatic retry with exponential backoff
+
+#### SSE Transport
+Server-Sent Events transport for real-time streaming:
+
+```json
+{
+  "mcpServers": {
+    "streaming-server": {
+      "transport": "sse", 
+      "url": "http://localhost:8080/sse",
+      "headers": {
+        "X-Client-ID": "mcp-hub"
+      },
+      "timeout": 60
+    }
+  }
+}
+```
+
+Features:
+- Real-time server-to-client streaming
+- Automatic reconnection on connection loss
+- POST requests for client-to-server communication
+- Same header and TLS configuration as HTTP transport
 
 ### Tool Namespacing
 
@@ -406,9 +460,12 @@ For issues and questions:
 
 ## Roadmap
 
+### Completed Features
+
+- [x] HTTP/SSE transport support (v1.1.0)
+
 ### Future Features
 
-- [ ] HTTP/SSE transport support
 - [ ] Configurable timeouts for tool calls and JS execution
 - [ ] Custom built-in tool definitions via config
 - [ ] Tool authorization policies

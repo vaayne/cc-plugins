@@ -3,15 +3,13 @@ package client
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
 	"sync"
 	"time"
 
-	"mcp-hub-go/internal/config"
-
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
+	"mcp-hub-go/internal/config"
+	"mcp-hub-go/internal/transport"
 )
 
 // clientInfo holds information about a connected client
@@ -28,12 +26,13 @@ type clientInfo struct {
 
 // Manager manages connections to remote MCP servers
 type Manager struct {
-	logger   *zap.Logger
-	clients  map[string]*clientInfo // serverID -> client info
-	mu       sync.RWMutex
-	ctx      context.Context
-	cancel   context.CancelFunc
-	timeout  time.Duration
+	logger           *zap.Logger
+	clients          map[string]*clientInfo // serverID -> client info
+	mu               sync.RWMutex
+	ctx              context.Context
+	cancel           context.CancelFunc
+	timeout          time.Duration
+	transportFactory transport.Factory
 }
 
 const (
@@ -47,23 +46,33 @@ const (
 func NewManager(logger *zap.Logger) *Manager {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Manager{
-		logger:  logger,
-		clients: make(map[string]*clientInfo),
-		ctx:     ctx,
-		cancel:  cancel,
-		timeout: defaultTimeout,
+		logger:           logger,
+		clients:          make(map[string]*clientInfo),
+		ctx:              ctx,
+		cancel:           cancel,
+		timeout:          defaultTimeout,
+		transportFactory: transport.NewDefaultFactory(logger),
+	}
+}
+
+// NewManagerWithFactory creates a new manager instance with a custom transport factory
+func NewManagerWithFactory(logger *zap.Logger, factory transport.Factory) *Manager {
+	ctx, cancel := context.WithCancel(context.Background())
+	return &Manager{
+		logger:           logger,
+		clients:          make(map[string]*clientInfo),
+		ctx:              ctx,
+		cancel:           cancel,
+		timeout:          defaultTimeout,
+		transportFactory: factory,
 	}
 }
 
 // ConnectToServer connects to a remote MCP server
 func (m *Manager) ConnectToServer(serverID string, serverCfg config.MCPServer) error {
-	m.logger.Info("Connecting to remote MCP server", zap.String("serverID", serverID))
-
-	// Validate transport
-	transport := serverCfg.GetTransport()
-	if transport != "stdio" {
-		return fmt.Errorf("unsupported transport: %s (only stdio is supported)", transport)
-	}
+	m.logger.Info("Connecting to remote MCP server", 
+		zap.String("serverID", serverID),
+		zap.String("transport", serverCfg.GetTransport()))
 
 	// Check if already connected
 	m.mu.RLock()
@@ -109,26 +118,10 @@ func (m *Manager) ConnectToServer(serverID string, serverCfg config.MCPServer) e
 
 // connectClient establishes a connection to a remote MCP server
 func (m *Manager) connectClient(ctx context.Context, info *clientInfo, serverCfg config.MCPServer) error {
-	// Create command with context
-	cmd := exec.CommandContext(ctx, serverCfg.Command, serverCfg.Args...)
-	
-	// SECURITY: Always set a clean environment to prevent injection attacks
-	// Never inherit parent environment which could contain malicious variables
-	cleanEnv := []string{
-		"PATH=/usr/local/bin:/usr/bin:/bin",
-		"HOME=" + os.Getenv("HOME"),
-		"USER=" + os.Getenv("USER"),
-	}
-	
-	// Append user-provided environment variables
-	for k, v := range serverCfg.Env {
-		cleanEnv = append(cleanEnv, fmt.Sprintf("%s=%s", k, v))
-	}
-	cmd.Env = cleanEnv
-
-	// Create transport
-	transport := &mcp.CommandTransport{
-		Command: cmd,
+	// Create transport using factory
+	transport, err := m.transportFactory.CreateTransport(serverCfg)
+	if err != nil {
+		return fmt.Errorf("failed to create transport: %w", err)
 	}
 
 	// Create client

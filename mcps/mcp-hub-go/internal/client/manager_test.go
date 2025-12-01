@@ -28,19 +28,20 @@ func TestNewManager(t *testing.T) {
 	assert.Empty(t, manager.clients)
 }
 
-// TestConnectToServer_UnsupportedTransport verifies non-stdio transports are rejected
+// TestConnectToServer_UnsupportedTransport verifies connection fails with unsupported transport
 func TestConnectToServer_UnsupportedTransport(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	manager := NewManager(logger)
 	defer manager.DisconnectAll()
 
 	tests := []struct {
-		name      string
-		transport string
+		name        string
+		transport   string
+		expectError string
 	}{
-		{"http transport", "http"},
-		{"sse transport", "sse"},
-		{"unknown transport", "websocket"},
+		{"http transport without URL", "http", "url is required for http transport"},
+		{"sse transport without URL", "sse", "url is required for sse transport"},
+		{"unknown transport", "websocket", "unsupported transport type: websocket"},
 	}
 
 	for _, tt := range tests {
@@ -53,8 +54,7 @@ func TestConnectToServer_UnsupportedTransport(t *testing.T) {
 
 			err := manager.ConnectToServer("test-server", serverCfg)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "unsupported transport")
-			assert.Contains(t, err.Error(), tt.transport)
+			assert.Contains(t, err.Error(), tt.expectError)
 		})
 	}
 }

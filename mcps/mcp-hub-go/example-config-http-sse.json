@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "local-filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": {
+        "ALLOWED_DIRECTORIES": "/tmp,/home"
+      }
+    },
+    "remote-api": {
+      "transport": "http",
+      "url": "https://api.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${API_TOKEN}",
+        "X-Client-ID": "mcp-hub-go"
+      },
+      "timeout": 30,
+      "tlsSkipVerify": false
+    },
+    "streaming-server": {
+      "transport": "sse",
+      "url": "http://localhost:8080/sse",
+      "headers": {
+        "X-Session-ID": "unique-session-123"
+      },
+      "timeout": 60
+    }
+  },
+  "builtinTools": {
+    "search": {
+      "name": "search",
+      "description": "Search for tools across all connected servers"
+    },
+    "execute": {
+      "name": "execute",
+      "description": "Execute JavaScript code in a sandboxed environment"
+    },
+    "refreshTools": {
+      "name": "refreshTools",
+      "description": "Refresh the tool list from connected servers"
+    }
+  }
+}

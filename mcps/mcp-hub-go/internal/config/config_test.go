@@ -88,39 +88,57 @@ func TestLoadConfig_ValidConfig(t *testing.T) {
 	}
 }
 
-func TestLoadConfig_HTTPTransportRejected(t *testing.T) {
-	configPath := "testdata/invalid-http.json"
+func TestLoadConfig_HTTPTransportAccepted(t *testing.T) {
+	configPath := "testdata/valid-http.json"
 	cfg, err := LoadConfig(configPath)
 
-	if err == nil {
-		t.Fatal("LoadConfig() error = nil, want error for HTTP transport")
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v, want nil for HTTP transport", err)
 	}
 
-	if cfg != nil {
-		t.Error("LoadConfig() should return nil config on validation error")
+	if cfg == nil {
+		t.Fatal("LoadConfig() returned nil config")
 	}
 
-	expectedMsg := "unsupported transport: http (only stdio is supported)"
-	if !strings.Contains(err.Error(), expectedMsg) {
-		t.Errorf("Error message = %q, want to contain %q", err.Error(), expectedMsg)
+	// Check that the HTTP server is properly loaded
+	httpServer, ok := cfg.MCPServers["http-server"]
+	if !ok {
+		t.Fatal("http-server not found in config")
+	}
+
+	if httpServer.GetTransport() != "http" {
+		t.Errorf("Transport = %s, want http", httpServer.GetTransport())
+	}
+
+	if httpServer.URL == "" {
+		t.Error("URL should be set for HTTP transport")
 	}
 }
 
-func TestLoadConfig_SSETransportRejected(t *testing.T) {
-	configPath := "testdata/invalid-sse.json"
+func TestLoadConfig_SSETransportAccepted(t *testing.T) {
+	configPath := "testdata/valid-sse.json"
 	cfg, err := LoadConfig(configPath)
 
-	if err == nil {
-		t.Fatal("LoadConfig() error = nil, want error for SSE transport")
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v, want nil for SSE transport", err)
 	}
 
-	if cfg != nil {
-		t.Error("LoadConfig() should return nil config on validation error")
+	if cfg == nil {
+		t.Fatal("LoadConfig() returned nil config")
 	}
 
-	expectedMsg := "unsupported transport: sse (only stdio is supported)"
-	if !strings.Contains(err.Error(), expectedMsg) {
-		t.Errorf("Error message = %q, want to contain %q", err.Error(), expectedMsg)
+	// Check that the SSE server is properly loaded
+	sseServer, ok := cfg.MCPServers["sse-server"]
+	if !ok {
+		t.Fatal("sse-server not found in config")
+	}
+
+	if sseServer.GetTransport() != "sse" {
+		t.Errorf("Transport = %s, want sse", sseServer.GetTransport())
+	}
+
+	if sseServer.URL == "" {
+		t.Error("URL should be set for SSE transport")
 	}
 }
 
@@ -404,15 +422,17 @@ func TestLoadConfig_NullByteRejected(t *testing.T) {
 }
 
 func TestLoadConfig_CaseInsensitiveTransport(t *testing.T) {
-	tests := []string{"HTTP", "Http", "SSE", "Sse", "StDiO"}
+	// Test that transport is case-insensitive
+	transports := []string{"HTTP", "Http", "SSE", "Sse", "StDiO"}
 	
-	for _, transport := range tests {
+	for _, transport := range transports {
 		t.Run(transport, func(t *testing.T) {
 			config := fmt.Sprintf(`{
 				"mcpServers": {
 					"test": {
 						"transport": "%s",
-						"command": "test"
+						"command": "test",
+						"url": "http://example.com"
 					}
 				}
 			}`, transport)
@@ -425,14 +445,15 @@ func TestLoadConfig_CaseInsensitiveTransport(t *testing.T) {
 			cfg, err := LoadConfig(tmpFile)
 			
 			if transport == "StDiO" {
-				// StDiO should be accepted (case-insensitive)
-				assert.NoError(t, err)
-				assert.NotNil(t, cfg)
-			} else {
-				// HTTP and SSE should be rejected
+				// StDiO should fail because it has both command and URL
 				assert.Nil(t, cfg)
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "unsupported transport")
+				assert.Contains(t, err.Error(), "url must not be set for stdio transport")
+			} else {
+				// HTTP and SSE should fail because command is set
+				assert.Nil(t, cfg)
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "command must not be set")
 			}
 		})
 	}
@@ -457,7 +478,7 @@ func TestLoadConfig_URLWithStdioRejected(t *testing.T) {
 	cfg, err := LoadConfig(tmpFile)
 	assert.Nil(t, cfg)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "url should not be set for stdio transport")
+	assert.Contains(t, err.Error(), "url must not be set for stdio transport")
 }
 
 func TestLoadConfig_ServerNameValidation(t *testing.T) {
