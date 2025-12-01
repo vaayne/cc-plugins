@@ -182,6 +182,28 @@ bun run build
 bun run clean
 ```
 
+## Publishing
+
+To publish a new version to npm:
+
+```bash
+# 1. Update version in package.json
+# 2. Update CHANGELOG.md with release notes
+# 3. Commit your changes
+git add -A && git commit -m "Release v1.1.1"
+
+# 4. Publish to npm (automatically builds before publishing)
+npm run release
+
+# For dry-run testing:
+npm run release -- --dry-run
+```
+
+The `release` script will:
+1. Clean the dist directory
+2. Build the TypeScript code
+3. Publish to npm with public access
+
 ## License
 
 MIT

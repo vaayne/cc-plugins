@@ -1,6 +1,6 @@
 {
   "name": "@vaayne/mcp-hub",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MCP Hub - aggregates multiple MCP servers with tool discovery (search) and programmatic execution (exec)",
   "type": "module",
   "main": "dist/index.js",
@@ -26,7 +26,7 @@
     "clean": "rm -rf dist",
     "lint": "biome check src",
     "format": "biome check --write src",
-    "publish": "npm publish --access public"
+    "release": "npm run clean && npm run build && npm publish --access public"
   },
   "keywords": [
     "mcp",

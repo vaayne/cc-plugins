@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-12-01
+
+### Fixed
+
+- Added `release` script in package.json to ensure builds happen before publishing
+- Fixed publish workflow to avoid npm lifecycle conflicts
+
+### Changed
+
+- Build process now automatically runs before npm publish via the release script
+- Use `npm run release` instead of `npm publish` to ensure latest code is built
+
 ## [1.1.0] - 2025-12-01
 
 ### Added
