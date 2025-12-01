@@ -284,10 +284,14 @@ func TestHandleSearchTool_InvalidJSON(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to parse search arguments")
 }
 
-// TestHandleExecuteTool_Success verifies execute tool placeholder
+// TestHandleExecuteTool_Success verifies execute tool with valid JavaScript
 func TestHandleExecuteTool_Success(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	manager := client.NewManager(logger)
+	defer manager.DisconnectAll()
+
 	args := map[string]interface{}{
-		"code": "console.log('test');",
+		"code": "1 + 1",
 	}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
@@ -299,7 +303,7 @@ func TestHandleExecuteTool_Success(t *testing.T) {
 		},
 	}
 
-	result, err := HandleExecuteTool(context.Background(), req)
+	result, err := HandleExecuteTool(context.Background(), logger, manager, req)
 	require.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Len(t, result.Content, 1)
@@ -311,12 +315,92 @@ func TestHandleExecuteTool_Success(t *testing.T) {
 	err = json.Unmarshal([]byte(textContent.Text), &response)
 	require.NoError(t, err)
 
-	assert.Equal(t, "JavaScript execution not yet implemented", response.Result)
+	// JSON unmarshaling produces float64 for numbers
+	assert.Equal(t, float64(2), response.Result)
+	assert.Empty(t, response.Logs)
+}
+
+// TestHandleExecuteTool_WithLogs verifies execute tool logging
+func TestHandleExecuteTool_WithLogs(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	manager := client.NewManager(logger)
+	defer manager.DisconnectAll()
+
+	args := map[string]interface{}{
+		"code": "mcp.log('info', 'test message'); 42",
+	}
+	argsJSON, err := json.Marshal(args)
+	require.NoError(t, err)
+
+	req := &mcp.CallToolRequest{
+		Params: &mcp.CallToolParamsRaw{
+			Name:      "execute",
+			Arguments: argsJSON,
+		},
+	}
+
+	result, err := HandleExecuteTool(context.Background(), logger, manager, req)
+	require.NoError(t, err)
+
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	require.True(t, ok)
+
+	var response ExecuteToolResponse
+	err = json.Unmarshal([]byte(textContent.Text), &response)
+	require.NoError(t, err)
+
+	// JSON unmarshaling produces float64 for numbers
+	assert.Equal(t, float64(42), response.Result)
 	assert.Len(t, response.Logs, 1)
+	assert.Equal(t, "info", response.Logs[0].Level)
+	assert.Equal(t, "test message", response.Logs[0].Message)
+}
+
+// TestHandleExecuteTool_AsyncError verifies async code rejection
+func TestHandleExecuteTool_AsyncError(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	manager := client.NewManager(logger)
+	defer manager.DisconnectAll()
+
+	args := map[string]interface{}{
+		"code": "async function test() { return 42; }",
+	}
+	argsJSON, err := json.Marshal(args)
+	require.NoError(t, err)
+
+	req := &mcp.CallToolRequest{
+		Params: &mcp.CallToolParamsRaw{
+			Name:      "execute",
+			Arguments: argsJSON,
+		},
+	}
+
+	result, err := HandleExecuteTool(context.Background(), logger, manager, req)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+
+	// Should return error in response
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	require.True(t, ok)
+
+	var response ExecuteToolResponse
+	err = json.Unmarshal([]byte(textContent.Text), &response)
+	require.NoError(t, err)
+
+	// Result should contain error
+	resultMap, ok := response.Result.(map[string]interface{})
+	require.True(t, ok)
+	errorMap, ok := resultMap["error"].(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, "async_not_allowed", errorMap["type"])
 }
 
 // TestHandleExecuteTool_MissingCode verifies error on missing code
 func TestHandleExecuteTool_MissingCode(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	manager := client.NewManager(logger)
+	defer manager.DisconnectAll()
+
 	args := map[string]interface{}{}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
@@ -328,9 +412,39 @@ func TestHandleExecuteTool_MissingCode(t *testing.T) {
 		},
 	}
 
-	_, err = HandleExecuteTool(context.Background(), req)
+	_, err = HandleExecuteTool(context.Background(), logger, manager, req)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "code parameter is required")
+}
+
+// TestHandleExecuteTool_CodeTooLarge verifies code size limit
+func TestHandleExecuteTool_CodeTooLarge(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	manager := client.NewManager(logger)
+	defer manager.DisconnectAll()
+
+	// Create code larger than 100KB
+	largeCode := make([]byte, 101*1024)
+	for i := range largeCode {
+		largeCode[i] = 'a'
+	}
+
+	args := map[string]interface{}{
+		"code": string(largeCode),
+	}
+	argsJSON, err := json.Marshal(args)
+	require.NoError(t, err)
+
+	req := &mcp.CallToolRequest{
+		Params: &mcp.CallToolParamsRaw{
+			Name:      "execute",
+			Arguments: argsJSON,
+		},
+	}
+
+	_, err = HandleExecuteTool(context.Background(), logger, manager, req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "exceeds maximum length")
 }
 
 // TestHandleRefreshToolsTool_AllServers verifies refreshing all servers

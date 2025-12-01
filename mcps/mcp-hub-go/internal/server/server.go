@@ -252,7 +252,7 @@ func (s *Server) handleBuiltinTool(ctx context.Context, toolName string, req *mc
 	case "search":
 		return tools.HandleSearchTool(callCtx, s.builtinRegistry, s.clientManager, req)
 	case "execute":
-		return tools.HandleExecuteTool(callCtx, req)
+		return tools.HandleExecuteTool(callCtx, s.logger, s.clientManager, req)
 	case "refreshTools":
 		return tools.HandleRefreshToolsTool(callCtx, s.clientManager, req)
 	default:
