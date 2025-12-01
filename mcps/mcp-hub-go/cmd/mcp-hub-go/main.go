@@ -13,11 +13,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
 	configPath string
 	verbose    bool
+	logFile    string
 )
 
 var rootCmd = &cobra.Command{
@@ -31,17 +33,43 @@ providing a unified interface for tool execution and management.`,
 func init() {
 	rootCmd.Flags().StringVarP(&configPath, "config", "c", "", "path to configuration file (required)")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose logging")
+	rootCmd.Flags().StringVar(&logFile, "log-file", "./mcp-hub.log", "path to log file (set to empty string to disable file logging)")
 	rootCmd.MarkFlagRequired("config")
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	// Initialize logging
-	if err := logging.InitLogger(verbose); err != nil {
+	// Determine log level based on verbose flag
+	logLevel := zapcore.InfoLevel
+	if verbose {
+		logLevel = zapcore.DebugLevel
+	}
+
+	// Initialize logging with new config
+	logConfig := logging.Config{
+		LogLevel:    logLevel,
+		LogFilePath: logFile,
+	}
+	result, err := logging.InitLogger(logConfig)
+	if err != nil {
 		return fmt.Errorf("failed to initialize logger: %w", err)
 	}
-	defer logging.Sync()
+	defer func() {
+		if err := logging.Sync(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to sync logger: %v\n", err)
+		}
+	}()
 
 	logger := logging.Logger
+
+	// Log initialization status
+	if result.FileLoggingEnabled {
+		logger.Info("File logging enabled", zap.String("log_file", logFile))
+	} else if result.FileLoggingError != nil {
+		logger.Warn("File logging disabled due to error",
+			zap.String("log_file", logFile),
+			zap.Error(result.FileLoggingError),
+		)
+	}
 
 	// Validate config file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
