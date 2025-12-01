@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "tilde-path": {
+      "transport": "stdio",
+      "command": "~/bin/server",
+      "args": ["test"],
+      "enable": true
+    }
+  }
+}
