@@ -26,7 +26,7 @@
     "clean": "rm -rf dist",
     "lint": "biome check src",
     "format": "biome check --write src",
-    "prepublishOnly": "npm run clean && npm run build"
+    "release": "npm run clean && npm run build && npm publish --access public"
   },
   "keywords": [
     "mcp",
