@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "mcpServers": {
+    "filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/tmp"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "enable": true,
+      "required": false
+    },
+    "github": {
+      "transport": "stdio",
+      "command": "node",
+      "args": [
+        "dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "ghp_YOUR_TOKEN_HERE",
+        "GITHUB_API_URL": "https://api.github.com"
+      },
+      "enable": true,
+      "required": true
+    },
+    "database": {
+      "transport": "stdio",
+      "command": "/usr/local/bin/mcp-database-server",
+      "args": [
+        "--host",
+        "localhost",
+        "--port",
+        "5432"
+      ],
+      "env": {
+        "DB_NAME": "mydb",
+        "DB_USER": "user"
+      },
+      "enable": true,
+      "required": false
+    },
+    "optional-server": {
+      "transport": "stdio",
+      "command": "python3",
+      "args": [
+        "-m",
+        "mcp_server",
+        "--config",
+        "config.json"
+      ],
+      "enable": false,
+      "required": false
+    }
+  },
+  "builtinTools": {}
+}
