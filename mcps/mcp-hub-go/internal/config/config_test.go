@@ -330,7 +330,7 @@ func TestLoadConfig_ShellMetacharsRejected(t *testing.T) {
 
 func TestLoadConfig_ShellInterpretersRejected(t *testing.T) {
 	shells := []string{"sh", "bash", "zsh", "ksh", "csh", "tcsh", "fish", "dash", "ash"}
-	
+
 	for _, shell := range shells {
 		t.Run(shell, func(t *testing.T) {
 			config := fmt.Sprintf(`{
@@ -341,7 +341,7 @@ func TestLoadConfig_ShellInterpretersRejected(t *testing.T) {
 					}
 				}
 			}`, shell)
-			
+
 			tmpFile := filepath.Join(t.TempDir(), "config.json")
 			if err := os.WriteFile(tmpFile, []byte(config), 0644); err != nil {
 				t.Fatal(err)
@@ -360,7 +360,7 @@ func TestLoadConfig_DangerousEnvVarsRejected(t *testing.T) {
 		"LD_PRELOAD", "LD_LIBRARY_PATH", "DYLD_INSERT_LIBRARIES",
 		"DYLD_LIBRARY_PATH", "PATH", "PYTHONPATH", "NODE_PATH",
 	}
-	
+
 	for _, envVar := range dangerousVars {
 		t.Run(envVar, func(t *testing.T) {
 			config := fmt.Sprintf(`{
@@ -372,7 +372,7 @@ func TestLoadConfig_DangerousEnvVarsRejected(t *testing.T) {
 					}
 				}
 			}`, envVar)
-			
+
 			tmpFile := filepath.Join(t.TempDir(), "config.json")
 			if err := os.WriteFile(tmpFile, []byte(config), 0644); err != nil {
 				t.Fatal(err)
@@ -424,7 +424,7 @@ func TestLoadConfig_NullByteRejected(t *testing.T) {
 func TestLoadConfig_CaseInsensitiveTransport(t *testing.T) {
 	// Test that transport is case-insensitive
 	transports := []string{"HTTP", "Http", "SSE", "Sse", "StDiO"}
-	
+
 	for _, transport := range transports {
 		t.Run(transport, func(t *testing.T) {
 			config := fmt.Sprintf(`{
@@ -436,14 +436,14 @@ func TestLoadConfig_CaseInsensitiveTransport(t *testing.T) {
 					}
 				}
 			}`, transport)
-			
+
 			tmpFile := filepath.Join(t.TempDir(), "config.json")
 			if err := os.WriteFile(tmpFile, []byte(config), 0644); err != nil {
 				t.Fatal(err)
 			}
 
 			cfg, err := LoadConfig(tmpFile)
-			
+
 			if transport == "StDiO" {
 				// StDiO should fail because it has both command and URL
 				assert.Nil(t, cfg)
@@ -469,7 +469,7 @@ func TestLoadConfig_URLWithStdioRejected(t *testing.T) {
 			}
 		}
 	}`
-	
+
 	tmpFile := filepath.Join(t.TempDir(), "config.json")
 	if err := os.WriteFile(tmpFile, []byte(config), 0644); err != nil {
 		t.Fatal(err)
@@ -518,14 +518,14 @@ func TestLoadConfig_ServerNameValidation(t *testing.T) {
 					}
 				}
 			}`, tt.serverName)
-			
+
 			tmpFile := filepath.Join(t.TempDir(), "config.json")
 			if err := os.WriteFile(tmpFile, []byte(config), 0644); err != nil {
 				t.Fatal(err)
 			}
 
 			cfg, err := LoadConfig(tmpFile)
-			
+
 			if tt.shouldFail {
 				assert.Nil(t, cfg)
 				assert.Error(t, err)
@@ -548,7 +548,7 @@ func TestLoadConfig_LengthLimits(t *testing.T) {
 				}
 			}
 		}`, strings.Repeat("a", 1025))
-		
+
 		tmpFile := filepath.Join(t.TempDir(), "config.json")
 		if err := os.WriteFile(tmpFile, []byte(config), 0644); err != nil {
 			t.Fatal(err)
@@ -570,7 +570,7 @@ func TestLoadConfig_LengthLimits(t *testing.T) {
 				}
 			}
 		}`, strings.Repeat("a", 4097))
-		
+
 		tmpFile := filepath.Join(t.TempDir(), "config.json")
 		if err := os.WriteFile(tmpFile, []byte(config), 0644); err != nil {
 			t.Fatal(err)
@@ -588,7 +588,7 @@ func TestLoadConfig_LengthLimits(t *testing.T) {
 		for i := range args {
 			args[i] = fmt.Sprintf(`"arg%d"`, i)
 		}
-		
+
 		config := fmt.Sprintf(`{
 			"mcpServers": {
 				"test": {
@@ -597,7 +597,7 @@ func TestLoadConfig_LengthLimits(t *testing.T) {
 				}
 			}
 		}`, strings.Join(args, ","))
-		
+
 		tmpFile := filepath.Join(t.TempDir(), "config.json")
 		if err := os.WriteFile(tmpFile, []byte(config), 0644); err != nil {
 			t.Fatal(err)

@@ -136,7 +136,7 @@ func HandleSearchTool(ctx context.Context, registry *BuiltinToolRegistry, manage
 				if len(parts) == 2 {
 					serverID = parts[0]
 				}
-				
+
 				results = append(results, ToolSearchResult{
 					Name:        namespacedName,
 					Description: tool.Description,
@@ -304,7 +304,7 @@ func HandleRefreshToolsTool(ctx context.Context, manager *client.Manager, req *m
 	// Refresh tools for each server
 	var refreshed []string
 	errors := make(map[string]string)
-	
+
 	for _, serverID := range serverIDs {
 		// Check context cancellation
 		select {

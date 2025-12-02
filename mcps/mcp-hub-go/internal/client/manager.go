@@ -70,7 +70,7 @@ func NewManagerWithFactory(logger *zap.Logger, factory transport.Factory) *Manag
 
 // ConnectToServer connects to a remote MCP server
 func (m *Manager) ConnectToServer(serverID string, serverCfg config.MCPServer) error {
-	m.logger.Info("Connecting to remote MCP server", 
+	m.logger.Info("Connecting to remote MCP server",
 		zap.String("serverID", serverID),
 		zap.String("transport", serverCfg.GetTransport()))
 
@@ -148,14 +148,14 @@ func (m *Manager) connectClient(ctx context.Context, info *clientInfo, serverCfg
 		// Clean up session with timeout on error
 		closeCtx, closeCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer closeCancel()
-		
+
 		// Try to close with timeout
 		done := make(chan struct{})
 		go func() {
 			session.Close()
 			close(done)
 		}()
-		
+
 		select {
 		case <-done:
 			// Closed successfully
@@ -165,7 +165,7 @@ func (m *Manager) connectClient(ctx context.Context, info *clientInfo, serverCfg
 				zap.String("serverID", info.serverID),
 				zap.Error(err))
 		}
-		
+
 		return fmt.Errorf("failed to list tools: %w", err)
 	}
 
@@ -205,7 +205,7 @@ func (m *Manager) maintainConnection(ctx context.Context, serverID string, serve
 		if session != nil {
 			// Block until connection fails
 			err := session.Wait()
-			
+
 			info.mu.Lock()
 			if err != nil && ctx.Err() == nil {
 				m.logger.Warn("Server connection lost",
@@ -271,10 +271,10 @@ func (m *Manager) maintainConnection(ctx context.Context, serverID string, serve
 // DisconnectAll disconnects from all remote servers
 func (m *Manager) DisconnectAll() error {
 	m.logger.Info("Disconnecting from all remote servers")
-	
+
 	// Cancel context to stop all goroutines
 	m.cancel()
-	
+
 	// Collect all clients first to avoid holding lock during disconnect
 	m.mu.Lock()
 	clients := make([]*clientInfo, 0, len(m.clients))
@@ -284,27 +284,27 @@ func (m *Manager) DisconnectAll() error {
 	// Clear the registry
 	m.clients = make(map[string]*clientInfo)
 	m.mu.Unlock()
-	
+
 	// Disconnect each client with timeout
 	var errs []error
 	for _, info := range clients {
 		// Cancel the client's context
 		info.cancelFunc()
-		
+
 		info.mu.Lock()
 		session := info.session
 		info.session = nil
 		info.mu.Unlock()
-		
+
 		if session != nil {
 			// Close session with timeout
 			closeCtx, closeCancel := context.WithTimeout(context.Background(), 5*time.Second)
-			
+
 			done := make(chan error, 1)
 			go func() {
 				done <- session.Close()
 			}()
-			
+
 			select {
 			case err := <-done:
 				if err != nil {
@@ -313,15 +313,15 @@ func (m *Manager) DisconnectAll() error {
 			case <-closeCtx.Done():
 				errs = append(errs, fmt.Errorf("timeout disconnecting from %s", info.serverID))
 			}
-			
+
 			closeCancel()
 		}
 	}
-	
+
 	if len(errs) > 0 {
 		return fmt.Errorf("errors during disconnect: %v", errs)
 	}
-	
+
 	return nil
 }
 
@@ -386,7 +386,7 @@ func (m *Manager) GetAllTools() map[string]*mcp.Tool {
 	defer m.mu.RUnlock()
 
 	allTools := make(map[string]*mcp.Tool)
-	
+
 	for serverID, info := range m.clients {
 		info.mu.RLock()
 		for toolName, tool := range info.tools {

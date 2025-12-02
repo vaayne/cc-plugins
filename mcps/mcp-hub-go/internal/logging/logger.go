@@ -157,7 +157,7 @@ func Sync() error {
 		// This is a known issue with zap - ignore these specific errors
 		if err := loggerState.logger.Sync(); err != nil {
 			// Ignore stdout/stderr sync errors
-			if strings.Contains(err.Error(), "/dev/stdout") || 
+			if strings.Contains(err.Error(), "/dev/stdout") ||
 				strings.Contains(err.Error(), "/dev/stderr") ||
 				strings.Contains(err.Error(), "invalid argument") {
 				return nil

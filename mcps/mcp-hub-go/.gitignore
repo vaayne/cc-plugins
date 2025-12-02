@@ -38,3 +38,5 @@ mcp-hub.log
 
 # Temporary files
 *.tmp
+bin/
+tmp/

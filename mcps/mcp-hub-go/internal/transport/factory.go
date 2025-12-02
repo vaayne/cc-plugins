@@ -84,7 +84,7 @@ func (f *DefaultFactory) createHTTPTransport(cfg config.MCPServer) (mcp.Transpor
 	if cfg.URL == "" {
 		return nil, fmt.Errorf("url is required for http transport")
 	}
-	
+
 	// Parse URL to ensure it's valid
 	_, err := url.Parse(cfg.URL)
 	if err != nil {
@@ -114,7 +114,7 @@ func (f *DefaultFactory) createSSETransport(cfg config.MCPServer) (mcp.Transport
 	if cfg.URL == "" {
 		return nil, fmt.Errorf("url is required for sse transport")
 	}
-	
+
 	// Parse URL to ensure it's valid
 	_, err := url.Parse(cfg.URL)
 	if err != nil {

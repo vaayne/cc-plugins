@@ -352,11 +352,11 @@ func TestExecute_TimeoutWithInterrupt(t *testing.T) {
 
 	// Infinite loop that should be interrupted
 	script := `while(true) { let x = 1 + 1; }`
-	
+
 	start := time.Now()
 	_, _, err := runtime.Execute(context.Background(), script)
 	elapsed := time.Since(start)
-	
+
 	require.Error(t, err)
 
 	runtimeErr, ok := err.(*RuntimeError)
@@ -364,7 +364,7 @@ func TestExecute_TimeoutWithInterrupt(t *testing.T) {
 	assert.Equal(t, ErrorTypeTimeout, runtimeErr.Type)
 	// Message should contain "interrupt" after mapping
 	assert.Contains(t, strings.ToLower(runtimeErr.Message), "interrupt")
-	
+
 	// Should timeout within reasonable time (not hang forever)
 	assert.Less(t, elapsed, 500*time.Millisecond, "Should interrupt quickly")
 }
@@ -408,7 +408,7 @@ func TestExecute_LogSanitization(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, "done", result)
 			require.Len(t, logs, 1)
-			
+
 			if tt.checkContains {
 				// Just verify it's truncated
 				assert.LessOrEqual(t, len(logs[0].Message), 10003) // 10000 + "..."
@@ -434,11 +434,11 @@ func TestExecute_LogEntryLimit(t *testing.T) {
 		}
 		'done'
 	`
-	
+
 	result, logs, err := runtime.Execute(context.Background(), script)
 	require.NoError(t, err)
 	assert.Equal(t, "done", result)
-	
+
 	// Should be limited to MaxLogEntries
 	assert.LessOrEqual(t, len(logs), MaxLogEntries)
 	assert.Equal(t, MaxLogEntries, len(logs))
@@ -552,7 +552,7 @@ func TestExecute_ConcurrentExecutionNoBlocking(t *testing.T) {
 	}
 
 	elapsed := time.Since(start)
-	
+
 	// All executions should complete relatively quickly since they don't block each other
 	// If mutex was held during execution, this would take much longer
 	assert.Less(t, elapsed, 5*time.Second, "Concurrent execution should not block")
@@ -581,7 +581,7 @@ func TestExecute_ContextCancellationDuringExecution(t *testing.T) {
 		}
 		sum
 	`
-	
+
 	_, _, err := runtime.Execute(ctx, script)
 	require.Error(t, err)
 
@@ -884,23 +884,23 @@ func TestExecute_ToolAuthorization(t *testing.T) {
 	})
 
 	tests := []struct {
-		name     string
-		script   string
+		name      string
+		script    string
 		shouldErr bool
 	}{
 		{
-			name:     "allowed tool",
-			script:   `mcp.callTool('server1', 'tool1', {})`,
+			name:      "allowed tool",
+			script:    `mcp.callTool('server1', 'tool1', {})`,
 			shouldErr: true, // Will error because server doesn't exist, but authorization passes
 		},
 		{
-			name:     "disallowed tool",
-			script:   `mcp.callTool('server1', 'tool3', {})`,
+			name:      "disallowed tool",
+			script:    `mcp.callTool('server1', 'tool3', {})`,
 			shouldErr: true,
 		},
 		{
-			name:     "disallowed server",
-			script:   `mcp.callTool('server3', 'tool1', {})`,
+			name:      "disallowed server",
+			script:    `mcp.callTool('server3', 'tool1', {})`,
 			shouldErr: true,
 		},
 	}
@@ -1052,7 +1052,7 @@ func TestExecute_TimeoutDoesNotLeakGoroutines(t *testing.T) {
 		script := `while(true) { var x = 1 + 1; }`
 		_, _, err := runtime.Execute(context.Background(), script)
 		require.Error(t, err)
-		
+
 		runtimeErr, ok := err.(*RuntimeError)
 		require.True(t, ok)
 		// Check for either timeout or runtime_error (interrupt)
@@ -1060,7 +1060,7 @@ func TestExecute_TimeoutDoesNotLeakGoroutines(t *testing.T) {
 		assert.True(t, isValidError, "Expected timeout or runtime_error, got %s", runtimeErr.Type)
 		assert.Contains(t, runtimeErr.Message, "interrupted")
 	}
-	
+
 	// Verify we can still execute after timeouts
 	script := `1 + 1`
 	result, _, err := runtime.Execute(context.Background(), script)

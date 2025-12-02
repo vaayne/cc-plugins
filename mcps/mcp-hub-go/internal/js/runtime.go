@@ -77,7 +77,7 @@ type Config struct {
 func NewRuntime(logger *zap.Logger, manager *client.Manager, cfg *Config) *Runtime {
 	timeout := DefaultTimeout
 	var allowedTools map[string][]string
-	
+
 	if cfg != nil {
 		if cfg.Timeout > 0 {
 			timeout = cfg.Timeout
@@ -137,7 +137,7 @@ func (r *Runtime) Execute(ctx context.Context, script string) (interface{}, []Lo
 	case <-execCtx.Done():
 		// Forcefully interrupt the VM on timeout or cancellation
 		vm.Interrupt("execution interrupted")
-		
+
 		// Wait a bit for the goroutine to finish
 		select {
 		case res := <-resultChan:
@@ -169,7 +169,7 @@ func (r *Runtime) validateSyncOnly(script string) error {
 
 	// Check for async patterns that can bypass string detection
 	// These checks are defense in depth alongside AST parsing
-	
+
 	// Check for Promise usage (including bracket notation like window['Promise'])
 	promisePatterns := []string{
 		"Promise",
@@ -189,7 +189,7 @@ func (r *Runtime) validateSyncOnly(script string) error {
 	// Check for async/await keywords (including in comments and strings)
 	// Remove comments and strings first
 	cleanedScript := removeCommentsAndStrings(script)
-	
+
 	asyncPatterns := []string{
 		"async ",
 		"async(",
@@ -238,11 +238,11 @@ func removeCommentsAndStrings(script string) string {
 	// Remove single-line comments
 	re := regexp.MustCompile(`//.*`)
 	script = re.ReplaceAllString(script, "")
-	
+
 	// Remove multi-line comments
 	re = regexp.MustCompile(`/\*[\s\S]*?\*/`)
 	script = re.ReplaceAllString(script, "")
-	
+
 	// Remove string literals (simple approach - doesn't handle all edge cases but good enough)
 	re = regexp.MustCompile(`"[^"\\]*(\\.[^"\\]*)*"`)
 	script = re.ReplaceAllString(script, `""`)
@@ -250,7 +250,7 @@ func removeCommentsAndStrings(script string) string {
 	script = re.ReplaceAllString(script, `''`)
 	re = regexp.MustCompile("`[^`]*`")
 	script = re.ReplaceAllString(script, "``")
-	
+
 	return script
 }
 
@@ -340,10 +340,10 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 
 		level := call.Argument(0).String()
 		message := call.Argument(1).String()
-		
+
 		// Sanitize log message
 		message = sanitizeLogMessage(message)
-		
+
 		var fields map[string]interface{}
 
 		if len(call.Arguments) > 2 && !goja.IsUndefined(call.Argument(2)) && !goja.IsNull(call.Argument(2)) {
@@ -506,7 +506,7 @@ func blockDangerousGlobals(vm *goja.Runtime) error {
 			}
 		})();
 	`)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to freeze prototypes: %w", err)
 	}
@@ -522,7 +522,7 @@ func blockDangerousGlobals(vm *goja.Runtime) error {
 		"Proxy",
 		"WebAssembly",
 	}
-	
+
 	for _, name := range dangerousGlobals {
 		if err := vm.Set(name, goja.Undefined()); err != nil {
 			return fmt.Errorf("failed to block %s: %w", name, err)
@@ -537,28 +537,28 @@ func sanitizeLogMessage(msg string) string {
 	// Remove ANSI escape codes
 	ansiEscape := regexp.MustCompile(`\x1b\[[0-9;]*m`)
 	msg = ansiEscape.ReplaceAllString(msg, "")
-	
+
 	// Remove other control characters (except newlines and tabs)
 	controlChars := regexp.MustCompile(`[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]`)
 	msg = controlChars.ReplaceAllString(msg, "")
-	
+
 	// Limit message length
 	const maxMessageLength = 10000
 	if len(msg) > maxMessageLength {
 		msg = msg[:maxMessageLength] + "..."
 	}
-	
+
 	return msg
 }
 
 // sanitizeLogFields sanitizes all field values in a map
 func sanitizeLogFields(fields map[string]interface{}) map[string]interface{} {
 	sanitized := make(map[string]interface{})
-	
+
 	for k, v := range fields {
 		// Sanitize key
 		k = sanitizeLogMessage(k)
-		
+
 		// Sanitize value based on type
 		switch val := v.(type) {
 		case string:
@@ -569,7 +569,7 @@ func sanitizeLogFields(fields map[string]interface{}) map[string]interface{} {
 			sanitized[k] = v
 		}
 	}
-	
+
 	return sanitized
 }
 

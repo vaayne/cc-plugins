@@ -446,7 +446,7 @@ func TestStop_NoClientManager(t *testing.T) {
 // TestNamespaceParsing verifies namespace parsing logic
 func TestNamespaceParsing(t *testing.T) {
 	tests := []struct {
-		name          string
+		name           string
 		namespacedName string
 		expectedServer string
 		expectedTool   string

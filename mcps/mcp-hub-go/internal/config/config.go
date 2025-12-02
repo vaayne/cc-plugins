@@ -12,9 +12,9 @@ import (
 
 // Config represents the MCP hub configuration
 type Config struct {
-	Version       string                 `json:"version,omitempty"`
-	MCPServers    map[string]MCPServer   `json:"mcpServers"`
-	BuiltinTools  map[string]BuiltinTool `json:"builtinTools,omitempty"`
+	Version      string                 `json:"version,omitempty"`
+	MCPServers   map[string]MCPServer   `json:"mcpServers"`
+	BuiltinTools map[string]BuiltinTool `json:"builtinTools,omitempty"`
 }
 
 // MCPServer represents a remote MCP server configuration
@@ -27,7 +27,7 @@ type MCPServer struct {
 	Enable        *bool             `json:"enable,omitempty"` // pointer to distinguish between false and unset
 	Required      bool              `json:"required,omitempty"`
 	Headers       map[string]string `json:"headers,omitempty"`       // Custom HTTP headers for http/sse transports
-	Timeout       *int              `json:"timeout,omitempty"`        // Request timeout in seconds
+	Timeout       *int              `json:"timeout,omitempty"`       // Request timeout in seconds
 	TLSSkipVerify *bool             `json:"tlsSkipVerify,omitempty"` // Skip TLS verification (dev only)
 }
 
@@ -133,36 +133,36 @@ func validateServer(name string, server MCPServer) error {
 		if server.URL != "" {
 			return fmt.Errorf("server %q: url must not be set for stdio transport", name)
 		}
-		
+
 		// Validate command path
 		if err := validateCommandPath(server.Command); err != nil {
 			return fmt.Errorf("server %q: %w", name, err)
 		}
-		
+
 		// Validate args
 		const maxArgs = 100
 		const maxArgLength = 4096
-		
+
 		if len(server.Args) > maxArgs {
 			return fmt.Errorf("server %q: too many args (max %d)", name, maxArgs)
 		}
-		
+
 		for i, arg := range server.Args {
 			if len(arg) > maxArgLength {
 				return fmt.Errorf("server %q: arg %d exceeds maximum length of %d", name, i, maxArgLength)
 			}
-			
+
 			// Check for path traversal
 			if strings.Contains(arg, "..") {
 				return fmt.Errorf("server %q: arg[%d] contains path traversal sequence: %s", name, i, arg)
 			}
-			
+
 			// Check for shell metacharacters
 			if err := validateNoShellMetachars(arg); err != nil {
 				return fmt.Errorf("server %q: arg[%d] %w", name, i, err)
 			}
 		}
-		
+
 	case "http", "sse":
 		// For http/sse transports, URL is required and command must be empty
 		if server.URL == "" {
@@ -171,17 +171,17 @@ func validateServer(name string, server MCPServer) error {
 		if server.Command != "" {
 			return fmt.Errorf("server %q: command must not be set for %s transport", name, transport)
 		}
-		
+
 		// Validate URL format
 		if err := validateURL(server.URL); err != nil {
 			return fmt.Errorf("server %q: invalid url: %w", name, err)
 		}
-		
+
 		// Validate timeout if specified
 		if server.Timeout != nil && *server.Timeout <= 0 {
 			return fmt.Errorf("server %q: timeout must be positive", name)
 		}
-		
+
 	default:
 		return fmt.Errorf("server %q: invalid transport: %s (must be stdio, http, or sse)", name, server.GetTransport())
 	}
@@ -199,29 +199,29 @@ func validateURL(urlStr string) error {
 	if urlStr == "" {
 		return fmt.Errorf("URL cannot be empty")
 	}
-	
+
 	// Parse the URL
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return fmt.Errorf("invalid URL format: %w", err)
 	}
-	
+
 	// Check scheme
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return fmt.Errorf("URL scheme must be http or https, got: %s", u.Scheme)
 	}
-	
+
 	// Check host
 	if u.Host == "" {
 		return fmt.Errorf("URL must have a host")
 	}
-	
+
 	// Optional: Check for private IP ranges to prevent SSRF
 	// This can be made configurable if needed
 	if isPrivateIP(u.Host) {
 		return fmt.Errorf("URL points to private IP range, which is not allowed")
 	}
-	
+
 	return nil
 }
 
@@ -232,29 +232,29 @@ func isPrivateIP(host string) bool {
 	if idx := strings.LastIndex(host, ":"); idx != -1 {
 		hostname = host[:idx]
 	}
-	
+
 	// Skip check for localhost and domain names
 	if hostname == "localhost" || hostname == "127.0.0.1" || hostname == "::1" {
 		// Allow localhost for development
 		return false
 	}
-	
+
 	// If it's not an IP address, skip the check
 	ip := net.ParseIP(hostname)
 	if ip == nil {
 		return false
 	}
-	
+
 	// Check private IP ranges
 	privateRanges := []string{
 		"10.0.0.0/8",
 		"172.16.0.0/12",
 		"192.168.0.0/16",
 		"169.254.0.0/16", // Link-local
-		"fc00::/7",        // IPv6 unique local
-		"fe80::/10",       // IPv6 link-local
+		"fc00::/7",       // IPv6 unique local
+		"fe80::/10",      // IPv6 link-local
 	}
-	
+
 	for _, cidr := range privateRanges {
 		_, network, err := net.ParseCIDR(cidr)
 		if err != nil {
@@ -264,18 +264,18 @@ func isPrivateIP(host string) bool {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
 // validateCommandPath validates a command path for security issues
 func validateCommandPath(command string) error {
 	const maxCommandLength = 1024
-	
+
 	if len(command) > maxCommandLength {
 		return fmt.Errorf("command exceeds maximum length of %d", maxCommandLength)
 	}
-	
+
 	// Check for path traversal
 	if strings.Contains(command, "..") {
 		return fmt.Errorf("invalid command path (contains path traversal): %s", command)
@@ -327,7 +327,7 @@ func validateEnvironment(serverName string, env map[string]string) error {
 		"DYLD_LIBRARY_PATH", "PATH", "PYTHONPATH", "NODE_PATH",
 		"PERL5LIB", "RUBY_LIB", "CLASSPATH",
 	}
-	
+
 	for key, value := range env {
 		keyUpper := strings.ToUpper(key)
 		for _, dangerous := range dangerousEnvVars {
@@ -335,17 +335,17 @@ func validateEnvironment(serverName string, env map[string]string) error {
 				return fmt.Errorf("server %q: dangerous environment variable not allowed: %s", serverName, key)
 			}
 		}
-		
+
 		// Validate env values for shell metacharacters
 		if err := validateNoShellMetachars(value); err != nil {
 			return fmt.Errorf("server %q: env var %q value %w", serverName, key, err)
 		}
-		
+
 		// Check for null bytes
 		if strings.Contains(value, "\x00") {
 			return fmt.Errorf("server %q: env var %q contains null byte", serverName, key)
 		}
 	}
-	
+
 	return nil
 }

@@ -10,9 +10,9 @@ import (
 	"mcp-hub-go/internal/config"
 	"mcp-hub-go/internal/tools"
 
+	"encoding/json"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
-	"encoding/json"
 )
 
 // Server represents the MCP hub server

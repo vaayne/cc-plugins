@@ -15,8 +15,8 @@ import (
 	"mcp-hub-go/internal/client"
 	"mcp-hub-go/internal/config"
 	"mcp-hub-go/internal/js"
-	"mcp-hub-go/internal/tools"
 	mcptesting "mcp-hub-go/internal/testing"
+	"mcp-hub-go/internal/tools"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"

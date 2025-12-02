@@ -490,9 +490,9 @@ func TestInitLogger_PathSecurity(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	tests := []struct {
-		name                string
-		logFilePath         string
-		expectFileLogging   bool
+		name              string
+		logFilePath       string
+		expectFileLogging bool
 	}{
 		{
 			name:              "path with .. is cleaned and converted to absolute",
