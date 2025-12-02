@@ -15,15 +15,16 @@ Benefits of batching in a single exec:
 
 ## Available APIs
 
-### mcp.callTool(serverID, toolName, params)
+### mcp.callTool(toolName, params)
 
-Call any MCP tool. Results are auto-parsed from JSON.
+Call any MCP tool. Use the exact tool name from search results.
 
-- serverID: Server ID from search results
-- toolName: Tool name to invoke
+- toolName: Full tool name in "serverID.toolName" format (e.g., "grep.searchGitHub")
 - params: Parameters object
 - Returns: Parsed JSON object (or string if not JSON)
 - Throws: Exception on failure (use try/catch)
+
+Example: `mcp.callTool("grep.searchGitHub", { pattern: "TODO" })`
 
 ### mcp.log(level, message, fields?)
 
@@ -41,20 +42,20 @@ Call multiple tools or the same tool with different params in one exec:
 
 ```javascript
 const operations = [
-  { server: "db", tool: "getUser", params: { id: 1 } },
-  { server: "db", tool: "getUser", params: { id: 2 } },
-  { server: "api", tool: "getStatus", params: {} },
+  { tool: "db.getUser", params: { id: 1 } },
+  { tool: "db.getUser", params: { id: 2 } },
+  { tool: "api.getStatus", params: {} },
 ];
 const results = [];
 for (const op of operations) {
   try {
     results.push({
-      name: op.tool,
+      tool: op.tool,
       success: true,
-      data: mcp.callTool(op.server, op.tool, op.params),
+      data: mcp.callTool(op.tool, op.params),
     });
   } catch (e) {
-    results.push({ name: op.tool, success: false, error: e.message });
+    results.push({ tool: op.tool, success: false, error: e.message });
   }
 }
 results;
@@ -66,9 +67,9 @@ Gather data from multiple sources, then process together:
 
 ```javascript
 // 1. Collect from multiple sources
-const users = mcp.callTool("db", "listUsers", { limit: 100 });
-const orders = mcp.callTool("db", "listOrders", { status: "pending" });
-const metrics = mcp.callTool("analytics", "getSummary", {});
+const users = mcp.callTool("db.listUsers", { limit: 100 });
+const orders = mcp.callTool("db.listOrders", { status: "pending" });
+const metrics = mcp.callTool("analytics.getSummary", {});
 
 // 2. Transform and aggregate
 const activeUsers = users.filter(u => u.active);
@@ -88,16 +89,16 @@ const highValueOrders = orders.filter(o => o.total > 1000);
 Make subsequent calls based on previous results:
 
 ```javascript
-const user = mcp.callTool("db", "getUser", { id: 123 });
+const user = mcp.callTool("db.getUser", { id: 123 });
 const result = { user };
 
 if (user.isPremium) {
-  result.features = mcp.callTool("billing", "getFeatures", { tier: user.tier });
-  result.usage = mcp.callTool("analytics", "getUsage", { userId: user.id });
+  result.features = mcp.callTool("billing.getFeatures", { tier: user.tier });
+  result.usage = mcp.callTool("analytics.getUsage", { userId: user.id });
 }
 
 if (user.teamId) {
-  result.team = mcp.callTool("db", "getTeam", { id: user.teamId });
+  result.team = mcp.callTool("db.getTeam", { id: user.teamId });
 }
 
 result;
@@ -113,7 +114,7 @@ const results = { success: [], failed: [] };
 
 for (const id of ids) {
   try {
-    const item = mcp.callTool("api", "fetchItem", { id });
+    const item = mcp.callTool("api.fetchItem", { id });
     results.success.push({ id, data: item });
   } catch (e) {
     results.failed.push({ id, error: e.message });
@@ -137,7 +138,7 @@ const workflow = { steps: [], startTime: new Date().toISOString() };
 
 // Step 1: Search for relevant tools
 try {
-  const tools = mcp.callTool("builtin", "search", { query: "file" });
+  const tools = mcp.callTool("builtin.search", { query: "file" });
   workflow.steps.push({ name: "search", success: true, count: tools.length });
 } catch (e) {
   workflow.steps.push({ name: "search", success: false, error: e.message });
@@ -145,7 +146,7 @@ try {
 
 // Step 2: Get file list
 try {
-  const files = mcp.callTool("fs", "listFiles", { path: "/src" });
+  const files = mcp.callTool("fs.listFiles", { path: "/src" });
   workflow.steps.push({
     name: "listFiles",
     success: true,
@@ -169,7 +170,7 @@ workflow;
 The script result is the **last expression evaluated**:
 
 ```javascript
-const data = mcp.callTool("api", "fetchAll", {});
+const data = mcp.callTool("api.fetchAll", {});
 data.filter(x => x.active).map(x => ({ id: x.id, name: x.name })); // This is returned
 ```
 
@@ -178,7 +179,41 @@ data.filter(x => x.active).map(x => ({ id: x.id, name: x.name })); // This is re
 **goja** (Go JavaScript engine): ES5.1 with select ES6 features.
 
 Supported: const, let, arrow functions, template literals, spread operator, destructuring, for...of
-Not available: async/await, Promise, setTimeout, console (use mcp.log), fetch, require/import
+Not available: async/await, Promise, setTimeout, fetch, require/import
+
+## Common Mistakes to Avoid
+
+### 1. Do NOT use `return` - use last expression instead
+
+```javascript
+// WRONG - "Illegal return statement"
+const data = mcp.callTool("db.getUsers", {});
+return data;
+
+// CORRECT - last expression is the result
+const data = mcp.callTool("db.getUsers", {});
+data;
+```
+
+### 2. Object literals at end of blocks need variable assignment
+
+```javascript
+// WRONG - syntax error (parsed as label)
+try { ... } catch (e) { { error: e.message }; }
+
+// CORRECT - assign to variable first
+try { ... } catch (e) { const result = { error: e.message }; result; }
+```
+
+## Logging
+
+Both `console.log()` and `mcp.log()` are available:
+
+```javascript
+console.log("message", data); // level: info
+console.error("error occurred", err); // level: error
+mcp.log("info", "message", { extra: "fields" });
+```
 
 ## Constraints
 
@@ -190,5 +225,5 @@ Not available: async/await, Promise, setTimeout, console (use mcp.log), fetch, r
 ## Output Format
 
 - result: Your script's return value (last expression)
-- logs: Array of mcp.log() entries
+- logs: Array of console.log/mcp.log entries
 - error: Error message if execution failed

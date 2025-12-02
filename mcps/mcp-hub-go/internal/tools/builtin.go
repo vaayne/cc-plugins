@@ -60,9 +60,10 @@ func (r *BuiltinToolRegistry) GetAllTools() map[string]config.BuiltinTool {
 
 // ToolSearchResult represents a single search result
 type ToolSearchResult struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Server      string `json:"server"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Server      string                 `json:"server"`
+	InputSchema map[string]interface{} `json:"inputSchema,omitempty"`
 }
 
 // SearchToolsResponse represents the response from the search tool
@@ -115,10 +116,19 @@ func HandleSearchTool(ctx context.Context, registry *BuiltinToolRegistry, manage
 				serverID = parts[0]
 			}
 
+			// Convert InputSchema to map if possible
+			var inputSchema map[string]interface{}
+			if tool.InputSchema != nil {
+				if schema, ok := tool.InputSchema.(map[string]interface{}); ok {
+					inputSchema = schema
+				}
+			}
+
 			results = append(results, ToolSearchResult{
 				Name:        namespacedName,
 				Description: tool.Description,
 				Server:      serverID,
+				InputSchema: inputSchema,
 			})
 		}
 	}

@@ -293,7 +293,7 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 	// Setup mcp helpers
 	mcpObj := vm.NewObject()
 
-	// mcp.callTool(serverID, toolName, params)
+	// mcp.callTool(toolName, params) - toolName format: "serverID.toolName"
 	if err := mcpObj.Set("callTool", func(call goja.FunctionCall) goja.Value {
 		// Check context cancellation
 		select {
@@ -302,13 +302,21 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 		default:
 		}
 
-		if len(call.Arguments) != 3 {
-			panic(vm.NewTypeError("mcp.callTool requires 3 arguments: serverID, toolName, params"))
+		if len(call.Arguments) != 2 {
+			panic(vm.NewTypeError("mcp.callTool requires 2 arguments: toolName (e.g., 'server.tool'), params"))
 		}
 
-		serverID := call.Argument(0).String()
-		toolName := call.Argument(1).String()
-		params := call.Argument(2).Export()
+		fullToolName := call.Argument(0).String()
+		params := call.Argument(1).Export()
+
+		// Parse serverID.toolName format
+		dotIndex := strings.Index(fullToolName, ".")
+		if dotIndex == -1 {
+			panic(vm.NewTypeError("toolName must be in format 'serverID.toolName' (e.g., 'grep.searchGitHub')"))
+		}
+
+		serverID := fullToolName[:dotIndex]
+		toolName := fullToolName[dotIndex+1:]
 
 		// Call the tool
 		result, err := r.callTool(ctx, serverID, toolName, params)
@@ -382,6 +390,57 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 		}
 	}
 
+	// Add console object as an alias for mcp.log (LLMs naturally use console.log)
+	consoleObj := vm.NewObject()
+	logFunc := func(level string) func(call goja.FunctionCall) goja.Value {
+		return func(call goja.FunctionCall) goja.Value {
+			logsMu.Lock()
+			defer logsMu.Unlock()
+
+			if len(logs) >= MaxLogEntries {
+				return goja.Undefined()
+			}
+
+			// Convert all arguments to strings and join them
+			var parts []string
+			for _, arg := range call.Arguments {
+				parts = append(parts, fmt.Sprintf("%v", arg.Export()))
+			}
+			message := strings.Join(parts, " ")
+			message = sanitizeLogMessage(message)
+
+			logs = append(logs, LogEntry{
+				Level:   level,
+				Message: message,
+			})
+
+			return goja.Undefined()
+		}
+	}
+
+	if err := consoleObj.Set("log", logFunc("info")); err != nil {
+		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.log"}
+	}
+	if err := consoleObj.Set("info", logFunc("info")); err != nil {
+		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.info"}
+	}
+	if err := consoleObj.Set("warn", logFunc("warn")); err != nil {
+		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.warn"}
+	}
+	if err := consoleObj.Set("error", logFunc("error")); err != nil {
+		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.error"}
+	}
+	if err := consoleObj.Set("debug", logFunc("debug")); err != nil {
+		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.debug"}
+	}
+
+	if err := vm.Set("console", consoleObj); err != nil {
+		return nil, nil, &RuntimeError{
+			Type:    ErrorTypeRuntime,
+			Message: fmt.Sprintf("failed to set console global: %v", err),
+		}
+	}
+
 	// Block dangerous globals and freeze prototypes
 	if err := blockDangerousGlobals(vm); err != nil {
 		return nil, nil, &RuntimeError{
@@ -432,13 +491,13 @@ func blockDangerousGlobals(vm *goja.Runtime) error {
 	_, err := vm.RunString(`
 		(function() {
 			'use strict';
-			
+
 			// Block access to constructor chains more comprehensively
 			// This prevents access via (function(){}).constructor
 			var blockConstructor = function() {
 				throw new Error('Access to constructor is not allowed');
 			};
-			
+
 			// Freeze built-in prototypes and block their constructor property
 			if (typeof Object !== 'undefined' && Object.prototype) {
 				try {
@@ -492,7 +551,7 @@ func blockDangerousGlobals(vm *goja.Runtime) error {
 				} catch (e) {}
 				Object.freeze(Boolean.prototype);
 			}
-			
+
 			// Block Function prototype constructor BEFORE we set Function to undefined
 			if (typeof Function !== 'undefined' && Function.prototype) {
 				try {
@@ -575,12 +634,14 @@ func sanitizeLogFields(fields map[string]interface{}) map[string]interface{} {
 
 // callTool calls a proxied MCP tool
 func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, params interface{}) (interface{}, error) {
+	fullToolName := serverID + "." + toolName
+
 	// Validate inputs
 	if serverID == "" {
-		return nil, fmt.Errorf("serverID is required")
+		return nil, fmt.Errorf("serverID is required in tool name")
 	}
 	if toolName == "" {
-		return nil, fmt.Errorf("toolName is required")
+		return nil, fmt.Errorf("toolName is required after the dot")
 	}
 
 	// Convert params to map for CallToolParams - do this BEFORE authorization/client checks
@@ -599,15 +660,14 @@ func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, param
 	if r.allowedTools != nil {
 		allowed, ok := r.allowedTools[serverID]
 		if !ok || !contains(allowed, toolName) {
-			return nil, fmt.Errorf("tool %s is not allowed for server %s", toolName, serverID)
+			return nil, fmt.Errorf("tool '%s' is not authorized", fullToolName)
 		}
 	}
 
 	// Get client session
 	session, err := r.manager.GetClient(serverID)
 	if err != nil {
-		// Wrap error to prevent leaking internal details
-		return nil, fmt.Errorf("failed to get client for server %s", serverID)
+		return nil, fmt.Errorf("server '%s' not found - check server name or run 'search' to find available tools", serverID)
 	}
 
 	// Call tool
@@ -618,8 +678,9 @@ func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, param
 
 	result, err := session.CallTool(ctx, toolParams)
 	if err != nil {
-		// Wrap error to prevent leaking paths and system info
-		return nil, fmt.Errorf("tool execution failed")
+		// Provide helpful error message with sanitized details
+		errMsg := sanitizeToolError(err)
+		return nil, fmt.Errorf("tool '%s' failed: %s", fullToolName, errMsg)
 	}
 
 	// Extract result from content
@@ -637,7 +698,53 @@ func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, param
 		}
 		return content.Text, nil
 	default:
-		return nil, fmt.Errorf("unsupported content type")
+		return nil, fmt.Errorf("unsupported content type from '%s'", fullToolName)
+	}
+}
+
+// sanitizeToolError extracts useful error info while removing sensitive details
+func sanitizeToolError(err error) string {
+	if err == nil {
+		return "unknown error"
+	}
+
+	errStr := err.Error()
+
+	// Check for common error patterns and provide helpful messages
+	switch {
+	case strings.Contains(errStr, "not found"):
+		return "tool not found"
+	case strings.Contains(errStr, "connection refused"):
+		return "server connection refused"
+	case strings.Contains(errStr, "timeout"):
+		return "request timeout"
+	case strings.Contains(errStr, "context canceled"):
+		return "request canceled"
+	case strings.Contains(errStr, "invalid argument"):
+		return "invalid arguments"
+	case strings.Contains(errStr, "permission denied"):
+		return "permission denied"
+	default:
+		// For other errors, return a sanitized version
+		// Remove file paths and other sensitive info
+		sanitized := errStr
+		// Remove common path patterns
+		for _, prefix := range []string{"/Users/", "/home/", "C:\\", "/var/", "/tmp/"} {
+			if idx := strings.Index(sanitized, prefix); idx != -1 {
+				// Find the end of the path (space or end of string)
+				endIdx := strings.IndexAny(sanitized[idx:], " \t\n:\"'")
+				if endIdx == -1 {
+					sanitized = sanitized[:idx] + "[path]"
+				} else {
+					sanitized = sanitized[:idx] + "[path]" + sanitized[idx+endIdx:]
+				}
+			}
+		}
+		// Truncate if too long
+		if len(sanitized) > 100 {
+			sanitized = sanitized[:100] + "..."
+		}
+		return sanitized
 	}
 }
 

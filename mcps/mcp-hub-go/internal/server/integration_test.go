@@ -260,7 +260,7 @@ func TestIntegration_JSToolAuthorization(t *testing.T) {
 
 	script := `
 		try {
-			mcp.callTool('server1', 'tool3', {});
+			mcp.callTool('server1.tool3', {});
 		} catch (e) {
 			e.message;
 		}
@@ -268,7 +268,7 @@ func TestIntegration_JSToolAuthorization(t *testing.T) {
 
 	result, _, err := runtime.Execute(context.Background(), script)
 	require.NoError(t, err)
-	assert.Contains(t, result.(string), "not allowed")
+	assert.Contains(t, result.(string), "not authorized")
 }
 
 // TestIntegration_NamespaceCollisions tests handling of namespace collisions

@@ -603,7 +603,7 @@ func TestExecute_TypeAssertionError(t *testing.T) {
 	runtime := NewRuntime(logger, manager, nil)
 
 	// Try to call callTool with invalid params type (number instead of object)
-	script := `mcp.callTool('server', 'tool', 123)`
+	script := `mcp.callTool('server.tool', 123)`
 
 	_, _, err := runtime.Execute(context.Background(), script)
 	require.Error(t, err)
@@ -767,16 +767,20 @@ func TestCallTool_Validation(t *testing.T) {
 		script string
 	}{
 		{
-			name:   "missing serverID",
-			script: `mcp.callTool('', 'toolName', {})`,
+			name:   "missing dot separator",
+			script: `mcp.callTool('toolName', {})`,
 		},
 		{
-			name:   "missing toolName",
-			script: `mcp.callTool('server', '', {})`,
+			name:   "empty serverID",
+			script: `mcp.callTool('.toolName', {})`,
+		},
+		{
+			name:   "empty toolName",
+			script: `mcp.callTool('server.', {})`,
 		},
 		{
 			name:   "wrong number of arguments",
-			script: `mcp.callTool('server')`,
+			script: `mcp.callTool('server.tool')`,
 		},
 	}
 
@@ -824,6 +828,70 @@ func TestMcpLog_EdgeCases(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, "ok", result)
 			assert.Len(t, logs, tt.expectedLogs)
+		})
+	}
+}
+
+// TestConsoleLog verifies console.log/warn/error work as aliases for mcp.log
+func TestConsoleLog(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	manager := client.NewManager(logger)
+	defer manager.DisconnectAll()
+
+	runtime := NewRuntime(logger, manager, nil)
+
+	tests := []struct {
+		name          string
+		script        string
+		expectedLevel string
+		expectedMsg   string
+	}{
+		{
+			name:          "console.log",
+			script:        `console.log('hello', 'world'); 'ok'`,
+			expectedLevel: "info",
+			expectedMsg:   "hello world",
+		},
+		{
+			name:          "console.info",
+			script:        `console.info('info message'); 'ok'`,
+			expectedLevel: "info",
+			expectedMsg:   "info message",
+		},
+		{
+			name:          "console.warn",
+			script:        `console.warn('warning!'); 'ok'`,
+			expectedLevel: "warn",
+			expectedMsg:   "warning!",
+		},
+		{
+			name:          "console.error",
+			script:        `console.error('error occurred'); 'ok'`,
+			expectedLevel: "error",
+			expectedMsg:   "error occurred",
+		},
+		{
+			name:          "console.debug",
+			script:        `console.debug('debug info'); 'ok'`,
+			expectedLevel: "debug",
+			expectedMsg:   "debug info",
+		},
+		{
+			name:          "console.log with multiple args",
+			script:        `console.log('count:', 42, 'items'); 'ok'`,
+			expectedLevel: "info",
+			expectedMsg:   "count: 42 items",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, logs, err := runtime.Execute(context.Background(), tt.script)
+			require.NoError(t, err)
+			assert.Equal(t, "ok", result)
+			require.Len(t, logs, 1)
+			assert.Equal(t, tt.expectedLevel, logs[0].Level)
+			assert.Equal(t, tt.expectedMsg, logs[0].Message)
 		})
 	}
 }
@@ -890,17 +958,17 @@ func TestExecute_ToolAuthorization(t *testing.T) {
 	}{
 		{
 			name:      "allowed tool",
-			script:    `mcp.callTool('server1', 'tool1', {})`,
+			script:    `mcp.callTool('server1.tool1', {})`,
 			shouldErr: true, // Will error because server doesn't exist, but authorization passes
 		},
 		{
 			name:      "disallowed tool",
-			script:    `mcp.callTool('server1', 'tool3', {})`,
+			script:    `mcp.callTool('server1.tool3', {})`,
 			shouldErr: true,
 		},
 		{
 			name:      "disallowed server",
-			script:    `mcp.callTool('server3', 'tool1', {})`,
+			script:    `mcp.callTool('server3.tool1', {})`,
 			shouldErr: true,
 		},
 	}
@@ -927,11 +995,12 @@ func TestExecute_ToolAuthorizationNilAllowsAll(t *testing.T) {
 	runtime := NewRuntime(logger, manager, nil)
 
 	// Should not reject based on authorization (but will fail due to missing server)
-	script := `mcp.callTool('anyserver', 'anytool', {})`
+	script := `mcp.callTool('anyserver.anytool', {})`
 	_, _, err := runtime.Execute(context.Background(), script)
 	require.Error(t, err)
-	// Should get "failed to get client" not "not allowed"
-	assert.NotContains(t, err.Error(), "not allowed")
+	// Should get "server not found" error, not authorization error
+	assert.NotContains(t, err.Error(), "not authorized")
+	assert.Contains(t, err.Error(), "not found")
 }
 
 // TestExecute_ConstructorAccessBlocked verifies Function constructor access is blocked
@@ -987,7 +1056,7 @@ func TestExecute_ErrorSanitization(t *testing.T) {
 	runtime := NewRuntime(logger, manager, nil)
 
 	// Call a non-existent tool to trigger error
-	script := `mcp.callTool('nonexistent', 'tool', {})`
+	script := `mcp.callTool('nonexistent.tool', {})`
 	_, _, err := runtime.Execute(context.Background(), script)
 	require.Error(t, err)
 
@@ -1014,15 +1083,15 @@ func TestExecute_ParamsTypeAssertion(t *testing.T) {
 	}{
 		{
 			name:   "number instead of object",
-			script: `mcp.callTool('server', 'tool', 123)`,
+			script: `mcp.callTool('server.tool', 123)`,
 		},
 		{
 			name:   "string instead of object",
-			script: `mcp.callTool('server', 'tool', 'invalid')`,
+			script: `mcp.callTool('server.tool', 'invalid')`,
 		},
 		{
 			name:   "array instead of object",
-			script: `mcp.callTool('server', 'tool', [1, 2, 3])`,
+			script: `mcp.callTool('server.tool', [1, 2, 3])`,
 		},
 	}
 

@@ -101,15 +101,16 @@ This tool discovers available MCP tools from connected servers. Use it to find t
 ## Workflow
 
 1. Search for tools using keywords
-2. Review the results to find the right tool(s)
-3. Use exec to execute JavaScript code that calls the discovered tools via mcp.callTool()
+2. Review the results to find the right tool(s) and their parameters
+3. Use exec to call tools via mcp.callTool("serverID.toolName", params)
 
 ## Output Format
 
 Each result includes:
-- name: Full namespaced tool name (serverID.toolName)
+- name: Full tool name to use with mcp.callTool() (e.g., "grep.searchGitHub")
 - description: Tool description
 - server: The server ID hosting this tool
+- inputSchema: JSON Schema defining the tool's parameters (properties, required fields, types)
 
 ## Examples
 
@@ -124,8 +125,8 @@ Search by server name:
 
 ## Tips
 
-- Start broad, then narrow down: search "file" before "file upload"
-- Note the server ID from results - you'll need it for mcp.callTool()`,
+- Always check inputSchema to see the correct parameter names and types
+- Use the exact "name" value with mcp.callTool()`,
 		InputSchema: map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
