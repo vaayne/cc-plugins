@@ -289,76 +289,6 @@ func TestHandleBuiltinTool_UnknownTool(t *testing.T) {
 	assert.Contains(t, err.Error(), "unknown built-in tool")
 }
 
-// TestHandleProxiedTool_InvalidNamespace verifies error on invalid namespaced name
-func TestHandleProxiedTool_InvalidNamespace(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	cfg := &config.Config{
-		MCPServers: make(map[string]config.MCPServer),
-	}
-
-	server := NewServer(cfg, logger)
-	server.clientManager = client.NewManager(logger)
-	defer server.clientManager.DisconnectAll()
-
-	req := &mcp.CallToolRequest{
-		Params: &mcp.CallToolParamsRaw{
-			Name:      "invalid-name-without-dot",
-			Arguments: []byte("{}"),
-		},
-	}
-
-	_, err := server.handleProxiedTool(context.Background(), "invalid-name-without-dot", req)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid namespaced tool name")
-}
-
-// TestHandleProxiedTool_ServerNotFound verifies error when server not found
-func TestHandleProxiedTool_ServerNotFound(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	cfg := &config.Config{
-		MCPServers: make(map[string]config.MCPServer),
-	}
-
-	server := NewServer(cfg, logger)
-	server.clientManager = client.NewManager(logger)
-	defer server.clientManager.DisconnectAll()
-
-	req := &mcp.CallToolRequest{
-		Params: &mcp.CallToolParamsRaw{
-			Name:      "nonexistent.tool",
-			Arguments: []byte("{}"),
-		},
-	}
-
-	_, err := server.handleProxiedTool(context.Background(), "nonexistent.tool", req)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to get client")
-}
-
-// TestHandleProxiedTool_ArgumentUnmarshalError verifies error on invalid arguments
-func TestHandleProxiedTool_ArgumentUnmarshalError(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	cfg := &config.Config{
-		MCPServers: make(map[string]config.MCPServer),
-	}
-
-	server := NewServer(cfg, logger)
-	server.clientManager = client.NewManager(logger)
-	defer server.clientManager.DisconnectAll()
-
-	req := &mcp.CallToolRequest{
-		Params: &mcp.CallToolParamsRaw{
-			Name:      "server1.tool1",
-			Arguments: []byte("{invalid json}"),
-		},
-	}
-
-	_, err := server.handleProxiedTool(context.Background(), "server1.tool1", req)
-	assert.Error(t, err)
-	// Will get "server not found" error first since we check client existence before unmarshaling
-	assert.Contains(t, err.Error(), "failed to get client")
-}
-
 // TestRegisterBuiltinToolHandler verifies built-in tool registration
 func TestRegisterBuiltinToolHandler(t *testing.T) {
 	logger := zaptest.NewLogger(t)
@@ -387,31 +317,6 @@ func TestRegisterBuiltinToolHandler(t *testing.T) {
 	}
 
 	err := server.registerBuiltinToolHandler("test-tool", builtinTool)
-	assert.NoError(t, err)
-}
-
-// TestRegisterProxiedToolHandler verifies proxied tool registration
-func TestRegisterProxiedToolHandler(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	cfg := &config.Config{
-		MCPServers: make(map[string]config.MCPServer),
-	}
-
-	server := NewServer(cfg, logger)
-	server.mcpServer = mcp.NewServer(&mcp.Implementation{
-		Name:    "test-server",
-		Version: "v1.0.0",
-	}, nil)
-
-	tool := &mcp.Tool{
-		Name:        "remote-tool",
-		Description: "Remote tool",
-		InputSchema: map[string]interface{}{
-			"type": "object",
-		},
-	}
-
-	err := server.registerProxiedToolHandler("server1.remote-tool", tool)
 	assert.NoError(t, err)
 }
 

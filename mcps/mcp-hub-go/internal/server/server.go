@@ -3,14 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"mcp-hub-go/internal/client"
 	"mcp-hub-go/internal/config"
 	"mcp-hub-go/internal/tools"
 
-	"encoding/json"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 )
@@ -174,7 +172,7 @@ func (s *Server) connectToRemoteServers() error {
 	return nil
 }
 
-// registerAllTools registers all tools (built-in and proxied) with the MCP server
+// registerAllTools registers all tools (built-in only) with the MCP server
 func (s *Server) registerAllTools() error {
 	// Register built-in tools
 	for toolName, builtinTool := range s.builtinRegistry.GetAllTools() {
@@ -183,17 +181,8 @@ func (s *Server) registerAllTools() error {
 		}
 	}
 
-	// Register proxied tools from remote servers
-	allRemoteTools := s.clientManager.GetAllTools()
-	for namespacedName, tool := range allRemoteTools {
-		if err := s.registerProxiedToolHandler(namespacedName, tool); err != nil {
-			return fmt.Errorf("failed to register proxied tool %s: %w", namespacedName, err)
-		}
-	}
-
-	s.logger.Info("Registered all tools",
-		zap.Int("builtinCount", len(s.builtinRegistry.GetAllTools())),
-		zap.Int("proxiedCount", len(allRemoteTools)),
+	s.logger.Info("Registered built-in tools",
+		zap.Int("count", len(s.builtinRegistry.GetAllTools())),
 	)
 
 	return nil
@@ -220,26 +209,6 @@ func (s *Server) registerBuiltinToolHandler(toolName string, builtinTool config.
 	return nil
 }
 
-// registerProxiedToolHandler registers a handler for a proxied tool
-func (s *Server) registerProxiedToolHandler(namespacedName string, tool *mcp.Tool) error {
-	// Create MCP tool schema with namespaced name
-	mcpTool := &mcp.Tool{
-		Name:        namespacedName,
-		Description: tool.Description,
-		InputSchema: tool.InputSchema,
-	}
-
-	// Register the tool with a handler that proxies to the remote server
-	handler := func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		return s.handleProxiedTool(ctx, namespacedName, req)
-	}
-
-	s.mcpServer.AddTool(mcpTool, handler)
-
-	s.logger.Debug("Registered proxied tool", zap.String("name", namespacedName))
-	return nil
-}
-
 // handleBuiltinTool handles calls to built-in tools
 func (s *Server) handleBuiltinTool(ctx context.Context, toolName string, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	s.logger.Debug("Handling built-in tool call", zap.String("tool", toolName))
@@ -258,52 +227,4 @@ func (s *Server) handleBuiltinTool(ctx context.Context, toolName string, req *mc
 	default:
 		return nil, fmt.Errorf("unknown built-in tool: %s", toolName)
 	}
-}
-
-// handleProxiedTool handles calls to remote server tools
-func (s *Server) handleProxiedTool(ctx context.Context, namespacedName string, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	// Parse the namespaced name
-	parts := strings.SplitN(namespacedName, ".", 2)
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return nil, fmt.Errorf("invalid namespaced tool name: %s", namespacedName)
-	}
-
-	serverID := parts[0]
-	toolName := parts[1]
-
-	s.logger.Debug("Proxying tool call",
-		zap.String("serverID", serverID),
-		zap.String("toolName", toolName),
-	)
-
-	// Get the client session
-	session, err := s.clientManager.GetClient(serverID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get client for server %s: %w", serverID, err)
-	}
-
-	// Create timeout context
-	callCtx, cancel := context.WithTimeout(ctx, s.toolCallTimeout)
-	defer cancel()
-
-	// Unmarshal Arguments from RawMessage to a map for re-marshaling
-	var argsMap map[string]interface{}
-	if len(req.Params.Arguments) > 0 {
-		if err := json.Unmarshal(req.Params.Arguments, &argsMap); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal arguments: %w", err)
-		}
-	}
-
-	// Call the tool on the remote server
-	params := &mcp.CallToolParams{
-		Name:      toolName,
-		Arguments: argsMap,
-	}
-
-	result, err := session.CallTool(callCtx, params)
-	if err != nil {
-		return nil, fmt.Errorf("remote tool call failed: %w", err)
-	}
-
-	return result, nil
 }

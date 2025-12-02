@@ -113,35 +113,6 @@ func TestIntegration_MultipleTools(t *testing.T) {
 	assert.NotNil(t, mockServer)
 }
 
-// TestIntegration_ProxiedToolCall tests calling a proxied tool through the server
-func TestIntegration_ProxiedToolCall(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-
-	// Create server setup
-	cfg := &config.Config{
-		MCPServers: make(map[string]config.MCPServer),
-	}
-
-	server := NewServer(cfg, logger)
-	server.clientManager = client.NewManager(logger)
-	server.builtinRegistry = tools.NewBuiltinToolRegistry(logger)
-	defer server.clientManager.DisconnectAll()
-
-	server.registerBuiltinTools()
-
-	// Test handleProxiedTool with invalid namespace
-	req := &mcp.CallToolRequest{
-		Params: &mcp.CallToolParamsRaw{
-			Name:      "invalid-name",
-			Arguments: []byte("{}"),
-		},
-	}
-
-	_, err := server.handleProxiedTool(context.Background(), "invalid-name", req)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid namespaced tool name")
-}
-
 // TestIntegration_JSExecutionWithToolCalls tests JavaScript execution calling tools
 func TestIntegration_JSExecutionWithToolCalls(t *testing.T) {
 	logger := zaptest.NewLogger(t)
