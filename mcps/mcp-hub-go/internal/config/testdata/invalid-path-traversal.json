@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "malicious": {
+      "transport": "stdio",
+      "command": "../../bin/evil",
+      "args": ["test"],
+      "enable": true
+    }
+  }
+}

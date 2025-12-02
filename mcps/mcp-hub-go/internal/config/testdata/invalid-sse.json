@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "jetbrains": {
+      "transport": "sse",
+      "url": "http://localhost:64342/sse",
+      "required": false,
+      "enable": true
+    }
+  }
+}

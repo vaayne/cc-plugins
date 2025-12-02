@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "transport": "stdio",
+      "command": "bunx",
+      "args": [
+        "chrome-devtools-mcp@latest",
+        "-e",
+        "/Applications/Helium.app/Contents/MacOS/Helium"
+      ],
+      "env": {
+        "DEBUG": "true"
+      },
+      "required": false,
+      "enable": true
+    },
+    "memory": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {},
+      "enable": true
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+      "enable": false
+    },
+    "default-enabled": {
+      "command": "bunx",
+      "args": ["test-server"]
+    }
+  }
+}

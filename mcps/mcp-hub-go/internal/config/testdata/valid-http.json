@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "http-server": {
+      "transport": "http",
+      "url": "https://api.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer token123"
+      },
+      "timeout": 30
+    }
+  }
+}

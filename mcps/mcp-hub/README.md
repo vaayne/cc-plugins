@@ -200,6 +200,7 @@ npm run release -- --dry-run
 ```
 
 The `release` script will:
+
 1. Clean the dist directory
 2. Build the TypeScript code
 3. Publish to npm with public access
