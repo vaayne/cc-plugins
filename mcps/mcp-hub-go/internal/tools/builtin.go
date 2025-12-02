@@ -94,8 +94,9 @@ func HandleSearchTool(ctx context.Context, registry *BuiltinToolRegistry, manage
 	var results []ToolSearchResult
 	const maxResults = 100 // Limit results to prevent DoS
 
-	// Search built-in tools
-	for _, tool := range registry.GetAllTools() {
+	// Search remote tools only (built-in tools are not included in search results)
+	allRemoteTools := manager.GetAllTools()
+	for namespacedName, tool := range allRemoteTools {
 		// Check context cancellation
 		select {
 		case <-ctx.Done():
@@ -107,42 +108,18 @@ func HandleSearchTool(ctx context.Context, registry *BuiltinToolRegistry, manage
 			break
 		}
 		if matchesTool(tool.Name, tool.Description, queryLower) {
+			// Extract server ID from namespaced name
+			parts := strings.SplitN(namespacedName, ".", 2)
+			serverID := "unknown"
+			if len(parts) == 2 {
+				serverID = parts[0]
+			}
+
 			results = append(results, ToolSearchResult{
-				Name:        tool.Name,
+				Name:        namespacedName,
 				Description: tool.Description,
-				Server:      "builtin",
+				Server:      serverID,
 			})
-		}
-	}
-
-	// Search remote tools
-	if len(results) < maxResults {
-		allRemoteTools := manager.GetAllTools()
-		for namespacedName, tool := range allRemoteTools {
-			// Check context cancellation
-			select {
-			case <-ctx.Done():
-				return nil, ctx.Err()
-			default:
-			}
-
-			if len(results) >= maxResults {
-				break
-			}
-			if matchesTool(tool.Name, tool.Description, queryLower) {
-				// Extract server ID from namespaced name
-				parts := strings.SplitN(namespacedName, ".", 2)
-				serverID := "unknown"
-				if len(parts) == 2 {
-					serverID = parts[0]
-				}
-
-				results = append(results, ToolSearchResult{
-					Name:        namespacedName,
-					Description: tool.Description,
-					Server:      serverID,
-				})
-			}
 		}
 	}
 
