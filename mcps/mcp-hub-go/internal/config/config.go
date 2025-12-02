@@ -45,7 +45,7 @@ func (s *MCPServer) GetTransport() string {
 	if s.Transport != "" {
 		return s.Transport
 	}
-	
+
 	// Auto-detect based on URL or Command presence
 	if s.URL != "" {
 		// Default to http for URLs (SSE must be explicitly set)
@@ -54,7 +54,7 @@ func (s *MCPServer) GetTransport() string {
 	if s.Command != "" {
 		return "stdio"
 	}
-	
+
 	// Final fallback to stdio
 	return "stdio"
 }
@@ -136,7 +136,7 @@ func validateServer(name string, server MCPServer) error {
 
 	// Get the transport type (with auto-detection)
 	transport := strings.ToLower(server.GetTransport())
-	
+
 	switch transport {
 	case "stdio":
 		// For stdio transport, command is required and URL must be empty

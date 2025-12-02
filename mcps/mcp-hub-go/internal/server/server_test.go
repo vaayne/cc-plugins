@@ -55,15 +55,15 @@ func TestRegisterBuiltinTools(t *testing.T) {
 	searchTool, exists := server.builtinRegistry.GetTool("search")
 	assert.True(t, exists)
 	assert.Equal(t, "search", searchTool.Name)
-	assert.Contains(t, searchTool.Description, "Search across all available tools")
+	assert.Contains(t, searchTool.Description, "Search for available tools")
 	assert.NotNil(t, searchTool.InputSchema)
 
-	// Verify execute tool
-	executeTool, exists := server.builtinRegistry.GetTool("execute")
+	// Verify exec tool
+	execTool, exists := server.builtinRegistry.GetTool("exec")
 	assert.True(t, exists)
-	assert.Equal(t, "execute", executeTool.Name)
-	assert.Contains(t, executeTool.Description, "Execute JavaScript code")
-	assert.NotNil(t, executeTool.InputSchema)
+	assert.Equal(t, "exec", execTool.Name)
+	assert.Contains(t, execTool.Description, "Execute JavaScript code")
+	assert.NotNil(t, execTool.InputSchema)
 
 	// Verify refreshTools tool
 	refreshTool, exists := server.builtinRegistry.GetTool("refreshTools")
@@ -199,8 +199,8 @@ func TestHandleBuiltinTool_Search(t *testing.T) {
 	assert.Len(t, result.Content, 1)
 }
 
-// TestHandleBuiltinTool_Execute verifies execute tool routing
-func TestHandleBuiltinTool_Execute(t *testing.T) {
+// TestHandleBuiltinTool_Exec verifies exec tool routing
+func TestHandleBuiltinTool_Exec(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	cfg := &config.Config{
 		MCPServers: make(map[string]config.MCPServer),
@@ -215,19 +215,19 @@ func TestHandleBuiltinTool_Execute(t *testing.T) {
 
 	// Create request
 	args := map[string]interface{}{
-		"code": "console.log('test');",
+		"code": "1 + 1;",
 	}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
 
 	req := &mcp.CallToolRequest{
 		Params: &mcp.CallToolParamsRaw{
-			Name:      "execute",
+			Name:      "exec",
 			Arguments: argsJSON,
 		},
 	}
 
-	result, err := server.handleBuiltinTool(context.Background(), "execute", req)
+	result, err := server.handleBuiltinTool(context.Background(), "exec", req)
 	require.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Len(t, result.Content, 1)

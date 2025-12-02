@@ -23,6 +23,7 @@ Your JavaScript code has access to two helper functions via the `mcp` global obj
 Call a remote MCP tool synchronously.
 
 **Parameters:**
+
 - `serverID` (string): The server ID from your configuration
 - `toolName` (string): The name of the tool (without namespace prefix)
 - `params` (object): Parameters to pass to the tool
@@ -32,23 +33,24 @@ Call a remote MCP tool synchronously.
 **Throws:** Error if tool call fails
 
 **Example:**
+
 ```javascript
 // List files in a directory
 const result = mcp.callTool("filesystem", "list_directory", {
-  path: "/tmp"
+  path: "/tmp",
 });
 
 // Search GitHub repositories
 const repos = mcp.callTool("github", "search_repos", {
   query: "mcp",
-  limit: 10
+  limit: 10,
 });
 
 // Chain tool calls
 const files = mcp.callTool("filesystem", "list_directory", { path: "/tmp" });
 const firstFile = files[0];
 const content = mcp.callTool("filesystem", "read_file", {
-  path: "/tmp/" + firstFile
+  path: "/tmp/" + firstFile,
 });
 ```
 
@@ -57,6 +59,7 @@ const content = mcp.callTool("filesystem", "read_file", {
 Log a message during script execution.
 
 **Parameters:**
+
 - `level` (string): Log level - `"debug"`, `"info"`, `"warn"`, or `"error"`
 - `message` (string): Log message (sanitized, max 10,000 chars)
 - `fields` (object, optional): Additional structured fields
@@ -64,6 +67,7 @@ Log a message during script execution.
 **Returns:** `undefined`
 
 **Example:**
+
 ```javascript
 mcp.log("info", "Starting file search");
 mcp.log("debug", "Found files", { count: 42 });
@@ -80,7 +84,7 @@ mcp.log("error", "File not found", { path: "/missing.txt" });
 ```javascript
 // Search for files and return the list
 const files = mcp.callTool("filesystem", "list_directory", {
-  path: "/tmp"
+  path: "/tmp",
 });
 
 return files;
@@ -91,7 +95,7 @@ return files;
 ```javascript
 // Find a file and read its contents
 const files = mcp.callTool("filesystem", "list_directory", {
-  path: "/var/log"
+  path: "/var/log",
 });
 
 mcp.log("info", "Found files", { count: files.length });
@@ -105,7 +109,7 @@ if (logFiles.length === 0) {
 
 // Read first log file
 const content = mcp.callTool("filesystem", "read_file", {
-  path: "/var/log/" + logFiles[0]
+  path: "/var/log/" + logFiles[0],
 });
 
 return { file: logFiles[0], content: content };
@@ -116,7 +120,7 @@ return { file: logFiles[0], content: content };
 ```javascript
 // Aggregate data from multiple tools
 const repos = mcp.callTool("github", "list_repos", {
-  org: "modelcontextprotocol"
+  org: "modelcontextprotocol",
 });
 
 mcp.log("info", "Fetched repositories", { count: repos.length });
@@ -127,7 +131,7 @@ const result = repos
   .map(r => ({
     name: r.name,
     stars: r.stars,
-    url: r.url
+    url: r.url,
   }))
   .sort((a, b) => b.stars - a.stars);
 
@@ -142,7 +146,7 @@ let result;
 
 try {
   result = mcp.callTool("filesystem", "read_file", {
-    path: "/tmp/data.json"
+    path: "/tmp/data.json",
   });
   mcp.log("info", "File read successfully");
 } catch (error) {
@@ -172,13 +176,13 @@ for (let i = 0; i < items.length; i++) {
 
   try {
     const content = mcp.callTool("filesystem", "read_file", {
-      path: "/tmp/" + filename
+      path: "/tmp/" + filename,
     });
 
     results.push({
       file: filename,
       success: true,
-      length: content.length
+      length: content.length,
     });
 
     mcp.log("info", "Processed file", { file: filename });
@@ -186,12 +190,12 @@ for (let i = 0; i < items.length; i++) {
     results.push({
       file: filename,
       success: false,
-      error: error.message
+      error: error.message,
     });
 
     mcp.log("warn", "Failed to process file", {
       file: filename,
-      error: error.message
+      error: error.message,
     });
   }
 }
@@ -213,12 +217,12 @@ return filtered;
 
 ```javascript
 const fileExists = mcp.callTool("filesystem", "file_exists", {
-  path: "/tmp/config.json"
+  path: "/tmp/config.json",
 });
 
 if (fileExists) {
   const content = mcp.callTool("filesystem", "read_file", {
-    path: "/tmp/config.json"
+    path: "/tmp/config.json",
   });
   return JSON.parse(content);
 } else {
@@ -235,7 +239,7 @@ const server2Data = mcp.callTool("server2", "get_stats", {});
 return {
   server1: server1Data,
   server2: server2Data,
-  combined: server1Data.count + server2Data.count
+  combined: server1Data.count + server2Data.count,
 };
 ```
 
@@ -251,7 +255,7 @@ const userInput = "user-file.txt";
 const safePath = "/tmp/" + sanitizeInput(userInput);
 
 const content = mcp.callTool("filesystem", "read_file", {
-  path: safePath
+  path: safePath,
 });
 
 return content;
@@ -416,7 +420,7 @@ const data = mcp.callTool("server", "get_data", {});
 mcp.log("info", "Data type", {
   type: typeof data,
   isArray: Array.isArray(data),
-  keys: Object.keys(data)
+  keys: Object.keys(data),
 });
 ```
 
@@ -448,7 +452,7 @@ try {
 } catch (error) {
   mcp.log("error", "Tool call failed", {
     error: error.message,
-    stack: error.stack
+    stack: error.stack,
   });
   return { error: error.message };
 }
@@ -580,8 +584,8 @@ Add comments to explain non-obvious logic:
 ```javascript
 // Filter files by extension and sort by modified time
 const filtered = files
-  .filter(f => f.name.endsWith(".log"))  // Only .log files
-  .sort((a, b) => b.modified - a.modified);  // Newest first
+  .filter(f => f.name.endsWith(".log")) // Only .log files
+  .sort((a, b) => b.modified - a.modified); // Newest first
 ```
 
 ## Common Mistakes
@@ -648,7 +652,9 @@ return result;
 
 ```javascript
 // ❌ Wrong - Cannot mutate prototypes
-Array.prototype.sum = function() { return this.reduce((a, b) => a + b, 0); };
+Array.prototype.sum = function() {
+  return this.reduce((a, b) => a + b, 0);
+};
 
 // ✅ Correct - Define helper functions
 function sum(array) {
@@ -671,11 +677,11 @@ return {
   sources: {
     filesystem: filesystemData,
     github: githubData,
-    database: databaseData
+    database: databaseData,
   },
   summary: {
-    total: filesystemData.count + githubData.count + databaseData.count
-  }
+    total: filesystemData.count + githubData.count + databaseData.count,
+  },
 };
 ```
 
@@ -712,7 +718,7 @@ function pipeline(input) {
   const transformed = filtered.map(item => ({
     id: item.id,
     name: item.name.toUpperCase(),
-    score: item.value * 100
+    score: item.value * 100,
   }));
 
   mcp.log("info", "Stage 4: Sort");

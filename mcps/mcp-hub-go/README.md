@@ -20,6 +20,7 @@ MCP Hub Go is a secure, production-ready hub that:
 The hub now supports multiple transport types for connecting to remote MCP servers:
 
 #### Stdio Transport
+
 Traditional command-based transport for local MCP servers:
 
 ```json
@@ -38,6 +39,7 @@ Traditional command-based transport for local MCP servers:
 ```
 
 #### HTTP Transport
+
 Streamable HTTP transport for remote MCP servers:
 
 ```json
@@ -58,19 +60,21 @@ Streamable HTTP transport for remote MCP servers:
 ```
 
 Features:
+
 - Custom headers with environment variable expansion
 - Configurable timeout (seconds)
 - TLS verification control (use `tlsSkipVerify: true` only for development)
 - Automatic retry with exponential backoff
 
 #### SSE Transport
+
 Server-Sent Events transport for real-time streaming:
 
 ```json
 {
   "mcpServers": {
     "streaming-server": {
-      "transport": "sse", 
+      "transport": "sse",
       "url": "http://localhost:8080/sse",
       "headers": {
         "X-Client-ID": "mcp-hub"
@@ -82,6 +86,7 @@ Server-Sent Events transport for real-time streaming:
 ```
 
 Features:
+
 - Real-time server-to-client streaming
 - Automatic reconnection on connection loss
 - POST requests for client-to-server communication
@@ -146,6 +151,7 @@ mcp-hub-go -c config.json --log-file=""
 ```
 
 Log format:
+
 ```json
 {
   "level": "info",
@@ -165,6 +171,7 @@ Download the latest release from the releases page and place it in your PATH.
 ### Option 2: Build from Source
 
 Requirements:
+
 - Go 1.23.0 or later
 
 ```bash
@@ -396,6 +403,7 @@ Error: failed to connect to server: context deadline exceeded
 ```
 
 **Solutions:**
+
 - Check that the command path is correct and executable
 - Verify command arguments are valid
 - Check environment variables are set correctly
@@ -409,6 +417,7 @@ Error: remote tool call failed: context deadline exceeded
 ```
 
 **Solutions:**
+
 - Tool took longer than 60 seconds
 - Check server performance
 - Reduce workload in tool call
@@ -421,6 +430,7 @@ Error: async functions are not allowed - only synchronous code is supported
 ```
 
 **Solutions:**
+
 - Remove async/await keywords
 - Remove Promise usage
 - Use synchronous equivalents
@@ -433,6 +443,7 @@ Error: config validation failed: server "myserver": command is required for stdi
 ```
 
 **Solutions:**
+
 - Check configuration format matches schema
 - Verify required fields are present
 - Check for typos in field names
@@ -455,6 +466,7 @@ Contributions welcome! Please:
 ## Support
 
 For issues and questions:
+
 - GitHub Issues: [repository-url]/issues
 - Documentation: [docs/](docs/)
 

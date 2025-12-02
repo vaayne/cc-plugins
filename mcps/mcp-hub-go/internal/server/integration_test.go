@@ -106,7 +106,7 @@ func TestIntegration_MultipleTools(t *testing.T) {
 	builtinTools := server.builtinRegistry.GetAllTools()
 	assert.Len(t, builtinTools, 3)
 	assert.Contains(t, builtinTools, "search")
-	assert.Contains(t, builtinTools, "execute")
+	assert.Contains(t, builtinTools, "exec")
 	assert.Contains(t, builtinTools, "refreshTools")
 
 	// Test that mock server has tools registered
@@ -620,14 +620,14 @@ func TestIntegration_SearchToolCaseInsensitive(t *testing.T) {
 	err = json.Unmarshal([]byte(content.Text), &response)
 	require.NoError(t, err)
 
-	// Should find execute tool despite case difference
+	// Should find exec tool despite case difference
 	found := false
 	for _, tool := range response.Tools {
-		if tool.Name == "execute" {
+		if tool.Name == "exec" {
 			found = true
 		}
 	}
-	assert.True(t, found, "execute tool should be found with case-insensitive search")
+	assert.True(t, found, "exec tool should be found with case-insensitive search")
 }
 
 // TestIntegration_JSExecutionSyntaxError tests JS syntax error handling
@@ -726,7 +726,7 @@ func TestIntegration_LogFileHandling(t *testing.T) {
 	assert.Contains(t, string(data), "test")
 }
 
-// TestIntegration_ExecuteToolWithError tests execute tool error handling
+// TestIntegration_ExecuteToolWithError tests exec tool error handling
 func TestIntegration_ExecuteToolWithError(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 
@@ -750,12 +750,12 @@ func TestIntegration_ExecuteToolWithError(t *testing.T) {
 
 	req := &mcp.CallToolRequest{
 		Params: &mcp.CallToolParamsRaw{
-			Name:      "execute",
+			Name:      "exec",
 			Arguments: argsJSON,
 		},
 	}
 
-	result, err := server.handleBuiltinTool(context.Background(), "execute", req)
+	result, err := server.handleBuiltinTool(context.Background(), "exec", req)
 	require.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.True(t, result.IsError)
@@ -799,12 +799,12 @@ func TestIntegration_BuiltinToolTimeout(t *testing.T) {
 
 	req := &mcp.CallToolRequest{
 		Params: &mcp.CallToolParamsRaw{
-			Name:      "execute",
+			Name:      "exec",
 			Arguments: argsJSON,
 		},
 	}
 
-	result, err := server.handleBuiltinTool(context.Background(), "execute", req)
+	result, err := server.handleBuiltinTool(context.Background(), "exec", req)
 	require.NoError(t, err)
 	assert.True(t, result.IsError)
 
