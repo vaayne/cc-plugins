@@ -18,7 +18,7 @@
     "chrome-devtools": {
       "transport": "stdio",
       "command": "bunx",
-      "args": ["chrome-devtools-mcp@latest"],
+      "args": ["chrome-devtools-mcp@latest", "--isolated"],
       "env": {}
     },
     "memory": {
