@@ -225,14 +225,14 @@ func TestHandleExecuteTool_WithLogs(t *testing.T) {
 	assert.Equal(t, "test message", response.Logs[0].Message)
 }
 
-// TestHandleExecuteTool_AsyncError verifies async code rejection
-func TestHandleExecuteTool_AsyncError(t *testing.T) {
+// TestHandleExecuteTool_AsyncSuccess verifies async/await works
+func TestHandleExecuteTool_AsyncSuccess(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
 	args := map[string]interface{}{
-		"code": "async function test() { return 42; }",
+		"code": "async function test() { return 42; } test();",
 	}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
@@ -248,7 +248,6 @@ func TestHandleExecuteTool_AsyncError(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, result)
 
-	// Should return error in response
 	textContent, ok := result.Content[0].(*mcp.TextContent)
 	require.True(t, ok)
 
@@ -256,12 +255,7 @@ func TestHandleExecuteTool_AsyncError(t *testing.T) {
 	err = json.Unmarshal([]byte(textContent.Text), &response)
 	require.NoError(t, err)
 
-	// Result should contain error
-	resultMap, ok := response.Result.(map[string]interface{})
-	require.True(t, ok)
-	errorMap, ok := resultMap["error"].(map[string]interface{})
-	require.True(t, ok)
-	assert.Equal(t, "async_not_allowed", errorMap["type"])
+	assert.Equal(t, float64(42), response.Result)
 }
 
 // TestHandleExecuteTool_MissingCode verifies error on missing code

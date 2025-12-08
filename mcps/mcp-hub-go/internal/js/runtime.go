@@ -12,7 +12,11 @@ import (
 	"mcp-hub-go/internal/client"
 
 	"github.com/dop251/goja"
-	"github.com/dop251/goja/parser"
+	_ "github.com/dop251/goja_nodejs/buffer"
+	"github.com/dop251/goja_nodejs/eventloop"
+	_ "github.com/dop251/goja_nodejs/process"
+	_ "github.com/dop251/goja_nodejs/url"
+	_ "github.com/dop251/goja_nodejs/util"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 )
@@ -22,12 +26,8 @@ const (
 	DefaultTimeout = 15 * time.Second
 	// MaxScriptSize is the maximum script size in bytes
 	MaxScriptSize = 100 * 1024 // 100KB
-	// MaxMemoryBytes is the maximum memory allowed for VM (50MB)
-	MaxMemoryBytes = 50 * 1024 * 1024
 	// MaxLogEntries is the maximum number of log entries allowed
 	MaxLogEntries = 1000
-	// MemoryCheckInterval is how often to check memory usage
-	MemoryCheckInterval = 100 * time.Millisecond
 )
 
 // ErrorType represents the type of runtime error
@@ -103,193 +103,151 @@ func (r *Runtime) Execute(ctx context.Context, script string) (interface{}, []Lo
 		}
 	}
 
-	// Validate script doesn't contain async constructs
-	if err := r.validateSyncOnly(script); err != nil {
-		return nil, nil, err
-	}
-
 	// Apply timeout
 	execCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	// Create VM for this execution
-	vm := goja.New()
+	// Execute script with a Node-like event loop
+	loop := eventloop.NewEventLoop()
+	loop.Start()
 
-	// Execute with timeout and proper interruption
-	resultChan := make(chan struct {
-		result interface{}
-		logs   []LogEntry
-		err    error
-	}, 1)
+	var (
+		logs      []LogEntry
+		logsMu    sync.Mutex
+		result    interface{}
+		runErr    error
+		vmPtr     *goja.Runtime
+		vmReady   = make(chan struct{})
+		resultCh  = make(chan struct{})
+		readyOnce sync.Once
+	)
 
+	stopLoop := sync.Once{}
+	defer stopLoop.Do(func() { loop.Stop() })
+
+	signalReady := func() {
+		readyOnce.Do(func() {
+			close(resultCh)
+		})
+	}
+
+	loop.RunOnLoop(func(vm *goja.Runtime) {
+		vmPtr = vm
+		close(vmReady)
+
+		if err := r.injectMCPHelpers(execCtx, vm, &logs, &logsMu); err != nil {
+			runErr = err
+			signalReady()
+			return
+		}
+
+		defer func() {
+			if caught := recover(); caught != nil {
+				if interrupted, ok := caught.(*goja.InterruptedError); ok {
+					runErr = fmt.Errorf("execution interrupted: %v", interrupted)
+				} else if val, ok := caught.(goja.Value); ok {
+					runErr = fmt.Errorf("%v", val)
+				} else {
+					runErr = fmt.Errorf("runtime error: %v", caught)
+				}
+				signalReady()
+			}
+		}()
+
+		res, err := vm.RunString(script)
+		if err != nil {
+			runErr = err
+			signalReady()
+			return
+		}
+
+		// Promise handling: hook into then to capture result asynchronously
+		if promise, ok := res.Export().(*goja.Promise); ok && promise.State() == goja.PromiseStatePending {
+			thenVal := res.ToObject(vm).Get("then")
+			if thenFunc, ok := goja.AssertFunction(thenVal); ok {
+				resolved := false
+				resolve := func(call goja.FunctionCall) goja.Value {
+					if resolved {
+						return goja.Undefined()
+					}
+					resolved = true
+					result = call.Argument(0).Export()
+					signalReady()
+					return goja.Undefined()
+				}
+				reject := func(call goja.FunctionCall) goja.Value {
+					if resolved {
+						return goja.Undefined()
+					}
+					resolved = true
+					runErr = fmt.Errorf("%v", call.Argument(0))
+					signalReady()
+					return goja.Undefined()
+				}
+				thenFunc(res, vm.ToValue(resolve), vm.ToValue(reject))
+				return
+			}
+		}
+
+		// Settled promise or plain value
+		if promise, ok := res.Export().(*goja.Promise); ok {
+			switch promise.State() {
+			case goja.PromiseStateFulfilled:
+				result = promise.Result().Export()
+			case goja.PromiseStateRejected:
+				runErr = fmt.Errorf("%v", promise.Result())
+			default:
+				result = res.Export()
+			}
+		} else {
+			result = res.Export()
+		}
+
+		signalReady()
+	})
+
+	// Monitor for timeout/cancellation and interrupt the VM if needed
 	go func() {
-		result, logs, err := r.executeScript(execCtx, vm, script)
-		resultChan <- struct {
-			result interface{}
-			logs   []LogEntry
-			err    error
-		}{result, logs, err}
+		select {
+		case <-execCtx.Done():
+			<-vmReady
+			if vmPtr != nil {
+				vmPtr.Interrupt(fmt.Sprintf("execution interrupted: %v", execCtx.Err()))
+			}
+		case <-resultCh:
+		}
 	}()
 
 	select {
-	case res := <-resultChan:
-		return res.result, res.logs, res.err
+	case <-resultCh:
 	case <-execCtx.Done():
-		// Forcefully interrupt the VM on timeout or cancellation
-		vm.Interrupt("execution interrupted")
+		<-resultCh
+	}
 
-		// Wait a bit for the goroutine to finish
-		select {
-		case res := <-resultChan:
-			return res.result, res.logs, res.err
-		case <-time.After(100 * time.Millisecond):
-			// Goroutine still running, return timeout error
-			if execCtx.Err() == context.DeadlineExceeded {
-				return nil, nil, &RuntimeError{
-					Type:    ErrorTypeTimeout,
-					Message: fmt.Sprintf("script execution exceeded timeout of %v", r.timeout),
-				}
-			}
-			return nil, nil, &RuntimeError{
-				Type:    ErrorTypeRuntime,
-				Message: "script execution cancelled",
-			}
+	if runErr != nil {
+		return nil, logs, r.mapError(runErr)
+	}
+
+	if execCtx.Err() == context.DeadlineExceeded {
+		return nil, logs, &RuntimeError{
+			Type:    ErrorTypeTimeout,
+			Message: fmt.Sprintf("script execution exceeded timeout of %v", r.timeout),
 		}
 	}
+
+	if execCtx.Err() != nil {
+		return nil, logs, &RuntimeError{
+			Type:    ErrorTypeRuntime,
+			Message: "script execution cancelled",
+		}
+	}
+
+	return result, logs, nil
 }
 
-// validateSyncOnly checks if script contains async constructs using AST parsing
-func (r *Runtime) validateSyncOnly(script string) error {
-	// Parse the script into AST
-	_, err := parser.ParseFile(nil, "", script, 0)
-	if err != nil {
-		// If we can't parse it, let the VM handle the syntax error
-		return nil
-	}
-
-	// Check for async patterns that can bypass string detection
-	// These checks are defense in depth alongside AST parsing
-
-	// Check for Promise usage (including bracket notation like window['Promise'])
-	promisePatterns := []string{
-		"Promise",
-		"['Promise']",
-		`["Promise"]`,
-		"[`Promise`]",
-	}
-	for _, pattern := range promisePatterns {
-		if strings.Contains(script, pattern) {
-			return &RuntimeError{
-				Type:    ErrorTypeAsync,
-				Message: "Promise usage is not allowed - only synchronous code is supported",
-			}
-		}
-	}
-
-	// Check for async/await keywords (including in comments and strings)
-	// Remove comments and strings first
-	cleanedScript := removeCommentsAndStrings(script)
-
-	asyncPatterns := []string{
-		"async ",
-		"async(",
-		"async\t",
-		"async\n",
-		"async*",
-		"async\r",
-	}
-	for _, pattern := range asyncPatterns {
-		if strings.Contains(cleanedScript, pattern) {
-			return &RuntimeError{
-				Type:    ErrorTypeAsync,
-				Message: "async functions are not allowed - only synchronous code is supported",
-			}
-		}
-	}
-
-	if strings.Contains(cleanedScript, "await ") || strings.Contains(cleanedScript, "await\t") ||
-		strings.Contains(cleanedScript, "await\n") || strings.Contains(cleanedScript, "await(") {
-		return &RuntimeError{
-			Type:    ErrorTypeAsync,
-			Message: "await keyword is not allowed - only synchronous code is supported",
-		}
-	}
-
-	// Check for setTimeout, setInterval, setImmediate (including bracket notation)
-	asyncFuncs := []string{
-		"setTimeout", "setInterval", "setImmediate",
-		"['setTimeout']", "['setInterval']", "['setImmediate']",
-		`["setTimeout"]`, `["setInterval"]`, `["setImmediate"]`,
-	}
-	for _, fn := range asyncFuncs {
-		if strings.Contains(script, fn) {
-			return &RuntimeError{
-				Type:    ErrorTypeAsync,
-				Message: fmt.Sprintf("%s is not allowed - only synchronous code is supported", fn),
-			}
-		}
-	}
-
-	return nil
-}
-
-// removeCommentsAndStrings removes comments and string literals from script
-func removeCommentsAndStrings(script string) string {
-	// Remove single-line comments
-	re := regexp.MustCompile(`//.*`)
-	script = re.ReplaceAllString(script, "")
-
-	// Remove multi-line comments
-	re = regexp.MustCompile(`/\*[\s\S]*?\*/`)
-	script = re.ReplaceAllString(script, "")
-
-	// Remove string literals (simple approach - doesn't handle all edge cases but good enough)
-	re = regexp.MustCompile(`"[^"\\]*(\\.[^"\\]*)*"`)
-	script = re.ReplaceAllString(script, `""`)
-	re = regexp.MustCompile(`'[^'\\]*(\\.[^'\\]*)*'`)
-	script = re.ReplaceAllString(script, `''`)
-	re = regexp.MustCompile("`[^`]*`")
-	script = re.ReplaceAllString(script, "``")
-
-	return script
-}
-
-// executeScript executes the script in the provided VM instance
-func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script string) (interface{}, []LogEntry, error) {
+// injectMCPHelpers wires mcp helpers and console log capture into the VM
+func (r *Runtime) injectMCPHelpers(ctx context.Context, vm *goja.Runtime, logs *[]LogEntry, logsMu *sync.Mutex) error {
 	// Store logs
-	var logs []LogEntry
-	var logsMu sync.Mutex
-
-	// Start context monitor that will interrupt VM on cancellation
-	stopMonitor := make(chan bool, 1)
-	defer func() {
-		stopMonitor <- true
-	}()
-
-	go func() {
-		ticker := time.NewTicker(10 * time.Millisecond)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-stopMonitor:
-				return
-			case <-ctx.Done():
-				// Interrupt the VM when context is cancelled
-				vm.Interrupt("context cancelled")
-				return
-			case <-ticker.C:
-				// Periodic check for context cancellation
-				select {
-				case <-ctx.Done():
-					vm.Interrupt("context cancelled")
-					return
-				default:
-				}
-			}
-		}
-	}()
-
 	// Setup mcp helpers
 	mcpObj := vm.NewObject()
 
@@ -326,7 +284,7 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 
 		return vm.ToValue(result)
 	}); err != nil {
-		return nil, nil, &RuntimeError{
+		return &RuntimeError{
 			Type:    ErrorTypeRuntime,
 			Message: fmt.Sprintf("failed to setup callTool: %v", err),
 		}
@@ -338,7 +296,7 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 		defer logsMu.Unlock()
 
 		// Enforce max log entries
-		if len(logs) >= MaxLogEntries {
+		if len(*logs) >= MaxLogEntries {
 			return goja.Undefined()
 		}
 
@@ -368,7 +326,7 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 			level = "info"
 		}
 
-		logs = append(logs, LogEntry{
+		*logs = append(*logs, LogEntry{
 			Level:   level,
 			Message: message,
 			Fields:  fields,
@@ -376,7 +334,7 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 
 		return goja.Undefined()
 	}); err != nil {
-		return nil, nil, &RuntimeError{
+		return &RuntimeError{
 			Type:    ErrorTypeRuntime,
 			Message: fmt.Sprintf("failed to setup log: %v", err),
 		}
@@ -384,7 +342,7 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 
 	// Set mcp object in global scope
 	if err := vm.Set("mcp", mcpObj); err != nil {
-		return nil, nil, &RuntimeError{
+		return &RuntimeError{
 			Type:    ErrorTypeRuntime,
 			Message: fmt.Sprintf("failed to set mcp global: %v", err),
 		}
@@ -397,7 +355,7 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 			logsMu.Lock()
 			defer logsMu.Unlock()
 
-			if len(logs) >= MaxLogEntries {
+			if len(*logs) >= MaxLogEntries {
 				return goja.Undefined()
 			}
 
@@ -409,7 +367,7 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 			message := strings.Join(parts, " ")
 			message = sanitizeLogMessage(message)
 
-			logs = append(logs, LogEntry{
+			*logs = append(*logs, LogEntry{
 				Level:   level,
 				Message: message,
 			})
@@ -419,172 +377,25 @@ func (r *Runtime) executeScript(ctx context.Context, vm *goja.Runtime, script st
 	}
 
 	if err := consoleObj.Set("log", logFunc("info")); err != nil {
-		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.log"}
+		return &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.log"}
 	}
 	if err := consoleObj.Set("info", logFunc("info")); err != nil {
-		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.info"}
+		return &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.info"}
 	}
 	if err := consoleObj.Set("warn", logFunc("warn")); err != nil {
-		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.warn"}
+		return &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.warn"}
 	}
 	if err := consoleObj.Set("error", logFunc("error")); err != nil {
-		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.error"}
+		return &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.error"}
 	}
 	if err := consoleObj.Set("debug", logFunc("debug")); err != nil {
-		return nil, nil, &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.debug"}
+		return &RuntimeError{Type: ErrorTypeRuntime, Message: "failed to setup console.debug"}
 	}
 
 	if err := vm.Set("console", consoleObj); err != nil {
-		return nil, nil, &RuntimeError{
+		return &RuntimeError{
 			Type:    ErrorTypeRuntime,
 			Message: fmt.Sprintf("failed to set console global: %v", err),
-		}
-	}
-
-	// Block dangerous globals and freeze prototypes
-	if err := blockDangerousGlobals(vm); err != nil {
-		return nil, nil, &RuntimeError{
-			Type:    ErrorTypeRuntime,
-			Message: fmt.Sprintf("failed to secure globals: %v", err),
-		}
-	}
-
-	// Execute script
-	var result goja.Value
-	var execErr error
-
-	func() {
-		defer func() {
-			if caught := recover(); caught != nil {
-				if gojaErr, ok := caught.(*goja.InterruptedError); ok {
-					execErr = fmt.Errorf("execution interrupted: %v", gojaErr)
-				} else {
-					execErr = fmt.Errorf("runtime error: %v", caught)
-				}
-			}
-		}()
-
-		// Check context before execution
-		select {
-		case <-ctx.Done():
-			execErr = ctx.Err()
-			return
-		default:
-		}
-
-		result, execErr = vm.RunString(script)
-	}()
-
-	if execErr != nil {
-		return nil, logs, r.mapError(execErr)
-	}
-
-	// Export result
-	exported := result.Export()
-	return exported, logs, nil
-}
-
-// blockDangerousGlobals blocks access to dangerous global objects and freezes prototypes
-func blockDangerousGlobals(vm *goja.Runtime) error {
-	// IMPORTANT: Freeze prototypes and block constructors BEFORE setting globals to undefined
-	// Otherwise we can't access Function.prototype to freeze it
-	_, err := vm.RunString(`
-		(function() {
-			'use strict';
-
-			// Block access to constructor chains more comprehensively
-			// This prevents access via (function(){}).constructor
-			var blockConstructor = function() {
-				throw new Error('Access to constructor is not allowed');
-			};
-
-			// Freeze built-in prototypes and block their constructor property
-			if (typeof Object !== 'undefined' && Object.prototype) {
-				try {
-					Object.defineProperty(Object.prototype, 'constructor', {
-						get: blockConstructor,
-						set: blockConstructor,
-						configurable: false
-					});
-				} catch (e) {
-					// Already defined, try to override
-				}
-				Object.freeze(Object.prototype);
-			}
-			if (typeof Array !== 'undefined' && Array.prototype) {
-				try {
-					Object.defineProperty(Array.prototype, 'constructor', {
-						get: blockConstructor,
-						set: blockConstructor,
-						configurable: false
-					});
-				} catch (e) {}
-				Object.freeze(Array.prototype);
-			}
-			if (typeof String !== 'undefined' && String.prototype) {
-				try {
-					Object.defineProperty(String.prototype, 'constructor', {
-						get: blockConstructor,
-						set: blockConstructor,
-						configurable: false
-					});
-				} catch (e) {}
-				Object.freeze(String.prototype);
-			}
-			if (typeof Number !== 'undefined' && Number.prototype) {
-				try {
-					Object.defineProperty(Number.prototype, 'constructor', {
-						get: blockConstructor,
-						set: blockConstructor,
-						configurable: false
-					});
-				} catch (e) {}
-				Object.freeze(Number.prototype);
-			}
-			if (typeof Boolean !== 'undefined' && Boolean.prototype) {
-				try {
-					Object.defineProperty(Boolean.prototype, 'constructor', {
-						get: blockConstructor,
-						set: blockConstructor,
-						configurable: false
-					});
-				} catch (e) {}
-				Object.freeze(Boolean.prototype);
-			}
-
-			// Block Function prototype constructor BEFORE we set Function to undefined
-			if (typeof Function !== 'undefined' && Function.prototype) {
-				try {
-					Object.defineProperty(Function.prototype, 'constructor', {
-						get: blockConstructor,
-						set: blockConstructor,
-						configurable: false
-					});
-				} catch (e) {}
-				Object.freeze(Function.prototype);
-			}
-		})();
-	`)
-
-	if err != nil {
-		return fmt.Errorf("failed to freeze prototypes: %w", err)
-	}
-
-	// NOW block dangerous constructors and globals after prototypes are frozen
-	dangerousGlobals := []string{
-		"eval",
-		"Function",
-		"GeneratorFunction",
-		"AsyncFunction",
-		"AsyncGeneratorFunction",
-		"Reflect",
-		"Proxy",
-		"WebAssembly",
-	}
-
-	for _, name := range dangerousGlobals {
-		if err := vm.Set(name, goja.Undefined()); err != nil {
-			return fmt.Errorf("failed to block %s: %w", name, err)
 		}
 	}
 

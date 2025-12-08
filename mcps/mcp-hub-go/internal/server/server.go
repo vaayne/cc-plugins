@@ -151,7 +151,7 @@ Search by server name:
 				"code": map[string]interface{}{
 					"type":        "string",
 					"minLength":   1,
-					"description": "JavaScript code to execute. ES5.1 + ES6 features. Use mcp.callTool() for MCP tools.",
+					"description": "JavaScript to execute (async/await, timers, require for node:* built-ins). Use mcp.callTool() for MCP tools.",
 				},
 			},
 			"required": []string{"code"},

@@ -192,8 +192,8 @@ func TestIntegration_JSExecutionTimeout(t *testing.T) {
 	assert.Equal(t, js.ErrorTypeTimeout, runtimeErr.Type)
 }
 
-// TestIntegration_JSExecutionAsyncBlocking tests that async code is blocked
-func TestIntegration_JSExecutionAsyncBlocking(t *testing.T) {
+// TestIntegration_JSExecutionAsyncSupport ensures async features work end-to-end
+func TestIntegration_JSExecutionAsyncSupport(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
@@ -201,46 +201,43 @@ func TestIntegration_JSExecutionAsyncBlocking(t *testing.T) {
 	runtime := js.NewRuntime(logger, manager, nil)
 
 	tests := []struct {
-		name        string
-		script      string
-		expectAsync bool // if false, expect syntax error instead
+		name     string
+		script   string
+		expected interface{}
+		wantErr  bool
 	}{
 		{
-			name:        "async function",
-			script:      "async function test() { return 1; }",
-			expectAsync: true,
+			name:     "async function",
+			script:   "async function test() { return 1; } test();",
+			expected: int64(1),
 		},
 		{
-			name:        "await keyword",
-			script:      "await Promise.resolve(1);",
-			expectAsync: false, // await without async context is syntax error
+			name:    "await keyword outside function (syntax error)",
+			script:  "await Promise.resolve(1);",
+			wantErr: true, // await without async context is syntax error
 		},
 		{
-			name:        "Promise usage",
-			script:      "new Promise(resolve => resolve(1));",
-			expectAsync: true,
+			name:     "Promise usage",
+			script:   "new Promise(resolve => resolve(1));",
+			expected: int64(1),
 		},
 		{
-			name:        "setTimeout",
-			script:      "setTimeout(() => {}, 100);",
-			expectAsync: true,
+			name:     "setTimeout",
+			script:   "new Promise(resolve => setTimeout(() => resolve(7), 5));",
+			expected: int64(7),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := runtime.Execute(context.Background(), tt.script)
-			require.Error(t, err)
-
-			runtimeErr, ok := err.(*js.RuntimeError)
-			require.True(t, ok)
-
-			if tt.expectAsync {
-				assert.Equal(t, js.ErrorTypeAsync, runtimeErr.Type)
-			} else {
-				// await outside async context is a syntax error
-				assert.True(t, runtimeErr.Type == js.ErrorTypeSyntax || runtimeErr.Type == js.ErrorTypeAsync)
+			result, _, err := runtime.Execute(context.Background(), tt.script)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
 			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

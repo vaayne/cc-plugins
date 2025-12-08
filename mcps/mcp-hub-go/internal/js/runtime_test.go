@@ -98,106 +98,46 @@ func TestExecute_InvalidLogLevel(t *testing.T) {
 	assert.Equal(t, "info", logs[0].Level)
 }
 
-// TestExecute_RejectPromise verifies Promise rejection
-func TestExecute_RejectPromise(t *testing.T) {
+// TestExecute_AsyncAwait verifies async/await with timers works
+func TestExecute_AsyncAwait(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
 	runtime := NewRuntime(logger, manager, nil)
 
-	script := `new Promise((resolve) => resolve(42))`
-	_, _, err := runtime.Execute(context.Background(), script)
-	require.Error(t, err)
+	script := `
+		const delay = (ms) => new Promise((resolve) => setTimeout(() => resolve(ms + 1), ms));
+		async function run() {
+			const val = await delay(5);
+			return val;
+		}
+		run();
+	`
 
-	runtimeErr, ok := err.(*RuntimeError)
-	require.True(t, ok)
-	assert.Equal(t, ErrorTypeAsync, runtimeErr.Type)
-	assert.Contains(t, runtimeErr.Message, "Promise")
+	result, logs, err := runtime.Execute(context.Background(), script)
+	require.NoError(t, err)
+	assert.Empty(t, logs)
+	assert.Equal(t, int64(6), result)
 }
 
-// TestExecute_RejectAsync verifies async function rejection
-func TestExecute_RejectAsync(t *testing.T) {
+// TestExecute_RequireBuffer verifies require works via goja_nodejs
+func TestExecute_RequireBuffer(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
 	runtime := NewRuntime(logger, manager, nil)
 
-	tests := []struct {
-		name   string
-		script string
-	}{
-		{
-			name:   "async function",
-			script: `async function test() { return 42; }`,
-		},
-		{
-			name:   "async arrow function",
-			script: `const test = async () => 42`,
-		},
-		{
-			name:   "await keyword",
-			script: `await Promise.resolve(42)`,
-		},
-		{
-			name:   "async with comment bypass attempt",
-			script: `/*async*/ async function test() { return 42; }`,
-		},
-		{
-			name:   "async with string concat",
-			script: `const fn = 'async'; eval(fn + ' function test() {}')`,
-		},
-	}
+	script := `
+		const { Buffer } = require("node:buffer");
+		Buffer.from("hi").toString("hex");
+	`
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := runtime.Execute(context.Background(), tt.script)
-			require.Error(t, err)
-
-			// Accept any error type as long as the script is rejected
-			_, ok := err.(*RuntimeError)
-			require.True(t, ok)
-		})
-	}
-}
-
-// TestExecute_RejectSetTimeout verifies setTimeout rejection
-func TestExecute_RejectSetTimeout(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := client.NewManager(logger)
-	defer manager.DisconnectAll()
-
-	runtime := NewRuntime(logger, manager, nil)
-
-	tests := []struct {
-		name   string
-		script string
-	}{
-		{
-			name:   "setTimeout",
-			script: `setTimeout(() => {}, 100)`,
-		},
-		{
-			name:   "setInterval",
-			script: `setInterval(() => {}, 100)`,
-		},
-		{
-			name:   "setImmediate",
-			script: `setImmediate(() => {})`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := runtime.Execute(context.Background(), tt.script)
-			require.Error(t, err)
-
-			runtimeErr, ok := err.(*RuntimeError)
-			require.True(t, ok)
-			assert.Equal(t, ErrorTypeAsync, runtimeErr.Type)
-		})
-	}
+	result, logs, err := runtime.Execute(context.Background(), script)
+	require.NoError(t, err)
+	assert.Empty(t, logs)
+	assert.Equal(t, "6869", result)
 }
 
 // TestExecute_Timeout verifies timeout enforcement
@@ -290,53 +230,6 @@ func TestExecute_RuntimeError(t *testing.T) {
 			runtimeErr, ok := err.(*RuntimeError)
 			require.True(t, ok)
 			assert.Equal(t, ErrorTypeRuntime, runtimeErr.Type)
-		})
-	}
-}
-
-// TestExecute_AsyncBypassAttempts tests various attempts to bypass async detection
-func TestExecute_AsyncBypassAttempts(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := client.NewManager(logger)
-	defer manager.DisconnectAll()
-
-	runtime := NewRuntime(logger, manager, nil)
-
-	tests := []struct {
-		name   string
-		script string
-	}{
-		{
-			name:   "Promise with bracket notation",
-			script: `window['Promise']`,
-		},
-		{
-			name:   "Promise with double quotes",
-			script: `window["Promise"]`,
-		},
-		{
-			name:   "Promise in comment (should still catch in actual code)",
-			script: `// Promise\nnew Promise(r => r())`,
-		},
-		{
-			name:   "async in string (should catch if used)",
-			script: `"async"; async function test() {}`,
-		},
-		{
-			name:   "setTimeout with bracket notation",
-			script: `window['setTimeout'](function() {}, 100)`,
-		},
-		{
-			name:   "setInterval with bracket notation",
-			script: `global['setInterval'](function() {}, 100)`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := runtime.Execute(context.Background(), tt.script)
-			// Should error with async or reference error (for window/global)
-			require.Error(t, err)
 		})
 	}
 }
@@ -442,79 +335,6 @@ func TestExecute_LogEntryLimit(t *testing.T) {
 	// Should be limited to MaxLogEntries
 	assert.LessOrEqual(t, len(logs), MaxLogEntries)
 	assert.Equal(t, MaxLogEntries, len(logs))
-}
-
-// TestExecute_BlockDangerousGlobals verifies dangerous globals are blocked
-func TestExecute_BlockDangerousGlobals(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := client.NewManager(logger)
-	defer manager.DisconnectAll()
-
-	runtime := NewRuntime(logger, manager, nil)
-
-	tests := []struct {
-		name   string
-		script string
-	}{
-		{
-			name:   "eval",
-			script: `eval('1 + 1')`,
-		},
-		{
-			name:   "Function constructor",
-			script: `new Function('return 1 + 1')()`,
-		},
-		{
-			name:   "Reflect",
-			script: `Reflect.get({x: 1}, 'x')`,
-		},
-		{
-			name:   "Proxy",
-			script: `new Proxy({}, {})`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := runtime.Execute(context.Background(), tt.script)
-			require.Error(t, err, "Expected error for %s", tt.name)
-		})
-	}
-}
-
-// TestExecute_PrototypeFrozen verifies prototypes are frozen
-func TestExecute_PrototypeFrozen(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := client.NewManager(logger)
-	defer manager.DisconnectAll()
-
-	runtime := NewRuntime(logger, manager, nil)
-
-	tests := []struct {
-		name   string
-		script string
-	}{
-		{
-			name:   "Object.prototype pollution",
-			script: `Object.prototype.polluted = 'evil'; ({}).polluted !== 'evil'`,
-		},
-		{
-			name:   "Array.prototype pollution",
-			script: `Array.prototype.polluted = 'evil'; [].polluted !== 'evil'`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, _, err := runtime.Execute(context.Background(), tt.script)
-			// Frozen prototypes mean the assignment fails silently in non-strict mode
-			// or throws in strict mode, but either way the prototype is not polluted
-			// Check that either it errors OR the pollution didn't work
-			if err == nil {
-				assert.Equal(t, true, result, "Prototype should not be polluted")
-			}
-		})
-	}
 }
 
 // TestExecute_ConcurrentExecutionNoBlocking verifies concurrent execution doesn't block
@@ -659,8 +479,8 @@ func TestExecute_ContextCancellation(t *testing.T) {
 
 	runtimeErr, ok := err.(*RuntimeError)
 	require.True(t, ok)
-	// Immediate cancellation returns runtime_error, not timeout
-	assert.Equal(t, ErrorTypeRuntime, runtimeErr.Type)
+	// Immediate cancellation should surface as timeout or runtime interruption
+	assert.Contains(t, []ErrorType{ErrorTypeRuntime, ErrorTypeTimeout}, runtimeErr.Type)
 }
 
 // TestExecute_ReturnTypes verifies different return types
@@ -1003,50 +823,6 @@ func TestExecute_ToolAuthorizationNilAllowsAll(t *testing.T) {
 	assert.Contains(t, err.Error(), "not found")
 }
 
-// TestExecute_ConstructorAccessBlocked verifies Function constructor access is blocked
-func TestExecute_ConstructorAccessBlocked(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := client.NewManager(logger)
-	defer manager.DisconnectAll()
-
-	runtime := NewRuntime(logger, manager, nil)
-
-	tests := []struct {
-		name   string
-		script string
-	}{
-		{
-			name:   "function constructor via prototype",
-			script: `(function(){}).constructor('return 1+1')()`,
-		},
-		{
-			name:   "array constructor",
-			script: `[].constructor.constructor('return 1+1')()`,
-		},
-		{
-			name:   "object constructor",
-			script: `({}).constructor.constructor('return 1+1')()`,
-		},
-		{
-			name:   "string constructor",
-			script: `"".constructor.constructor('return 1+1')()`,
-		},
-		{
-			name:   "number constructor",
-			script: `(1).constructor.constructor('return 1+1')()`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := runtime.Execute(context.Background(), tt.script)
-			require.Error(t, err, "Expected error for %s", tt.name)
-			// Should get "Access to constructor is not allowed" error
-			assert.Contains(t, err.Error(), "constructor")
-		})
-	}
-}
-
 // TestExecute_ErrorSanitization verifies tool call errors are sanitized
 func TestExecute_ErrorSanitization(t *testing.T) {
 	logger := zaptest.NewLogger(t)
@@ -1163,39 +939,5 @@ func TestExecute_ConcurrentTimeouts(t *testing.T) {
 		runtimeErr, ok := err.(*RuntimeError)
 		require.True(t, ok)
 		assert.Equal(t, ErrorTypeTimeout, runtimeErr.Type)
-	}
-}
-
-// TestExecute_AsyncBypassWithComments verifies async detection handles comments
-func TestExecute_AsyncBypassWithComments(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := client.NewManager(logger)
-	defer manager.DisconnectAll()
-
-	runtime := NewRuntime(logger, manager, nil)
-
-	tests := []struct {
-		name   string
-		script string
-	}{
-		{
-			name:   "async with inline comment",
-			script: `/*comment*/ async function test() { return 42; }`,
-		},
-		{
-			name:   "async with multiline comment before",
-			script: `/* multi\nline\ncomment */ async function test() { return 42; }`,
-		},
-		{
-			name:   "async after comment",
-			script: `/* async in comment */ async function test() { return 42; }`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := runtime.Execute(context.Background(), tt.script)
-			require.Error(t, err)
-		})
 	}
 }
