@@ -97,7 +97,7 @@ func (s *Server) registerBuiltinTools() {
 			},
 			"query": map[string]interface{}{
 				"type":        "string",
-				"description": "Optional: comma-separated keywords for fulltext search (e.g., 'file,read,write'). All keywords must match name or description.",
+				"description": "Optional: comma-separated keywords for fulltext search (e.g., 'file,read,write'). Tool matches if any keyword appears in name or description.",
 				"maxLength":   1000,
 			},
 		},

@@ -34,7 +34,7 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 	// Parse arguments
 	var args struct {
 		Server string `json:"server"` // optional: filter by server name
-		Query  string `json:"query"`  // optional: comma-separated keywords; each keyword is full-text matched against name and description
+		Query  string `json:"query"`  // optional: comma-separated keywords; tool matches if ANY keyword appears in name or description
 	}
 	if err := json.Unmarshal(req.Params.Arguments, &args); err != nil {
 		return nil, fmt.Errorf("failed to parse list arguments: %w", err)
@@ -48,6 +48,7 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 
 	var results []ListToolResult
 	const maxResults = 100 // Limit results to prevent DoS
+	totalMatches := 0
 
 	// Get all remote tools
 	allRemoteTools := manager.GetAllTools()
@@ -57,10 +58,6 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
-		}
-
-		if len(results) >= maxResults {
-			break
 		}
 
 		// Extract server ID from namespaced name
@@ -77,6 +74,12 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 
 		// Filter by query keywords if specified
 		if !matchesKeywords(tool.Name, tool.Description, args.Query) {
+			continue
+		}
+
+		totalMatches++
+
+		if len(results) >= maxResults {
 			continue
 		}
 
@@ -99,7 +102,7 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 	// Create response
 	response := ListToolsResponse{
 		Tools: results,
-		Total: len(results),
+		Total: totalMatches,
 	}
 
 	// Marshal to JSON
@@ -126,24 +129,24 @@ func matchesKeywords(name, description, query string) bool {
 	nameLower := strings.ToLower(name)
 	descLower := strings.ToLower(description)
 
-	// Split by comma and ensure each keyword matches either name or description
+	// Split by comma and match if ANY keyword appears in name or description
 	keywords := strings.Split(query, ",")
-	anyKeyword := false
-	for _, kw := range keywords {
-		kw = strings.TrimSpace(strings.ToLower(kw))
+	foundKeyword := false
+	for _, raw := range keywords {
+		kw := strings.TrimSpace(strings.ToLower(raw))
 		if kw == "" {
 			continue
 		}
-		anyKeyword = true
-		if !strings.Contains(nameLower, kw) && !strings.Contains(descLower, kw) {
-			return false
+		foundKeyword = true
+		if strings.Contains(nameLower, kw) || strings.Contains(descLower, kw) {
+			return true
 		}
 	}
 
 	// If no non-empty keywords were provided, treat as no filter
-	if !anyKeyword {
+	if !foundKeyword {
 		return true
 	}
 
-	return true
+	return false
 }

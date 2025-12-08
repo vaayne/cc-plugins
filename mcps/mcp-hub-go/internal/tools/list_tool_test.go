@@ -104,12 +104,12 @@ func TestMatchesKeywords(t *testing.T) {
 		{"Partial match", "filesystem", "Work with files", "file", true},
 		{"No match", "database", "Database operations", "file", false},
 		{"Empty query matches all", "anything", "Any description", "", true},
-		{"Multiple keywords - first matches", "fileReader", "Reads files", "file,write,delete", false},
-		{"Multiple keywords - second matches", "writer", "Writes data", "file,write,delete", false},
+		{"Multiple keywords - first matches", "fileReader", "Reads files", "file,write,delete", true},
+		{"Multiple keywords - second matches", "writer", "Writes data", "file,write,delete", true},
 		{"Multiple keywords - none match", "database", "Database operations", "file,write,delete", false},
 		{"Multiple keywords - all match", "fileWriter", "Write and delete files safely", "file,write,delete", true},
-		{"Keywords with spaces", "fileReader", "Reads files", "file , write , delete", false},
-		{"Empty keywords ignored", "fileReader", "Reads files", "file,,,write", false},
+		{"Keywords with spaces", "fileReader", "Reads files", "file , write , delete", true},
+		{"Empty keywords ignored", "fileReader", "Reads files", "file,,,write", true},
 	}
 
 	for _, tt := range tests {

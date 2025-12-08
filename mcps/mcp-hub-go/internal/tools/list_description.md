@@ -17,7 +17,7 @@ Filter by server:
   {"server": "github"}
 
 Search with keywords:
-  {"query": "file,read"}  // matches tools containing both "file" and "read" in name or description
+  {"query": "file,read"}  // matches tools containing either "file" or "read" in name or description
 
 Combine filters:
   {"server": "fs", "query": "write,delete"}
