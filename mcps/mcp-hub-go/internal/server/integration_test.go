@@ -105,7 +105,7 @@ func TestIntegration_MultipleTools(t *testing.T) {
 	// Verify built-in tools are registered
 	builtinTools := server.builtinRegistry.GetAllTools()
 	assert.Len(t, builtinTools, 3)
-	assert.Contains(t, builtinTools, "search")
+	assert.Contains(t, builtinTools, "list")
 	assert.Contains(t, builtinTools, "exec")
 	assert.Contains(t, builtinTools, "refreshTools")
 
@@ -351,7 +351,7 @@ func TestIntegration_ConcurrentToolCalls(t *testing.T) {
 
 	server.registerBuiltinTools()
 
-	// Run multiple concurrent search calls
+	// Run multiple concurrent list calls
 	const numCalls = 10
 	var wg sync.WaitGroup
 	wg.Add(numCalls)
@@ -368,12 +368,12 @@ func TestIntegration_ConcurrentToolCalls(t *testing.T) {
 
 			req := &mcp.CallToolRequest{
 				Params: &mcp.CallToolParamsRaw{
-					Name:      "search",
+					Name:      "list",
 					Arguments: argsJSON,
 				},
 			}
 
-			_, err = server.handleBuiltinTool(context.Background(), "search", req)
+			_, err = server.handleBuiltinTool(context.Background(), "list", req)
 			assert.NoError(t, err)
 		}(i)
 	}

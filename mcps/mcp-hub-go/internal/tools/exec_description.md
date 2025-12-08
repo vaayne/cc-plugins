@@ -4,7 +4,7 @@ Write JavaScript code to call multiple MCP tools in a single request. Use loops,
 
 ## Quick guide
 - **Batching**: Prefer one exec call with multiple `mcp.callTool()` invocations instead of many exec calls.
-- **Result**: The last expression is returned. Don’t use `return` at top level; use an async IIFE if you need `await`.
+- **Result**: The last expression is returned. Don't use `return` at top level; use an async IIFE if you need `await`.
 - **Async**: Async/await, Promises, and timers (`setTimeout`, `setInterval`, `setImmediate`) are supported.
 - **Require**: `require()` works for core goja_nodejs modules like `node:buffer`, `node:process`, `node:url`, `node:util`, and the built-in `console`.
 - **MCP helpers**:
@@ -35,7 +35,7 @@ Write JavaScript code to call multiple MCP tools in a single request. Use loops,
   ```
 
 ## Constraints
-- Timeout: 15s per exec call
+- Timeout: 60s per exec call
 - Max script size: 100KB
 - Logs capped at 1000 entries
 

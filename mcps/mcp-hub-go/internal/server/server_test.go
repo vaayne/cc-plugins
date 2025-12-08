@@ -51,12 +51,12 @@ func TestRegisterBuiltinTools(t *testing.T) {
 	allTools := server.builtinRegistry.GetAllTools()
 	assert.Len(t, allTools, 3)
 
-	// Verify search tool
-	searchTool, exists := server.builtinRegistry.GetTool("search")
+	// Verify list tool
+	listTool, exists := server.builtinRegistry.GetTool("list")
 	assert.True(t, exists)
-	assert.Equal(t, "search", searchTool.Name)
-	assert.Contains(t, searchTool.Description, "Search for available tools")
-	assert.NotNil(t, searchTool.InputSchema)
+	assert.Equal(t, "list", listTool.Name)
+	assert.Contains(t, listTool.Description, "List available tools")
+	assert.NotNil(t, listTool.InputSchema)
 
 	// Verify exec tool
 	execTool, exists := server.builtinRegistry.GetTool("exec")
@@ -181,19 +181,19 @@ func TestHandleBuiltinTool_Search(t *testing.T) {
 
 	// Create request
 	args := map[string]interface{}{
-		"query": "search",
+		"query": "list",
 	}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
 
 	req := &mcp.CallToolRequest{
 		Params: &mcp.CallToolParamsRaw{
-			Name:      "search",
+			Name:      "list",
 			Arguments: argsJSON,
 		},
 	}
 
-	result, err := server.handleBuiltinTool(context.Background(), "search", req)
+	result, err := server.handleBuiltinTool(context.Background(), "list", req)
 	require.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Len(t, result.Content, 1)

@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 	"time"
 
@@ -13,9 +12,6 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 )
-
-//go:embed exec_tool.md
-var execToolDescription string
 
 // Server represents the MCP hub server
 type Server struct {
@@ -91,60 +87,33 @@ func (s *Server) Stop() error {
 
 // registerBuiltinTools registers all built-in tools
 func (s *Server) registerBuiltinTools() {
-	// Register search tool
-	s.builtinRegistry.RegisterTool(config.BuiltinTool{
-		Name: "search",
-		Description: `Search for available tools by keyword across all connected MCP servers.
-
-This tool discovers available MCP tools from connected servers. Use it to find tools before calling them with exec.
-
-## Workflow
-
-1. Search for tools using keywords
-2. Review the results to find the right tool(s) and their parameters
-3. Use exec to call tools via mcp.callTool("serverID.toolName", params)
-
-## Output Format
-
-Each result includes:
-- name: Full tool name to use with mcp.callTool() (e.g., "grep.searchGitHub")
-- description: Tool description
-- server: The server ID hosting this tool
-- inputSchema: JSON Schema defining the tool's parameters (properties, required fields, types)
-
-## Examples
-
-Search for user-related tools:
-  query: "user"
-
-Search for file operations:
-  query: "file"
-
-Search by server name:
-  query: "github"
-
-## Tips
-
-- Always check inputSchema to see the correct parameter names and types
-- Use the exact "name" value with mcp.callTool()`,
-		InputSchema: map[string]interface{}{
-			"type": "object",
-			"properties": map[string]interface{}{
-				"query": map[string]interface{}{
-					"type":        "string",
-					"description": "Search keywords to find tools (case-insensitive substring match)",
-					"minLength":   1,
-					"maxLength":   1000,
-				},
+	// Schema for list tool
+	listSchema := map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"server": map[string]interface{}{
+				"type":        "string",
+				"description": "Optional: filter tools by server name",
 			},
-			"required": []string{"query"},
+			"query": map[string]interface{}{
+				"type":        "string",
+				"description": "Optional: comma-separated keywords for fulltext search (e.g., 'file,read,write'). All keywords must match name or description.",
+				"maxLength":   1000,
+			},
 		},
+	}
+
+	// Register list tool
+	s.builtinRegistry.RegisterTool(config.BuiltinTool{
+		Name:        "list",
+		Description: tools.ListDescription,
+		InputSchema: listSchema,
 	})
 
 	// Register exec tool
 	s.builtinRegistry.RegisterTool(config.BuiltinTool{
 		Name:        "exec",
-		Description: execToolDescription,
+		Description: tools.ExecDescription,
 		InputSchema: map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
@@ -160,25 +129,8 @@ Search by server name:
 
 	// Register refreshTools tool
 	s.builtinRegistry.RegisterTool(config.BuiltinTool{
-		Name: "refreshTools",
-		Description: `Refresh tool lists from connected MCP servers.
-
-Use this when tools on a remote server have been updated and you need to fetch the latest tool definitions.
-
-## When to Use
-
-- After a remote MCP server has added new tools
-- When tool definitions may have changed
-- To verify current tool availability
-
-## Parameters
-
-- serverIds (optional): Array of specific server IDs to refresh. If not provided, refreshes all connected servers.
-
-## Output
-
-- refreshed: List of server IDs that were successfully refreshed
-- errors: Map of server IDs to error messages for failed refreshes (if any)`,
+		Name:        "refreshTools",
+		Description: tools.RefreshDescription,
 		InputSchema: map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
@@ -274,8 +226,8 @@ func (s *Server) handleBuiltinTool(ctx context.Context, toolName string, req *mc
 	defer cancel()
 
 	switch toolName {
-	case "search":
-		return tools.HandleSearchTool(callCtx, s.builtinRegistry, s.clientManager, req)
+	case "list":
+		return tools.HandleListTool(callCtx, s.clientManager, req)
 	case "exec":
 		return tools.HandleExecuteTool(callCtx, s.logger, s.clientManager, req)
 	case "refreshTools":
