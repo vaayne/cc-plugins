@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "grep": {
+      "url": "https://mcp.grep.app"
+    },
+    "exa": {
+      "url": "https://mcp.exa.ai/mcp"
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "enable": false
+    },
+    "jetbrains": {
+      "transport": "sse",
+      "url": "http://localhost:64342/sse",
+      "enable": false
+    },
+    "chrome-devtools": {
+      "transport": "stdio",
+      "command": "bunx",
+      "args": ["chrome-devtools-mcp@latest", "--isolated"],
+      "env": {}
+    },
+    "memory": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {},
+      "enable": false
+    }
+  }
+}

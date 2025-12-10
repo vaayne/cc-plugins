@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "sse-server": {
+      "transport": "sse",
+      "url": "http://localhost:8080/sse",
+      "headers": {
+        "X-Client-ID": "mcp-hub"
+      }
+    }
+  }
+}
