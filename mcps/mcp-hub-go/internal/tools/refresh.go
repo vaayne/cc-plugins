@@ -99,4 +99,3 @@ func HandleRefreshToolsTool(ctx context.Context, manager *client.Manager, req *m
 		},
 	}, nil
 }
-

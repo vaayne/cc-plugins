@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"mcp-hub-go/internal/client"
@@ -13,6 +14,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// TransportConfig holds transport configuration for the server
+type TransportConfig struct {
+	Type string // "stdio", "http", or "sse"
+	Host string // Host to bind for HTTP/SSE
+	Port int    // Port to bind for HTTP/SSE
+}
+
 // Server represents the MCP hub server
 type Server struct {
 	config          *config.Config
@@ -21,6 +29,7 @@ type Server struct {
 	clientManager   *client.Manager
 	builtinRegistry *tools.BuiltinToolRegistry
 	toolCallTimeout time.Duration
+	httpServer      *http.Server // for graceful shutdown of HTTP/SSE
 }
 
 // NewServer creates a new MCP hub server
@@ -32,9 +41,11 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *Server {
 	}
 }
 
-// Start starts the MCP server
-func (s *Server) Start(ctx context.Context) error {
-	s.logger.Info("Starting MCP hub server")
+// Start starts the MCP server with the specified transport
+func (s *Server) Start(ctx context.Context, transportCfg TransportConfig) error {
+	s.logger.Info("Starting MCP hub server",
+		zap.String("transport", transportCfg.Type),
+	)
 
 	// Initialize client manager
 	s.clientManager = client.NewManager(s.logger)
@@ -61,18 +72,91 @@ func (s *Server) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to register tools: %w", err)
 	}
 
-	// Start the server with stdio transport
+	// Start with the appropriate transport
+	switch transportCfg.Type {
+	case "stdio":
+		return s.startStdio(ctx)
+	case "http":
+		return s.startHTTP(ctx, transportCfg)
+	case "sse":
+		return s.startSSE(ctx, transportCfg)
+	default:
+		return fmt.Errorf("unsupported transport type: %s", transportCfg.Type)
+	}
+}
+
+// startStdio starts the server with stdio transport
+func (s *Server) startStdio(ctx context.Context) error {
+	s.logger.Info("Starting stdio transport")
 	transport := &mcp.StdioTransport{}
 	if err := s.mcpServer.Run(ctx, transport); err != nil {
 		return fmt.Errorf("server failed: %w", err)
 	}
+	return nil
+}
 
+// startHTTP starts the server with StreamableHTTP transport
+func (s *Server) startHTTP(ctx context.Context, cfg TransportConfig) error {
+	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	s.logger.Info("Starting HTTP transport", zap.String("address", addr))
+
+	handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
+		return s.mcpServer
+	}, nil)
+
+	mux := http.NewServeMux()
+	mux.Handle("/mcp", handler)
+
+	s.httpServer = &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	s.logger.Info("MCP Hub server running", zap.String("url", fmt.Sprintf("http://%s/mcp", addr)))
+
+	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("HTTP server failed: %w", err)
+	}
+	return nil
+}
+
+// startSSE starts the server with SSE transport
+func (s *Server) startSSE(ctx context.Context, cfg TransportConfig) error {
+	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	s.logger.Info("Starting SSE transport", zap.String("address", addr))
+
+	handler := mcp.NewSSEHandler(func(r *http.Request) *mcp.Server {
+		return s.mcpServer
+	}, nil)
+
+	mux := http.NewServeMux()
+	mux.Handle("/sse", handler)
+
+	s.httpServer = &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	s.logger.Info("MCP Hub server running", zap.String("url", fmt.Sprintf("http://%s/sse", addr)))
+
+	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("SSE server failed: %w", err)
+	}
 	return nil
 }
 
 // Stop stops the MCP server
 func (s *Server) Stop() error {
 	s.logger.Info("Stopping MCP hub server")
+
+	// Shutdown HTTP server if running
+	if s.httpServer != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := s.httpServer.Shutdown(ctx); err != nil {
+			s.logger.Error("Error shutting down HTTP server", zap.Error(err))
+		}
+	}
 
 	// Disconnect from all remote servers
 	if s.clientManager != nil {

@@ -100,4 +100,3 @@ func HandleExecuteTool(ctx context.Context, logger *zap.Logger, manager *client.
 		},
 	}, nil
 }
-

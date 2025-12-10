@@ -20,13 +20,31 @@ var (
 	configPath string
 	verbose    bool
 	logFile    string
+	transport  string
+	port       int
+	host       string
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "mcp-hub-go",
 	Short: "MCP Hub - Go implementation of Model Context Protocol hub server",
 	Long: `MCP Hub aggregates multiple MCP servers and built-in tools,
-providing a unified interface for tool execution and management.`,
+providing a unified interface for tool execution and management.
+
+Transport Types:
+  stdio  - Standard input/output (default, for CLI integration)
+  http   - HTTP server with StreamableHTTP protocol
+  sse    - HTTP server with Server-Sent Events protocol
+
+Examples:
+  # Run with stdio transport (default)
+  mcp-hub-go -c config.json
+
+  # Run with HTTP transport on port 8080
+  mcp-hub-go -c config.json -t http -p 8080
+
+  # Run with SSE transport on custom host and port
+  mcp-hub-go -c config.json -t sse --host 0.0.0.0 -p 3000`,
 	RunE: run,
 }
 
@@ -34,10 +52,18 @@ func init() {
 	rootCmd.Flags().StringVarP(&configPath, "config", "c", "", "path to configuration file (required)")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose logging")
 	rootCmd.Flags().StringVar(&logFile, "log-file", "./mcp-hub.log", "path to log file (set to empty string to disable file logging)")
+	rootCmd.Flags().StringVarP(&transport, "transport", "t", "stdio", "transport type: stdio, http, or sse")
+	rootCmd.Flags().IntVarP(&port, "port", "p", 3000, "port for HTTP/SSE transport")
+	rootCmd.Flags().StringVar(&host, "host", "localhost", "host for HTTP/SSE transport")
 	rootCmd.MarkFlagRequired("config")
 }
 
 func run(cmd *cobra.Command, args []string) error {
+	// Validate transport type
+	if transport != "stdio" && transport != "http" && transport != "sse" {
+		return fmt.Errorf("invalid transport type: %s (must be stdio, http, or sse)", transport)
+	}
+
 	// Determine log level based on verbose flag
 	logLevel := zapcore.InfoLevel
 	if verbose {
@@ -77,7 +103,10 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("config file not found: %s", configPath)
 	}
 
-	logger.Info("Starting MCP Hub", zap.String("config", configPath))
+	logger.Info("Starting MCP Hub",
+		zap.String("config", configPath),
+		zap.String("transport", transport),
+	)
 
 	// Load configuration
 	cfg, err := config.LoadConfig(configPath)
@@ -88,6 +117,13 @@ func run(cmd *cobra.Command, args []string) error {
 
 	// Create server
 	srv := server.NewServer(cfg, logger)
+
+	// Create transport config
+	transportCfg := server.TransportConfig{
+		Type: transport,
+		Host: host,
+		Port: port,
+	}
 
 	// Setup context with cancellation
 	ctx, cancel := context.WithCancel(context.Background())
@@ -100,7 +136,7 @@ func run(cmd *cobra.Command, args []string) error {
 	// Start server in goroutine
 	errChan := make(chan error, 1)
 	go func() {
-		if err := srv.Start(ctx); err != nil {
+		if err := srv.Start(ctx, transportCfg); err != nil {
 			errChan <- err
 		}
 	}()
