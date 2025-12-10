@@ -15,7 +15,7 @@
       "url": "http://localhost:64342/sse",
       "enable": false
     },
-    "chrome-devtools": {
+    "chrome_devtools": {
       "transport": "stdio",
       "command": "bunx",
       "args": ["chrome-devtools-mcp@latest", "--isolated"],

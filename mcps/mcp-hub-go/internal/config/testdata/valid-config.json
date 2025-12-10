@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "chrome-devtools": {
+    "chrome_devtools": {
       "transport": "stdio",
       "command": "bunx",
       "args": [
@@ -26,7 +26,7 @@
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
       "enable": false
     },
-    "default-enabled": {
+    "default_enabled": {
       "command": "bunx",
       "args": ["test-server"]
     }
