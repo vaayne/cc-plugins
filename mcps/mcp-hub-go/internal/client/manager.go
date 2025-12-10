@@ -390,7 +390,7 @@ func (m *Manager) GetAllTools() map[string]*mcp.Tool {
 	for serverID, info := range m.clients {
 		info.mu.RLock()
 		for toolName, tool := range info.tools {
-			namespacedName := fmt.Sprintf("%s.%s", serverID, toolName)
+			namespacedName := fmt.Sprintf("%s__%s", serverID, toolName)
 			allTools[namespacedName] = tool
 		}
 		info.mu.RUnlock()

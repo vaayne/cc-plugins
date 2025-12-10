@@ -423,7 +423,7 @@ func TestExecute_TypeAssertionError(t *testing.T) {
 	runtime := NewRuntime(logger, manager, nil)
 
 	// Try to call callTool with invalid params type (number instead of object)
-	script := `mcp.callTool('server.tool', 123)`
+	script := `mcp.callTool('server__tool', 123)`
 
 	_, _, err := runtime.Execute(context.Background(), script)
 	require.Error(t, err)
@@ -587,20 +587,20 @@ func TestCallTool_Validation(t *testing.T) {
 		script string
 	}{
 		{
-			name:   "missing dot separator",
+			name:   "missing double underscore separator",
 			script: `mcp.callTool('toolName', {})`,
 		},
 		{
 			name:   "empty serverID",
-			script: `mcp.callTool('.toolName', {})`,
+			script: `mcp.callTool('__toolName', {})`,
 		},
 		{
 			name:   "empty toolName",
-			script: `mcp.callTool('server.', {})`,
+			script: `mcp.callTool('server__', {})`,
 		},
 		{
 			name:   "wrong number of arguments",
-			script: `mcp.callTool('server.tool')`,
+			script: `mcp.callTool('server__tool')`,
 		},
 	}
 
@@ -778,17 +778,17 @@ func TestExecute_ToolAuthorization(t *testing.T) {
 	}{
 		{
 			name:      "allowed tool",
-			script:    `mcp.callTool('server1.tool1', {})`,
+			script:    `mcp.callTool('server1__tool1', {})`,
 			shouldErr: true, // Will error because server doesn't exist, but authorization passes
 		},
 		{
 			name:      "disallowed tool",
-			script:    `mcp.callTool('server1.tool3', {})`,
+			script:    `mcp.callTool('server1__tool3', {})`,
 			shouldErr: true,
 		},
 		{
 			name:      "disallowed server",
-			script:    `mcp.callTool('server3.tool1', {})`,
+			script:    `mcp.callTool('server3__tool1', {})`,
 			shouldErr: true,
 		},
 	}
@@ -815,7 +815,7 @@ func TestExecute_ToolAuthorizationNilAllowsAll(t *testing.T) {
 	runtime := NewRuntime(logger, manager, nil)
 
 	// Should not reject based on authorization (but will fail due to missing server)
-	script := `mcp.callTool('anyserver.anytool', {})`
+	script := `mcp.callTool('anyserver__anytool', {})`
 	_, _, err := runtime.Execute(context.Background(), script)
 	require.Error(t, err)
 	// Should get "server not found" error, not authorization error
@@ -832,7 +832,7 @@ func TestExecute_ErrorSanitization(t *testing.T) {
 	runtime := NewRuntime(logger, manager, nil)
 
 	// Call a non-existent tool to trigger error
-	script := `mcp.callTool('nonexistent.tool', {})`
+	script := `mcp.callTool('nonexistent__tool', {})`
 	_, _, err := runtime.Execute(context.Background(), script)
 	require.Error(t, err)
 
@@ -859,15 +859,15 @@ func TestExecute_ParamsTypeAssertion(t *testing.T) {
 	}{
 		{
 			name:   "number instead of object",
-			script: `mcp.callTool('server.tool', 123)`,
+			script: `mcp.callTool('server__tool', 123)`,
 		},
 		{
 			name:   "string instead of object",
-			script: `mcp.callTool('server.tool', 'invalid')`,
+			script: `mcp.callTool('server__tool', 'invalid')`,
 		},
 		{
 			name:   "array instead of object",
-			script: `mcp.callTool('server.tool', [1, 2, 3])`,
+			script: `mcp.callTool('server__tool', [1, 2, 3])`,
 		},
 	}
 

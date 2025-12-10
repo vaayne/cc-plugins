@@ -18,14 +18,13 @@ This restriction exists for security, resource control, and predictable executio
 
 Your JavaScript code has access to two helper functions via the `mcp` global object:
 
-### `mcp.callTool(serverID, toolName, params)`
+### `mcp.callTool(toolName, params)`
 
 Call a remote MCP tool synchronously.
 
 **Parameters:**
 
-- `serverID` (string): The server ID from your configuration
-- `toolName` (string): The name of the tool (without namespace prefix)
+- `toolName` (string): The tool name in format `serverID__toolName` (e.g., `"filesystem__read_file"`)
 - `params` (object): Parameters to pass to the tool
 
 **Returns:** The result from the tool (parsed from JSON if applicable)
@@ -36,20 +35,20 @@ Call a remote MCP tool synchronously.
 
 ```javascript
 // List files in a directory
-const result = mcp.callTool("filesystem", "list_directory", {
+const result = mcp.callTool("filesystem__list_directory", {
   path: "/tmp",
 });
 
 // Search GitHub repositories
-const repos = mcp.callTool("github", "search_repos", {
+const repos = mcp.callTool("github__search_repos", {
   query: "mcp",
   limit: 10,
 });
 
 // Chain tool calls
-const files = mcp.callTool("filesystem", "list_directory", { path: "/tmp" });
+const files = mcp.callTool("filesystem__list_directory", { path: "/tmp" });
 const firstFile = files[0];
-const content = mcp.callTool("filesystem", "read_file", {
+const content = mcp.callTool("filesystem__read_file", {
   path: "/tmp/" + firstFile,
 });
 ```
@@ -83,7 +82,7 @@ mcp.log("error", "File not found", { path: "/missing.txt" });
 
 ```javascript
 // Search for files and return the list
-const files = mcp.callTool("filesystem", "list_directory", {
+const files = mcp.callTool("filesystem__list_directory", {
   path: "/tmp",
 });
 
@@ -94,7 +93,7 @@ return files;
 
 ```javascript
 // Find a file and read its contents
-const files = mcp.callTool("filesystem", "list_directory", {
+const files = mcp.callTool("filesystem__list_directory", {
   path: "/var/log",
 });
 
@@ -108,7 +107,7 @@ if (logFiles.length === 0) {
 }
 
 // Read first log file
-const content = mcp.callTool("filesystem", "read_file", {
+const content = mcp.callTool("filesystem__read_file", {
   path: "/var/log/" + logFiles[0],
 });
 
@@ -119,7 +118,7 @@ return { file: logFiles[0], content: content };
 
 ```javascript
 // Aggregate data from multiple tools
-const repos = mcp.callTool("github", "list_repos", {
+const repos = mcp.callTool("github__list_repos", {
   org: "modelcontextprotocol",
 });
 
@@ -145,7 +144,7 @@ return result;
 let result;
 
 try {
-  result = mcp.callTool("filesystem", "read_file", {
+  result = mcp.callTool("filesystem__read_file", {
     path: "/tmp/data.json",
   });
   mcp.log("info", "File read successfully");
@@ -175,7 +174,7 @@ for (let i = 0; i < items.length; i++) {
   const filename = items[i];
 
   try {
-    const content = mcp.callTool("filesystem", "read_file", {
+    const content = mcp.callTool("filesystem__read_file", {
       path: "/tmp/" + filename,
     });
 
@@ -208,7 +207,7 @@ return { processed: results.length, results: results };
 ### Pattern 1: Search and Filter
 
 ```javascript
-const allTools = mcp.callTool("hub", "search", { query: "" });
+const allTools = mcp.callTool("hub__search", { query: "" });
 const filtered = allTools.filter(t => t.server === "github");
 return filtered;
 ```
@@ -216,12 +215,12 @@ return filtered;
 ### Pattern 2: Conditional Logic
 
 ```javascript
-const fileExists = mcp.callTool("filesystem", "file_exists", {
+const fileExists = mcp.callTool("filesystem__file_exists", {
   path: "/tmp/config.json",
 });
 
 if (fileExists) {
-  const content = mcp.callTool("filesystem", "read_file", {
+  const content = mcp.callTool("filesystem__read_file", {
     path: "/tmp/config.json",
   });
   return JSON.parse(content);
@@ -233,8 +232,8 @@ if (fileExists) {
 ### Pattern 3: Data Aggregation
 
 ```javascript
-const server1Data = mcp.callTool("server1", "get_stats", {});
-const server2Data = mcp.callTool("server2", "get_stats", {});
+const server1Data = mcp.callTool("server1__get_stats", {});
+const server2Data = mcp.callTool("server2__get_stats", {});
 
 return {
   server1: server1Data,
@@ -254,7 +253,7 @@ function sanitizeInput(input) {
 const userInput = "user-file.txt";
 const safePath = "/tmp/" + sanitizeInput(userInput);
 
-const content = mcp.callTool("filesystem", "read_file", {
+const content = mcp.callTool("filesystem__read_file", {
   path: safePath,
 });
 
@@ -270,13 +269,13 @@ The runtime actively blocks these patterns:
 ```javascript
 // ❌ BLOCKED
 async function fetchData() {
-  const result = await mcp.callTool("server", "tool", {});
+  const result = await mcp.callTool("server__tool", {});
   return result;
 }
 
 // ✅ ALLOWED
 function fetchData() {
-  const result = mcp.callTool("server", "tool", {});
+  const result = mcp.callTool("server__tool", {});
   return result;
 }
 ```
@@ -323,7 +322,7 @@ const p = window.Promise;
 const fn = globalThis["Promise"];
 
 // ✅ ALLOWED - Use mcp.callTool directly
-const result = mcp.callTool("server", "tool", {});
+const result = mcp.callTool("server__tool", {});
 ```
 
 ## Security Restrictions
@@ -406,7 +405,7 @@ mcp.log("debug", "Starting script");
 const input = { path: "/tmp" };
 mcp.log("debug", "Input parameters", input);
 
-const result = mcp.callTool("filesystem", "list_directory", input);
+const result = mcp.callTool("filesystem__list_directory", input);
 mcp.log("debug", "Tool result", { count: result.length });
 
 return result;
@@ -415,7 +414,7 @@ return result;
 ### 2. Log Variable Types
 
 ```javascript
-const data = mcp.callTool("server", "get_data", {});
+const data = mcp.callTool("server__get_data", {});
 
 mcp.log("info", "Data type", {
   type: typeof data,
@@ -430,15 +429,15 @@ Start with a minimal script and add complexity gradually:
 
 ```javascript
 // Step 1: Test basic call
-// const result = mcp.callTool("server", "tool", {});
+// const result = mcp.callTool("server__tool", {});
 // return result;
 
 // Step 2: Test with parameters
-// const result = mcp.callTool("server", "tool", { param: "value" });
+// const result = mcp.callTool("server__tool", { param: "value" });
 // return result;
 
 // Step 3: Add transformation
-const result = mcp.callTool("server", "tool", { param: "value" });
+const result = mcp.callTool("server__tool", { param: "value" });
 return result.map(item => item.name);
 ```
 
@@ -446,7 +445,7 @@ return result.map(item => item.name);
 
 ```javascript
 try {
-  const result = mcp.callTool("server", "tool", {});
+  const result = mcp.callTool("server__tool", {});
   mcp.log("info", "Success");
   return result;
 } catch (error) {
@@ -474,7 +473,7 @@ function validateParams(params) {
 const params = { path: "/tmp" };
 validateParams(params);
 
-const result = mcp.callTool("filesystem", "list_directory", params);
+const result = mcp.callTool("filesystem__list_directory", params);
 return result;
 ```
 
@@ -527,7 +526,7 @@ runtime_error: ReferenceError: variable is not defined
 Solution: Declare all variables before use.
 
 ```
-runtime_error: TypeError: mcp.callTool requires 3 arguments: serverID, toolName, params
+runtime_error: TypeError: mcp.callTool requires 2 arguments: toolName (e.g., 'server__tool'), params
 ```
 
 Solution: Provide all required arguments to `mcp.callTool()`.
@@ -595,13 +594,13 @@ const filtered = files
 ```javascript
 // ❌ Wrong
 async function getData() {
-  const result = await mcp.callTool("server", "tool", {});
+  const result = await mcp.callTool("server__tool", {});
   return result;
 }
 
 // ✅ Correct
 function getData() {
-  const result = mcp.callTool("server", "tool", {});
+  const result = mcp.callTool("server__tool", {});
   return result;
 }
 ```
@@ -610,12 +609,12 @@ function getData() {
 
 ```javascript
 // ❌ Wrong - No error handling
-const result = mcp.callTool("server", "tool", {});
+const result = mcp.callTool("server__tool", {});
 return result.data;
 
 // ✅ Correct
 try {
-  const result = mcp.callTool("server", "tool", {});
+  const result = mcp.callTool("server__tool", {});
   if (result && result.data) {
     return result.data;
   }
@@ -629,21 +628,21 @@ try {
 
 ```javascript
 // ❌ Wrong - params must be an object
-const result = mcp.callTool("server", "tool", "param");
+const result = mcp.callTool("server__tool", "param");
 
 // ✅ Correct
-const result = mcp.callTool("server", "tool", { param: "value" });
+const result = mcp.callTool("server__tool", { param: "value" });
 ```
 
 ### Mistake 4: Not Returning a Value
 
 ```javascript
 // ❌ Wrong - No return value
-const result = mcp.callTool("server", "tool", {});
+const result = mcp.callTool("server__tool", {});
 mcp.log("info", "Done");
 
 // ✅ Correct
-const result = mcp.callTool("server", "tool", {});
+const result = mcp.callTool("server__tool", {});
 mcp.log("info", "Done");
 return result;
 ```
@@ -668,9 +667,9 @@ function sum(array) {
 
 ```javascript
 // Fetch data from multiple servers and combine
-const filesystemData = mcp.callTool("filesystem", "get_stats", {});
-const githubData = mcp.callTool("github", "get_stats", {});
-const databaseData = mcp.callTool("database", "get_stats", {});
+const filesystemData = mcp.callTool("filesystem__get_stats", {});
+const githubData = mcp.callTool("github__get_stats", {});
+const databaseData = mcp.callTool("database__get_stats", {});
 
 return {
   timestamp: Date.now(),
@@ -691,9 +690,9 @@ return {
 // Choose which tool to call based on input
 function processRequest(type, params) {
   if (type === "file") {
-    return mcp.callTool("filesystem", "read_file", params);
+    return mcp.callTool("filesystem__read_file", params);
   } else if (type === "repo") {
-    return mcp.callTool("github", "get_repo", params);
+    return mcp.callTool("github__get_repo", params);
   } else {
     throw new Error("Unknown type: " + type);
   }
@@ -709,7 +708,7 @@ return result;
 // Multi-stage data transformation pipeline
 function pipeline(input) {
   mcp.log("info", "Stage 1: Fetch");
-  const raw = mcp.callTool("server", "fetch", input);
+  const raw = mcp.callTool("server__fetch", input);
 
   mcp.log("info", "Stage 2: Filter");
   const filtered = raw.filter(item => item.active);

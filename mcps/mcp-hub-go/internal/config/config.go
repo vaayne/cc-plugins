@@ -129,8 +129,8 @@ func validateServer(name string, server MCPServer) error {
 	if len(name) > 255 {
 		return fmt.Errorf("server %q: name exceeds maximum length of 255", name)
 	}
-	// Reject dangerous characters in names
-	if strings.ContainsAny(name, "/\\:*?\"<>|") {
+	// Reject dangerous characters in names (including . and @ which conflict with namespace separator)
+	if strings.ContainsAny(name, "/\\:*?\"<>|.@") {
 		return fmt.Errorf("server %q: name contains invalid characters", name)
 	}
 

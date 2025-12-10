@@ -321,13 +321,13 @@ func TestGetAllTools(t *testing.T) {
 	assert.Len(t, allTools, 4)
 
 	// Verify namespacing
-	assert.Contains(t, allTools, "server1.read")
-	assert.Contains(t, allTools, "server1.write")
-	assert.Contains(t, allTools, "server2.search")
-	assert.Contains(t, allTools, "server2.grep")
+	assert.Contains(t, allTools, "server1__read")
+	assert.Contains(t, allTools, "server1__write")
+	assert.Contains(t, allTools, "server2__search")
+	assert.Contains(t, allTools, "server2__grep")
 
-	assert.Equal(t, "read", allTools["server1.read"].Name)
-	assert.Equal(t, "search", allTools["server2.search"].Name)
+	assert.Equal(t, "read", allTools["server1__read"].Name)
+	assert.Equal(t, "search", allTools["server2__search"].Name)
 }
 
 // TestDetectNameCollisions verifies collision detection
