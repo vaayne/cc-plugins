@@ -38,12 +38,8 @@ func TestHandleListTool_NoResults(t *testing.T) {
 	textContent, ok := result.Content[0].(*mcp.TextContent)
 	require.True(t, ok)
 
-	var response ListToolsResponse
-	err = json.Unmarshal([]byte(textContent.Text), &response)
-	require.NoError(t, err)
-
-	assert.Empty(t, response.Tools)
-	assert.Equal(t, 0, response.Total)
+	// Output is now plain text with JS stubs, not JSON
+	assert.Contains(t, textContent.Text, "// Total: 0 tools")
 }
 
 func TestHandleListTool_NoArgs(t *testing.T) {
@@ -64,12 +60,8 @@ func TestHandleListTool_NoArgs(t *testing.T) {
 	textContent, ok := result.Content[0].(*mcp.TextContent)
 	require.True(t, ok)
 
-	var response ListToolsResponse
-	err = json.Unmarshal([]byte(textContent.Text), &response)
-	require.NoError(t, err)
-
-	assert.Empty(t, response.Tools)
-	assert.Equal(t, 0, response.Total)
+	// Output is now plain text with JS stubs, not JSON
+	assert.Contains(t, textContent.Text, "// Total: 0 tools")
 }
 
 func TestHandleListTool_InvalidJSON(t *testing.T) {

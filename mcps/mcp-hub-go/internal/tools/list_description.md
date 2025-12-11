@@ -1,12 +1,12 @@
 List available tools from connected MCP servers.
 
-Returns tool name, description, server, and inputSchema for each tool.
+Returns JavaScript function stubs with JSDoc for each tool, making it easy to understand the API when writing code for the exec tool.
 
 ## Usage
 
 1. Call list to discover available tools (optionally filter by server or keywords)
-2. Review inputSchema to understand required parameters
-3. Use exec with mcp.callTool("serverID.toolName", params) to call tools
+2. Review the JSDoc comments to understand required parameters
+3. Use exec with mcp.callTool("serverID__toolName", params) to call tools
 
 ## Examples
 
@@ -21,3 +21,25 @@ Search with keywords:
 
 Combine filters:
   {"server": "fs", "query": "write,delete"}
+
+## Output Format
+
+The output is JavaScript function stubs with JSDoc comments:
+
+```javascript
+// Total: 2 tools
+
+/**
+ * List files in a directory
+ * @param {Object} params - Parameters
+ * @param {string} params.path - Directory path to list
+ */
+function filesystem__list_directory(params) {}
+
+/**
+ * Read file contents
+ * @param {Object} params - Parameters
+ * @param {string} params.path - File path to read
+ */
+function filesystem__read_file(params) {}
+```

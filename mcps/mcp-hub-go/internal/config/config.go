@@ -7,8 +7,12 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+// validServerNameRegex matches: starts with letter, followed by alphanumeric or underscore
+var validServerNameRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*$`)
 
 // Config represents the MCP hub configuration
 type Config struct {
@@ -107,7 +111,7 @@ func LoadConfig(configPath string) (*Config, error) {
 
 // Validate performs comprehensive validation of the configuration
 func (c *Config) Validate() error {
-	if c.MCPServers == nil || len(c.MCPServers) == 0 {
+	if len(c.MCPServers) == 0 {
 		return fmt.Errorf("mcpServers is required and must contain at least one server")
 	}
 
@@ -129,9 +133,9 @@ func validateServer(name string, server MCPServer) error {
 	if len(name) > 255 {
 		return fmt.Errorf("server %q: name exceeds maximum length of 255", name)
 	}
-	// Reject dangerous characters in names
-	if strings.ContainsAny(name, "/\\:*?\"<>|") {
-		return fmt.Errorf("server %q: name contains invalid characters", name)
+	// Only allow alphanumeric characters and underscores, first char must be letter
+	if !validServerNameRegex.MatchString(name) {
+		return fmt.Errorf("server %q: name must start with a letter and contain only alphanumeric characters and underscores", name)
 	}
 
 	// Get the transport type (with auto-detection)

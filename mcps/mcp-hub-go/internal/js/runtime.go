@@ -251,7 +251,7 @@ func (r *Runtime) injectMCPHelpers(ctx context.Context, vm *goja.Runtime, logs *
 	// Setup mcp helpers
 	mcpObj := vm.NewObject()
 
-	// mcp.callTool(toolName, params) - toolName format: "serverID.toolName"
+	// mcp.callTool(toolName, params) - toolName format: "serverID__toolName"
 	if err := mcpObj.Set("callTool", func(call goja.FunctionCall) goja.Value {
 		// Check context cancellation
 		select {
@@ -261,20 +261,20 @@ func (r *Runtime) injectMCPHelpers(ctx context.Context, vm *goja.Runtime, logs *
 		}
 
 		if len(call.Arguments) != 2 {
-			panic(vm.NewTypeError("mcp.callTool requires 2 arguments: toolName (e.g., 'server.tool'), params"))
+			panic(vm.NewTypeError("mcp.callTool requires 2 arguments: toolName (e.g., 'server__tool'), params"))
 		}
 
 		fullToolName := call.Argument(0).String()
 		params := call.Argument(1).Export()
 
-		// Parse serverID.toolName format
-		dotIndex := strings.Index(fullToolName, ".")
-		if dotIndex == -1 {
-			panic(vm.NewTypeError("toolName must be in format 'serverID.toolName' (e.g., 'grep.searchGitHub')"))
+		// Parse serverID__toolName format
+		separatorIndex := strings.Index(fullToolName, "__")
+		if separatorIndex == -1 {
+			panic(vm.NewTypeError("toolName must be in format 'serverID__toolName' (e.g., 'github__createIssue')"))
 		}
 
-		serverID := fullToolName[:dotIndex]
-		toolName := fullToolName[dotIndex+1:]
+		serverID := fullToolName[:separatorIndex]
+		toolName := fullToolName[separatorIndex+2:] // +2 to skip "__"
 
 		// Call the tool
 		result, err := r.callTool(ctx, serverID, toolName, params)

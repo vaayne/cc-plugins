@@ -257,7 +257,7 @@ func TestIntegration_JSToolAuthorization(t *testing.T) {
 
 	script := `
 		try {
-			mcp.callTool('server1.tool3', {});
+			mcp.callTool('server1__tool3', {});
 		} catch (e) {
 			e.message;
 		}
@@ -280,7 +280,7 @@ func TestIntegration_NamespaceCollisions(t *testing.T) {
 	server.clientManager = client.NewManager(logger)
 	defer server.clientManager.DisconnectAll()
 
-	// Test namespace parsing with dots in tool names
+	// Test namespace parsing with double underscore separator
 	tests := []struct {
 		name           string
 		namespacedName string
@@ -290,27 +290,27 @@ func TestIntegration_NamespaceCollisions(t *testing.T) {
 	}{
 		{
 			name:           "simple namespace",
-			namespacedName: "server.tool",
+			namespacedName: "server__tool",
 			expectedServer: "server",
 			expectedTool:   "tool",
 			shouldError:    false,
 		},
 		{
-			name:           "tool with dots",
-			namespacedName: "server.tool.with.dots",
+			name:           "tool with underscores",
+			namespacedName: "server__tool_with_underscores",
 			expectedServer: "server",
-			expectedTool:   "tool.with.dots",
+			expectedTool:   "tool_with_underscores",
 			shouldError:    false,
 		},
 		{
 			name:           "empty server",
-			namespacedName: ".tool",
+			namespacedName: "__tool",
 			expectedServer: "",
 			expectedTool:   "tool",
 			shouldError:    true,
 		},
 		{
-			name:           "no dot",
+			name:           "no separator",
 			namespacedName: "notool",
 			expectedServer: "",
 			expectedTool:   "",
@@ -320,17 +320,24 @@ func TestIntegration_NamespaceCollisions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			parts := strings.SplitN(tt.namespacedName, ".", 2)
+			separatorIndex := strings.Index(tt.namespacedName, "__")
+			if separatorIndex == -1 {
+				if tt.shouldError {
+					return // Expected error
+				}
+				t.Fatalf("expected to find __ separator in %q", tt.namespacedName)
+			}
+			serverID := tt.namespacedName[:separatorIndex]
+			toolName := tt.namespacedName[separatorIndex+2:]
 
 			if tt.shouldError {
-				if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+				if serverID == "" || toolName == "" {
 					// Expected error condition
 					return
 				}
 			} else {
-				require.Len(t, parts, 2)
-				assert.Equal(t, tt.expectedServer, parts[0])
-				assert.Equal(t, tt.expectedTool, parts[1])
+				assert.Equal(t, tt.expectedServer, serverID)
+				assert.Equal(t, tt.expectedTool, toolName)
 			}
 		})
 	}

@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "tilde-path": {
+    "tilde_path": {
       "transport": "stdio",
       "command": "~/bin/server",
       "args": ["test"],

@@ -31,45 +31,45 @@ func TestLoadConfig_ValidConfig(t *testing.T) {
 		t.Errorf("Expected 4 servers, got %d", len(cfg.MCPServers))
 	}
 
-	// Test chrome-devtools server
-	chromeServer, ok := cfg.MCPServers["chrome-devtools"]
+	// Test chrome_devtools server
+	chromeServer, ok := cfg.MCPServers["chrome_devtools"]
 	if !ok {
-		t.Fatal("chrome-devtools server not found")
+		t.Fatal("chrome_devtools server not found")
 	}
 
 	if chromeServer.GetTransport() != "stdio" {
-		t.Errorf("chrome-devtools transport = %s, want stdio", chromeServer.GetTransport())
+		t.Errorf("chrome_devtools transport = %s, want stdio", chromeServer.GetTransport())
 	}
 
 	if chromeServer.Command != "bunx" {
-		t.Errorf("chrome-devtools command = %s, want bunx", chromeServer.Command)
+		t.Errorf("chrome_devtools command = %s, want bunx", chromeServer.Command)
 	}
 
 	if len(chromeServer.Args) != 3 {
-		t.Errorf("chrome-devtools args length = %d, want 3", len(chromeServer.Args))
+		t.Errorf("chrome_devtools args length = %d, want 3", len(chromeServer.Args))
 	}
 
 	if !chromeServer.IsEnabled() {
-		t.Error("chrome-devtools should be enabled")
+		t.Error("chrome_devtools should be enabled")
 	}
 
 	// Test env is initialized
 	if chromeServer.Env == nil {
-		t.Error("chrome-devtools Env map is nil")
+		t.Error("chrome_devtools Env map is nil")
 	}
 
 	if chromeServer.Env["DEBUG"] != "true" {
-		t.Errorf("chrome-devtools DEBUG env = %s, want true", chromeServer.Env["DEBUG"])
+		t.Errorf("chrome_devtools DEBUG env = %s, want true", chromeServer.Env["DEBUG"])
 	}
 
-	// Test default-enabled server (no explicit enable field)
-	defaultServer, ok := cfg.MCPServers["default-enabled"]
+	// Test default_enabled server (no explicit enable field)
+	defaultServer, ok := cfg.MCPServers["default_enabled"]
 	if !ok {
-		t.Fatal("default-enabled server not found")
+		t.Fatal("default_enabled server not found")
 	}
 
 	if !defaultServer.IsEnabled() {
-		t.Error("default-enabled should be enabled by default")
+		t.Error("default_enabled should be enabled by default")
 	}
 
 	// Test filesystem server (explicitly disabled)
@@ -101,9 +101,9 @@ func TestLoadConfig_HTTPTransportAccepted(t *testing.T) {
 	}
 
 	// Check that the HTTP server is properly loaded
-	httpServer, ok := cfg.MCPServers["http-server"]
+	httpServer, ok := cfg.MCPServers["http_server"]
 	if !ok {
-		t.Fatal("http-server not found in config")
+		t.Fatal("http_server not found in config")
 	}
 
 	if httpServer.GetTransport() != "http" {
@@ -128,9 +128,9 @@ func TestLoadConfig_SSETransportAccepted(t *testing.T) {
 	}
 
 	// Check that the SSE server is properly loaded
-	sseServer, ok := cfg.MCPServers["sse-server"]
+	sseServer, ok := cfg.MCPServers["sse_server"]
 	if !ok {
-		t.Fatal("sse-server not found in config")
+		t.Fatal("sse_server not found in config")
 	}
 
 	if sseServer.GetTransport() != "sse" {
@@ -490,14 +490,26 @@ func TestLoadConfig_ServerNameValidation(t *testing.T) {
 	}{
 		{
 			name:       "valid name",
-			serverName: "my-server_123",
+			serverName: "myServer_123",
 			shouldFail: false,
 		},
 		{
 			name:        "name with slash",
 			serverName:  "my/server",
 			shouldFail:  true,
-			expectedErr: "contains invalid characters",
+			expectedErr: "must start with a letter and contain only alphanumeric",
+		},
+		{
+			name:        "name with hyphen",
+			serverName:  "my-server",
+			shouldFail:  true,
+			expectedErr: "must start with a letter and contain only alphanumeric",
+		},
+		{
+			name:        "name starts with number",
+			serverName:  "123server",
+			shouldFail:  true,
+			expectedErr: "must start with a letter and contain only alphanumeric",
 		},
 		// Skip backslash test as it's not valid JSON
 		{

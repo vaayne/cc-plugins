@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "sse-server": {
+    "sse_server": {
       "transport": "sse",
       "url": "http://localhost:8080/sse",
       "headers": {

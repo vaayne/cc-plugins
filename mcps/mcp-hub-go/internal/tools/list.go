@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"mcp-hub-go/internal/client"
@@ -15,7 +16,7 @@ import (
 //go:embed list_description.md
 var ListDescription string
 
-// ListToolResult represents a tool in the list
+// ListToolResult represents a tool in the list (kept for internal use)
 type ListToolResult struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
@@ -23,10 +24,97 @@ type ListToolResult struct {
 	InputSchema map[string]interface{} `json:"inputSchema,omitempty"`
 }
 
-// ListToolsResponse represents the response from the list tool
+// ListToolsResponse represents the response from the list tool (kept for internal use)
 type ListToolsResponse struct {
 	Tools []ListToolResult `json:"tools"`
 	Total int              `json:"total"`
+}
+
+// jsonSchemaTypeToJS converts JSON Schema types to JavaScript types for JSDoc
+func jsonSchemaTypeToJS(schemaType interface{}) string {
+	switch t := schemaType.(type) {
+	case string:
+		switch t {
+		case "string":
+			return "string"
+		case "number", "integer":
+			return "number"
+		case "boolean":
+			return "boolean"
+		case "array":
+			return "Array"
+		case "object":
+			return "Object"
+		default:
+			return "*"
+		}
+	default:
+		return "*"
+	}
+}
+
+// schemaToJSDoc generates a JSDoc comment and function stub from a tool's schema
+func schemaToJSDoc(toolName, description string, inputSchema map[string]interface{}) string {
+	var sb strings.Builder
+
+	sb.WriteString("/**\n")
+
+	// Use tool name as fallback if description is empty
+	if description == "" {
+		description = toolName
+	}
+	sb.WriteString(fmt.Sprintf(" * %s\n", description))
+
+	// Extract properties from schema
+	if inputSchema != nil {
+		if props, ok := inputSchema["properties"].(map[string]interface{}); ok && len(props) > 0 {
+			sb.WriteString(" * @param {Object} params - Parameters\n")
+
+			// Sort property names for consistent output
+			propNames := make([]string, 0, len(props))
+			for name := range props {
+				propNames = append(propNames, name)
+			}
+			sort.Strings(propNames)
+
+			for _, propName := range propNames {
+				propDef := props[propName]
+				propMap, ok := propDef.(map[string]interface{})
+				if !ok {
+					continue
+				}
+
+				jsType := jsonSchemaTypeToJS(propMap["type"])
+				propDesc := ""
+				if d, ok := propMap["description"].(string); ok {
+					propDesc = d
+				}
+
+				// Handle enum values
+				if enum, ok := propMap["enum"].([]interface{}); ok && len(enum) > 0 {
+					enumStrs := make([]string, 0, len(enum))
+					for _, e := range enum {
+						enumStrs = append(enumStrs, fmt.Sprintf("%v", e))
+					}
+					if propDesc != "" {
+						propDesc += " "
+					}
+					propDesc += fmt.Sprintf("(one of: %s)", strings.Join(enumStrs, ", "))
+				}
+
+				if propDesc == "" {
+					sb.WriteString(fmt.Sprintf(" * @param {%s} params.%s\n", jsType, propName))
+				} else {
+					sb.WriteString(fmt.Sprintf(" * @param {%s} params.%s - %s\n", jsType, propName, propDesc))
+				}
+			}
+		}
+	}
+
+	sb.WriteString(" */\n")
+	sb.WriteString(fmt.Sprintf("function %s(params) {}\n", toolName))
+
+	return sb.String()
 }
 
 // HandleListTool handles the list tool call
@@ -60,11 +148,11 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 		default:
 		}
 
-		// Extract server ID from namespaced name
-		parts := strings.SplitN(namespacedName, ".", 2)
+		// Extract server ID from namespaced name (format: serverID__toolName)
+		separatorIndex := strings.Index(namespacedName, "__")
 		serverID := "unknown"
-		if len(parts) == 2 {
-			serverID = parts[0]
+		if separatorIndex != -1 {
+			serverID = namespacedName[:separatorIndex]
 		}
 
 		// Filter by server if specified
@@ -99,22 +187,30 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 		})
 	}
 
-	// Create response
-	response := ListToolsResponse{
-		Tools: results,
-		Total: totalMatches,
-	}
+	// Sort results by name for consistent output
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Name < results[j].Name
+	})
 
-	// Marshal to JSON
-	jsonBytes, err := json.Marshal(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal list results: %w", err)
+	// Build JavaScript function stubs output
+	var output strings.Builder
+	output.WriteString(fmt.Sprintf("// Total: %d tools", totalMatches))
+	if totalMatches > maxResults {
+		output.WriteString(fmt.Sprintf(" (showing first %d)", maxResults))
+	}
+	output.WriteString("\n\n")
+
+	for i, tool := range results {
+		if i > 0 {
+			output.WriteString("\n")
+		}
+		output.WriteString(schemaToJSDoc(tool.Name, tool.Description, tool.InputSchema))
 	}
 
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{
 			&mcp.TextContent{
-				Text: string(jsonBytes),
+				Text: output.String(),
 			},
 		},
 	}, nil

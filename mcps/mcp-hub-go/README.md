@@ -8,7 +8,7 @@ MCP Hub Go is a secure, production-ready hub that:
 
 - **Aggregates multiple MCP servers** into a single unified interface
 - **Provides built-in tools** for search, JavaScript execution, and tool management
-- **Namespaces tools** to avoid conflicts (e.g., `server1.tool`, `server2.tool`)
+- **Namespaces tools** to avoid conflicts (e.g., `server1__tool`, `server2__tool`)
 - **Enforces security** through sync-only JavaScript execution, input validation, and sandboxed runtime
 - **Handles reconnection** automatically with exponential backoff
 - **Logs structured JSON** to stdout and optionally to file
@@ -96,10 +96,10 @@ Features:
 
 All tools from remote servers are automatically namespaced with the server ID to prevent naming conflicts:
 
-- Server `github` with tool `search_repos` → `github.search_repos`
-- Server `filesystem` with tool `read_file` → `filesystem.read_file`
+- Server `github` with tool `search_repos` → `github__search_repos`
+- Server `filesystem` with tool `read_file` → `filesystem__read_file`
 
-Built-in tools (`search`, `execute`, `refreshTools`) are not namespaced and available directly.
+Built-in tools (`list`, `exec`, `refreshTools`) are not namespaced and available directly.
 
 ### Built-in Tools
 
@@ -274,7 +274,7 @@ Once running, the hub exposes all tools via the MCP protocol on stdio. Use an MC
 await client.callTool("search", { query: "file" });
 
 // Namespaced remote tool
-await client.callTool("filesystem.read_file", { path: "/tmp/test.txt" });
+await client.callTool("filesystem__read_file", { path: "/tmp/test.txt" });
 ```
 
 ### JavaScript Execution
@@ -282,14 +282,14 @@ await client.callTool("filesystem.read_file", { path: "/tmp/test.txt" });
 The `execute` built-in tool allows running JavaScript code that can call remote tools:
 
 ```javascript
-// Example: Search and then read a file
+// Example: List directory and log results
 const code = `
-  const searchResult = mcp.callTool("filesystem", "list_directory", { path: "/tmp" });
-  mcp.log("info", "Search complete", { count: searchResult.length });
-  return searchResult;
+  const result = mcp.callTool("filesystem__list_directory", { path: "/tmp" });
+  mcp.log("info", "List complete", { count: result.length });
+  result;
 `;
 
-await client.callTool("execute", { code });
+await client.callTool("exec", { code });
 ```
 
 See [docs/js-authoring.md](docs/js-authoring.md) for JavaScript authoring guide.

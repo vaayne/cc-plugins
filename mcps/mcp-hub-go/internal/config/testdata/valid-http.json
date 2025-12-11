@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "http-server": {
+    "http_server": {
       "transport": "http",
       "url": "https://api.example.com/mcp",
       "headers": {
