@@ -22,6 +22,10 @@ Search with keywords:
 Combine filters:
   {"server": "fs", "query": "write,delete"}
 
+## Avaliable Tools
+
+{{AVAILABLE_TOOLS}}
+
 ## Output Format
 
 The output is JavaScript function stubs with JSDoc comments:
