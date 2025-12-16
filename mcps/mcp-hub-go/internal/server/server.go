@@ -282,10 +282,15 @@ func (s *Server) registerAllTools() error {
 
 // registerBuiltinToolHandler registers a handler for a built-in tool
 func (s *Server) registerBuiltinToolHandler(toolName string, builtinTool config.BuiltinTool) error {
+	description := builtinTool.Description
+	if toolName == "list" {
+		description = tools.RenderListDescription(description, s.clientManager.GetAllTools())
+	}
+
 	// Create MCP tool schema
 	mcpTool := &mcp.Tool{
 		Name:        toolName,
-		Description: builtinTool.Description,
+		Description: description,
 		InputSchema: builtinTool.InputSchema,
 	}
 
@@ -315,8 +320,29 @@ func (s *Server) handleBuiltinTool(ctx context.Context, toolName string, req *mc
 	case "exec":
 		return tools.HandleExecuteTool(callCtx, s.logger, s.clientManager, req)
 	case "refreshTools":
-		return tools.HandleRefreshToolsTool(callCtx, s.clientManager, req)
+		result, err := tools.HandleRefreshToolsTool(callCtx, s.clientManager, req)
+		if err != nil {
+			return nil, err
+		}
+		// Update the list tool description to reflect refreshed tool metadata.
+		s.updateListToolDescription()
+		return result, nil
 	default:
 		return nil, fmt.Errorf("unknown built-in tool: %s", toolName)
 	}
+}
+
+func (s *Server) updateListToolDescription() {
+	listTool, ok := s.builtinRegistry.GetTool("list")
+	if !ok || s.mcpServer == nil || s.clientManager == nil {
+		return
+	}
+
+	s.mcpServer.AddTool(&mcp.Tool{
+		Name:        "list",
+		Description: tools.RenderListDescription(listTool.Description, s.clientManager.GetAllTools()),
+		InputSchema: listTool.InputSchema,
+	}, func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		return s.handleBuiltinTool(ctx, "list", req)
+	})
 }

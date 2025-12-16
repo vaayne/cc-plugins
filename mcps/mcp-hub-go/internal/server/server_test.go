@@ -55,7 +55,7 @@ func TestRegisterBuiltinTools(t *testing.T) {
 	listTool, exists := server.builtinRegistry.GetTool("list")
 	assert.True(t, exists)
 	assert.Equal(t, "list", listTool.Name)
-	assert.Contains(t, listTool.Description, "List available tools")
+	assert.Contains(t, listTool.Description, "List MCP tools")
 	assert.NotNil(t, listTool.InputSchema)
 
 	// Verify exec tool

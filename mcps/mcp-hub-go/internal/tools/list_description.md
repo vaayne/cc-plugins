@@ -1,12 +1,18 @@
-List available tools from connected MCP servers.
+List MCP tools available through this hub.
 
-Returns JavaScript function stubs with JSDoc for each tool, making it easy to understand the API when writing code for the exec tool.
+Use this tool when you want the **full tool signature** (name, description, and input params) in JavaScript/JSDoc format so you can call tools correctly via `exec`.
+
+## When To Use
+
+- After picking a tool from **Avaliable Tools**, call `list` to get full JSDoc + parameter details.
+- Call `list` once to get **multiple tools** at the same time (it returns a combined set of stubs). Use `server` / `query` to fetch the batch you need.
+- If tools may have changed, call `refreshTools` first, then `list`.
 
 ## Usage
 
-1. Call list to discover available tools (optionally filter by server or keywords)
-2. Review the JSDoc comments to understand required parameters
-3. Use exec with mcp.callTool("serverID__toolName", params) to call tools
+- `{}` lists tools from all connected servers.
+- `{"server":"github"}` filters to a single server ID.
+- `{"query":"file,read"}` filters by keywords (matches name or description) and returns all matching tools in one response.
 
 ## Examples
 
@@ -22,9 +28,13 @@ Search with keywords:
 Combine filters:
   {"server": "fs", "query": "write,delete"}
 
+## Avaliable Tools
+
+{{AVAILABLE_TOOLS}}
+
 ## Output Format
 
-The output is JavaScript function stubs with JSDoc comments:
+The output is JavaScript function stubs with JSDoc comments. Use the namespaced tool name (`serverID__toolName`) with `mcp.callTool(...)`:
 
 ```javascript
 // Total: 2 tools
