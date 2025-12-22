@@ -14,6 +14,12 @@
       "description": "Spec-driven feature development workflow with Codex review. Combines iterative requirements gathering, comprehensive planning, and structured implementation with continuous AI-powered code review. Produces production-ready code with proper planning documentation and clean, incremental commits.",
       "source": "./plugins/specs-dev",
       "category": "development"
+    },
+    {
+      "name": "specs-dev-skill",
+      "description": "Plan and deliver feature development with a spec-first, review-gated workflow (requirements discussion, written plan, independent review, approved implementation, review-gated commits). Use when a user wants to build a feature and asks for a plan-first process, structured requirements gathering, or review-before-code.",
+      "source": "./plugins/specs-dev-skill",
+      "category": "development"
     }
   ]
 }
