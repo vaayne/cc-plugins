@@ -16,9 +16,9 @@
       "category": "development"
     },
     {
-      "name": "specs-dev-skill",
-      "description": "Plan and deliver feature development with a spec-first, review-gated workflow (requirements discussion, written plan, independent review, approved implementation, review-gated commits). Use when a user wants to build a feature and asks for a plan-first process, structured requirements gathering, or review-before-code.",
-      "source": "./plugins/specs-dev-skill",
+      "name": "specs-plan",
+      "description": "Spec-first planning workflow that produces an approved plan.md before implementation, with reviewer subagent feedback and progress tracking. Use when a user asks for a plan-before-code process, a review-gated implementation plan, or a single plan.md that includes tasks and ongoing progress updates, with commits after each phase.",
+      "source": "./plugins/specs-plan",
       "category": "development"
     }
   ]

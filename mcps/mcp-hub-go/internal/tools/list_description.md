@@ -17,16 +17,16 @@ Use this tool when you want the **full tool signature** (name, description, and 
 ## Examples
 
 List all tools:
-  {} (no parameters)
+{} (no parameters)
 
 Filter by server:
-  {"server": "github"}
+{"server": "github"}
 
 Search with keywords:
-  {"query": "file,read"}  // matches tools containing either "file" or "read" in name or description
+{"query": "file,read"} // matches tools containing either "file" or "read" in name or description
 
 Combine filters:
-  {"server": "fs", "query": "write,delete"}
+{"server": "fs", "query": "write,delete"}
 
 ## Avaliable Tools
 

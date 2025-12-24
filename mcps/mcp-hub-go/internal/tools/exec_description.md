@@ -3,6 +3,7 @@ Execute JavaScript code with access to MCP tools.
 Write JavaScript code to call multiple MCP tools in a single request. Use loops, conditionals, and data transformation to efficiently batch operations.
 
 ## Quick guide
+
 - **Discovery**: Use the `list` tool first to see available tools as JavaScript function stubs with JSDoc.
 - **Batching**: Prefer one exec call with multiple `mcp.callTool()` invocations instead of many exec calls.
 - **Result**: The last expression is returned. Don't use `return` at top level; use an async IIFE if you need `await`.
@@ -14,6 +15,7 @@ Write JavaScript code to call multiple MCP tools in a single request. Use loops,
 - **No browser APIs**: `window`, `document`, `page`, `fetch`, etc. are not provided; get data via MCP tools.
 
 ## Minimal patterns
+
 - Async IIFE:
   ```javascript
   (async () => {
@@ -23,10 +25,13 @@ Write JavaScript code to call multiple MCP tools in a single request. Use loops,
   ```
 - Batch with error capture:
   ```javascript
-  const ids = [1,2,3];
+  const ids = [1, 2, 3];
   ids.map(id => {
-    try { return { id, ok: true, data: mcp.callTool("db__getUser", { id }) }; }
-    catch (e) { return { id, ok: false, error: e.message }; }
+    try {
+      return { id, ok: true, data: mcp.callTool("db__getUser", { id }) };
+    } catch (e) {
+      return { id, ok: false, error: e.message };
+    }
   });
   ```
 - Require example:
@@ -36,11 +41,13 @@ Write JavaScript code to call multiple MCP tools in a single request. Use loops,
   ```
 
 ## Constraints
+
 - Timeout: 60s per exec call
 - Max script size: 100KB
 - Logs capped at 1000 entries
 
 ## Output
+
 - `result`: last expression value
 - `logs`: array of `console`/`mcp.log` entries
 - `error`: populated if execution fails
