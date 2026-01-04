@@ -34,6 +34,18 @@
       "description": "Python script execution plugin for running Python code and scripts.",
       "source": "./skills/python-script",
       "category": "development"
+    },
+    {
+      "name": "web-fetch",
+      "description": "Fetch and extract clean content from URLs using Jina Reader API. Use when users need to read webpage content, extract article text, or fetch URL content for analysis.",
+      "source": "./skills/web-fetch",
+      "category": "utility"
+    },
+    {
+      "name": "web-search",
+      "description": "Search the web using Exa AI for real-time information retrieval. Use when users ask to search online, find current information, look up recent events, or need data beyond knowledge cutoff.",
+      "source": "./skills/web-search",
+      "category": "utility"
     }
   ]
 }
