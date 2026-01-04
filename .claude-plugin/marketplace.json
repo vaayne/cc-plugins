@@ -20,6 +20,20 @@
       "description": "Spec-first planning workflow that produces an approved plan.md before implementation, with reviewer subagent feedback and progress tracking. Use when a user asks for a plan-before-code process, a review-gated implementation plan, or a single plan.md that includes tasks and ongoing progress updates, with commits after each phase.",
       "source": "./plugins/specs-plan",
       "category": "development"
+    },
+    {
+      "name": "code-analysis",
+      "description": "AI-powered code analysis skills leveraging multiple LLM backends. Includes codex-analyze for deep bug/security/performance analysis with prioritized findings, and gemini-analyze for large-scale codebase pattern detection and architectural overview.",
+      "source": "./skills",
+      "category": "analysis",
+      "strict": false,
+      "skills": ["./codex-analyze", "./gemini-analyze"]
+    },
+    {
+      "name": "python-script",
+      "description": "Python script execution plugin for running Python code and scripts.",
+      "source": "./skills/python-script",
+      "category": "development"
     }
   ]
 }
