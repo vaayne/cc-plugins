@@ -10,6 +10,10 @@
 - `mcps/` — MCP servers
 - `skills/` — Agent skills (codex-analyze, gemini-analyze, python-script, specs-dev)
 
+## Marketplace
+
+- When adding new plugins or skills, update `.claude-plugin/marketplace.json` to register them
+
 ## Code Style
 
 - **Python:** Python 3.12+, ruff (88-char lines, double quotes), snake_case, type hints required
