@@ -9,3 +9,14 @@ uvx ruff check --fix
 # Format other supported files using dprint
 dprint fmt
 """
+
+[tasks."sync:codex"]
+description = "Sync skills to Codex in ~/.codex/skills"
+run = """
+mkdir -p ~/.codex/skills
+for skill in ./skills/*/; do
+  skill_name=$(basename "$skill")
+  ln -sfn "$(pwd)/skills/$skill_name" ~/.codex/skills/"$skill_name"
+  echo "Linked: $skill_name -> ~/.codex/skills/$skill_name"
+done
+"""

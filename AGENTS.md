@@ -1,17 +1,19 @@
 # Agent Instructions
 
-## Code Formatting
+## Build/Lint/Test Commands
 
-After each implementation, always run:
+- `mise run format` — Format all code (ruff for Python, dprint for TS/JSON/YAML/MD)
 
-```bash
-mise run format
-```
+## Architecture
 
-This formats Python code with ruff and other files with dprint.
+- `plugins/` — Claude Code plugins
+- `mcps/` — MCP servers
+- `skills/` — Agent skills (codex-analyze, gemini-analyze, python-script, specs-dev)
 
 ## Code Style
 
-- Follow existing code patterns and conventions
-- Prefer small, focused components
-- Keep code modular and maintainable
+- **Python:** Python 3.12+, ruff (88-char lines, double quotes), snake_case, type hints required
+- **TypeScript:** Strict mode, camelCase functions, PascalCase types, Zod for validation, biome for linting
+- **Go:** Standard gofmt, internal/ for private packages
+- **Commits:** Emoji Conventional Commits (e.g., `✨ feat:`, `🐛 fix:`, `♻️ refactor:`)
+- Never commit secrets; use env vars for credentials
