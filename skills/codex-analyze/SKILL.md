@@ -6,9 +6,11 @@ description: Orchestrate Codex CLI for comprehensive code analysis (bugs, securi
 # Codex Analyzer
 
 ## Overview
+
 Drive Codex CLI to perform comprehensive code analysis and return prioritized findings with actionable fixes.
 
 ## Workflow
+
 1. Clarify scope (directory, files, or subsystem) and analysis type.
 2. Build a detailed prompt with objectives and relevant context.
 3. Run: `codex --cd "{dir}" exec "{prompt}"`.
@@ -16,6 +18,7 @@ Drive Codex CLI to perform comprehensive code analysis and return prioritized fi
 5. Offer follow-up analysis for specific files or issue types.
 
 ## Prompt ingredients
+
 - Analysis objectives (bugs, security, performance, quality)
 - Tech stack and framework context
 - Business logic or domain constraints
@@ -23,6 +26,7 @@ Drive Codex CLI to perform comprehensive code analysis and return prioritized fi
 - Request for prioritized findings and severity labels
 
 ## Output expectations
+
 - Summarize key findings in order of severity
 - Explain impact and recommended fixes
 - Note systemic patterns or preventative measures

@@ -1,6 +1,7 @@
 # Tasks: {Feature Name}
 
 ## Status Legend
+
 - [ ] Pending
 - [x] Completed
 
@@ -33,4 +34,5 @@
 **Remaining:** Z
 
 ### Final Notes
+
 (Added at completion)

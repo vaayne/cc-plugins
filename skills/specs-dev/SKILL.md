@@ -17,12 +17,12 @@ A disciplined, review-gated development workflow that ensures quality through st
 
 ## Workflow Overview
 
-| Phase | Purpose | Exit Criteria |
-|-------|---------|---------------|
-| 1. Discovery | Understand requirements | User approves summary |
-| 2. Planning | Create reviewed plan | Plan reviewed and approved |
+| Phase             | Purpose                       | Exit Criteria                |
+| ----------------- | ----------------------------- | ---------------------------- |
+| 1. Discovery      | Understand requirements       | User approves summary        |
+| 2. Planning       | Create reviewed plan          | Plan reviewed and approved   |
 | 3. Implementation | Iterative coding with reviews | All tasks complete, reviewed |
-| 4. Completion | Final validation | Tests pass, docs updated |
+| 4. Completion     | Final validation              | Tests pass, docs updated     |
 
 ## Phase 1: Discovery & Requirements
 
@@ -91,31 +91,40 @@ Present the reviewed plan to user. Only after explicit approval:
 For each task in `tasks.md`:
 
 #### 1. Start Task
+
 - Mark task as in-progress
 - Read task context from `plan.md` and `tasks.md`
 
 #### 2. Implement
+
 Delegate to implementer subagent:
+
 - Load `references/implementer-agent.md` for implementation context
 - Provide: task objective, files to modify, acceptance criteria
 - Implementer follows pattern-first, test-driven approach
 
 #### 3. Validate
+
 - Run relevant tests
 - Verify no linting/type errors
 
 #### 4. Review
+
 Delegate to analyzer subagent:
+
 - Request severity-ranked review of changes
 - Focus: bugs, security, performance, patterns
 
 #### 5. Address Feedback
+
 - Apply fixes from review
 - Re-run tests
 - Re-review if changes significant
 
 #### 6. Commit
+
 Create clean commit with emoji + conventional format:
+
 - `✨ feat:` - New features
 - `🐛 fix:` - Bug fixes
 - `♻️ refactor:` - Code restructuring
@@ -124,7 +133,9 @@ Create clean commit with emoji + conventional format:
 - `⚡️ perf:` - Performance
 
 #### 7. Document
+
 Update `tasks.md`:
+
 ```markdown
 - [x] Task name
   - **Files:** `file1.ts`, `file2.ts`
@@ -134,11 +145,13 @@ Update `tasks.md`:
 ```
 
 Update `plan.md` only if:
+
 - Implementation deviated from original plan
 - New architectural decisions made
 - Risks discovered affecting future work
 
 #### 8. Complete
+
 - Mark task done
 - Move to next task
 
@@ -177,7 +190,9 @@ Update `plan.md` only if:
 ## Subagent Delegation
 
 ### Analyzer Subagent
+
 Use for plan reviews and code reviews.
+
 ```
 Task: Review the following [plan/code changes] for:
 - Completeness and correctness
@@ -191,7 +206,9 @@ Context: [Load references/analyzer-agent.md]
 ```
 
 ### Implementer Subagent
+
 Use for focused implementation tasks.
+
 ```
 Task: Implement the following task:
 - Objective: [task description]
@@ -215,28 +232,31 @@ Session plan: [summary from plan.md]
 ## Best Practices
 
 ### Planning
+
 - Spend adequate time in Discovery - better questions reduce rework
 - Keep tasks scoped to 1-3 files for focused commits
 - Document decisions and rationale for future reference
 
 ### Implementation
+
 - Match existing code patterns before introducing new ones
 - Keep commits atomic and readable
 - Document while context is fresh
 - Treat review feedback as blocking until resolved
 
 ### Communication
+
 - Narrate progress after each phase and major task
 - Escalate risks early (blockers, tech debt, missing requirements)
 - Checkpoint with user at major milestones
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| Requirements keep changing | Spend more time in Phase 1; update summary until sign-off |
-| Plan too high-level | Add file names, interfaces, data contracts, test outlines |
-| Task too large | Split into smaller vertical slices |
-| Review requests major rework | Pause, revisit plan with user, update before continuing |
-| Persistent test failures | Deep-dive analysis on failing module |
-| Documentation debt | Pause and catch up if 3+ tasks without doc updates |
+| Problem                      | Solution                                                  |
+| ---------------------------- | --------------------------------------------------------- |
+| Requirements keep changing   | Spend more time in Phase 1; update summary until sign-off |
+| Plan too high-level          | Add file names, interfaces, data contracts, test outlines |
+| Task too large               | Split into smaller vertical slices                        |
+| Review requests major rework | Pause, revisit plan with user, update before continuing   |
+| Persistent test failures     | Deep-dive analysis on failing module                      |
+| Documentation debt           | Pause and catch up if 3+ tasks without doc updates        |

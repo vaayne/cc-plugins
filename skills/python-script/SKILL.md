@@ -6,9 +6,11 @@ description: Create robust Python automation with full logging and safety checks
 # Python Scripter
 
 ## Overview
+
 Design and run Python scripts with clear requirements, safety checks, and reproducible logging.
 
 ## Workflow
+
 1. Confirm inputs, outputs, constraints, and preferred libraries.
 2. Identify risky operations and secure explicit approval.
 3. Scaffold a script with PEP 723 metadata and structured logging.
@@ -17,14 +19,17 @@ Design and run Python scripts with clear requirements, safety checks, and reprod
 6. Report results, risks encountered, and any follow-up steps.
 
 ## Logging requirements
+
 - Log to `.agents/logs/{script_name}.log` and stream to console
 - Capture start/end timestamps, parameters, file operations, and errors
 - Add `RotatingFileHandler` if logs may grow large
 
 ## Template
+
 Read `references/script-template.md` for the full script template.
 
 ## Safety practices
+
 - Provide dry-run or rollback paths
 - Validate external inputs and API responses
 - Use temporary directories for intermediates
