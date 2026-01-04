@@ -30,19 +30,16 @@ Search the web using Exa AI's MCP endpoint for real-time information retrieval. 
 
 ```bash
 # Basic search
-uv run --script skills/web-search/scripts/web_search.py --query "your search query"
+uv run --script scripts/web_search.py --query "your search query"
 
 # With options
-uv run --script skills/web-search/scripts/web_search.py \
+uv run --script scripts/web_search.py \
   --query "search query" \
   --num-results 8 \
   --type auto \
   --livecrawl fallback \
   --context-max-chars 10000 \
   --timeout 25
-
-# Preview request without sending
-uv run --script skills/web-search/scripts/web_search.py --query "test" --dry-run
 ```
 
 ## Parameters
@@ -55,7 +52,6 @@ uv run --script skills/web-search/scripts/web_search.py --query "test" --dry-run
 | `--livecrawl` | fallback | Live crawl mode: `fallback`, `preferred` |
 | `--context-max-chars` | 10000 | Max characters for context |
 | `--timeout` | 25 | Request timeout in seconds |
-| `--dry-run` | false | Preview request without sending |
 
 ## Output Contract
 
@@ -64,7 +60,6 @@ uv run --script skills/web-search/scripts/web_search.py --query "test" --dry-run
 | Success | Raw JSON from Exa | (empty) | 0 |
 | No results | `{"results": []}` | Warning message | 0 |
 | Error | (empty) | Error message | 1 |
-| Dry-run | Request JSON | Info message | 0 |
 
 Success output contains:
 - Page titles and URLs
@@ -80,7 +75,7 @@ Success output contains:
 
 ### Quick lookup
 ```bash
-uv run --script skills/web-search/scripts/web_search.py \
+uv run --script scripts/web_search.py \
   --query "Python 3.12 new features" \
   --type fast \
   --num-results 3
@@ -88,7 +83,7 @@ uv run --script skills/web-search/scripts/web_search.py \
 
 ### Deep research
 ```bash
-uv run --script skills/web-search/scripts/web_search.py \
+uv run --script scripts/web_search.py \
   --query "LLM agent architectures 2024" \
   --type deep \
   --num-results 10 \

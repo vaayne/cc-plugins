@@ -163,11 +163,6 @@ def search(
     type=int,
     help=f"Request timeout in seconds (default: {DEFAULT_TIMEOUT})",
 )
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Preview request without sending",
-)
 def main(
     query: str,
     num_results: int,
@@ -175,28 +170,12 @@ def main(
     search_type: Literal["auto", "fast", "deep"],
     context_max_chars: int,
     timeout: int,
-    dry_run: bool,
 ) -> None:
     """Search the web using Exa AI's MCP endpoint."""
     # Validate query
     if not query.strip():
         click.echo("Error: Query cannot be empty", err=True)
         sys.exit(1)
-
-    # Build request
-    request_body = build_request(
-        query=query,
-        num_results=num_results,
-        livecrawl=livecrawl,
-        search_type=search_type,
-        context_max_chars=context_max_chars,
-    )
-
-    # Dry run - just show the request
-    if dry_run:
-        click.echo("Dry run - request that would be sent:", err=True)
-        click.echo(json.dumps(request_body, indent=2))
-        return
 
     # Execute search
     try:
