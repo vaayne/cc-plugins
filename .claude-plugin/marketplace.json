@@ -16,9 +16,9 @@
       "category": "development"
     },
     {
-      "name": "specs-plan",
+      "name": "specs-dev-skill",
       "description": "Spec-first planning workflow that produces an approved plan.md before implementation, with reviewer subagent feedback and progress tracking. Use when a user asks for a plan-before-code process, a review-gated implementation plan, or a single plan.md that includes tasks and ongoing progress updates, with commits after each phase.",
-      "source": "./plugins/specs-plan",
+      "source": "./skills/specs-dev",
       "category": "development"
     },
     {
