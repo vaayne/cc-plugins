@@ -44,24 +44,25 @@ uv run --script scripts/web_search.py \
 
 ## Parameters
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--query` | (required) | Search query string |
-| `--num-results` | 8 | Number of results to return |
-| `--type` | auto | Search type: `auto`, `fast`, `deep` |
-| `--livecrawl` | fallback | Live crawl mode: `fallback`, `preferred` |
-| `--context-max-chars` | 10000 | Max characters for context |
-| `--timeout` | 25 | Request timeout in seconds |
+| Parameter             | Default    | Description                              |
+| --------------------- | ---------- | ---------------------------------------- |
+| `--query`             | (required) | Search query string                      |
+| `--num-results`       | 8          | Number of results to return              |
+| `--type`              | auto       | Search type: `auto`, `fast`, `deep`      |
+| `--livecrawl`         | fallback   | Live crawl mode: `fallback`, `preferred` |
+| `--context-max-chars` | 10000      | Max characters for context               |
+| `--timeout`           | 25         | Request timeout in seconds               |
 
 ## Output Contract
 
-| Scenario | stdout | stderr | exit code |
-|----------|--------|--------|-----------|
-| Success | Raw JSON from Exa | (empty) | 0 |
-| No results | `{"results": []}` | Warning message | 0 |
-| Error | (empty) | Error message | 1 |
+| Scenario   | stdout            | stderr          | exit code |
+| ---------- | ----------------- | --------------- | --------- |
+| Success    | Raw JSON from Exa | (empty)         | 0         |
+| No results | `{"results": []}` | Warning message | 0         |
+| Error      | (empty)           | Error message   | 1         |
 
 Success output contains:
+
 - Page titles and URLs
 - Content snippets optimized for LLM context
 - Source attribution
@@ -74,6 +75,7 @@ Success output contains:
 ## Examples
 
 ### Quick lookup
+
 ```bash
 uv run --script scripts/web_search.py \
   --query "Python 3.12 new features" \
@@ -82,6 +84,7 @@ uv run --script scripts/web_search.py \
 ```
 
 ### Deep research
+
 ```bash
 uv run --script scripts/web_search.py \
   --query "LLM agent architectures 2024" \
