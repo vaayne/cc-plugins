@@ -32,6 +32,9 @@ func init() {
 
 	// Register subcommands
 	rootCmd.AddCommand(cli.ServeCmd)
+	rootCmd.AddCommand(cli.ListCmd)
+	rootCmd.AddCommand(cli.InspectCmd)
+	rootCmd.AddCommand(cli.InvokeCmd)
 }
 
 func validateGlobalFlags(cmd *cobra.Command, args []string) error {
