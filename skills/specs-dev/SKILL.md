@@ -39,12 +39,12 @@ A disciplined, review-gated development workflow ensuring quality through struct
 
 **Goal:** Create a comprehensive, reviewed implementation plan.
 
-1. Draft plan using `references/plan-template.md`
-2. Review loop with analyzer (max 3 rounds) — see `references/analyzer-agent.md`
+1. Draft plan using `references/templates/plan-template.md`
+2. Review loop with analyzer (max 3 rounds) — see `references/agents/analyzer-agent.md`
 3. Integrate feedback, iterate until approved
 4. **Gate B:** Present to user, wait for approval
 5. Create session: `.agents/sessions/{YYYY-MM-DD}-{feature-name}/`
-6. Save `plan.md` and `tasks.md` (use templates in `references/`)
+6. Save `plan.md` and `tasks.md` (use templates in `references/templates/`)
 
 Quality checklist: see `references/checklists.md`
 
@@ -61,7 +61,7 @@ IMPLEMENTING → VALIDATING → REVIEWING → loop until approved → COMMITTING
 ```
 
 - Max 3 iterations per task before escalating to user
-- Subagents: `references/implementer-agent.md`, `references/analyzer-agent.md`
+- Subagents: `references/agents/implementer-agent.md`, `references/agents/analyzer-agent.md`
 
 Quality checklist: see `references/checklists.md`
 
@@ -81,13 +81,13 @@ Quality checklist: see `references/checklists.md`
 
 **Analyzer** — Plan reviews, code reviews:
 ```
-Context: references/analyzer-agent.md
+Context: references/agents/analyzer-agent.md
 Task: Review [plan/code] for completeness, security, performance, patterns
 ```
 
 **Implementer** — Focused implementation:
 ```
-Context: references/implementer-agent.md
+Context: references/agents/implementer-agent.md
 Task: Implement [objective] in [files] with [acceptance criteria]
 ```
 
@@ -101,12 +101,25 @@ Task: Implement [objective] in [files] with [acceptance criteria]
 
 ## References
 
-| File | Purpose | When to Read |
-|------|---------|--------------|
-| `implementation-loop.md` | Task loop state machine, steps, fix routing | Phase 3 |
-| `analyzer-agent.md` | Analyzer subagent context | Plan/code reviews |
-| `implementer-agent.md` | Implementer subagent context | Task implementation |
-| `plan-template.md` | Plan document template | Phase 2 |
-| `tasks-template.md` | Tasks document template | Phase 2 |
-| `checklists.md` | Quality gates for all phases | Each phase exit |
-| `troubleshooting.md` | Common issues, best practices | When stuck |
+```
+references/
+├── implementation-loop.md   # Phase 3 state machine, steps, fix routing
+├── checklists.md            # Quality gates for all phases
+├── troubleshooting.md       # Common issues, best practices
+├── agents/
+│   ├── analyzer-agent.md    # Analyzer subagent context
+│   └── implementer-agent.md # Implementer subagent context
+└── templates/
+    ├── plan-template.md     # Plan document template
+    └── tasks-template.md    # Tasks document template
+```
+
+| File | When to Read |
+|------|--------------|
+| `implementation-loop.md` | Phase 3 |
+| `agents/analyzer-agent.md` | Plan/code reviews |
+| `agents/implementer-agent.md` | Task implementation |
+| `templates/plan-template.md` | Phase 2 |
+| `templates/tasks-template.md` | Phase 2 |
+| `checklists.md` | Each phase exit |
+| `troubleshooting.md` | When stuck |

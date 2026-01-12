@@ -46,7 +46,7 @@ For each task in `tasks.md`:
 
 Delegate to implementer subagent:
 
-- Context: `references/implementer-agent.md`
+- Context: `references/agents/implementer-agent.md`
 - Input: task objective, files, acceptance criteria
 - Input (if iteration > 0): previous feedback to address
 
@@ -61,7 +61,7 @@ Delegate to implementer subagent:
 
 - Set task state: `REVIEWING`
 - Delegate to analyzer subagent
-- Context: `references/analyzer-agent.md`
+- Context: `references/agents/analyzer-agent.md`
 - Request structured verdict (approved/blockers/suggestions)
 
 ### 5. Evaluate Verdict
