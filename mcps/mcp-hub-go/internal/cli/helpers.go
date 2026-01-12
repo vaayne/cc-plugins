@@ -3,9 +3,11 @@ package cli
 import (
 	"context"
 	"strings"
+	"unicode"
 
 	"mcp-hub-go/internal/logging"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -84,4 +86,80 @@ func getLogger(cmd *cobra.Command) *zap.Logger {
 	}
 
 	return logging.Logger
+}
+
+// ToolNameMapper maintains bidirectional mapping between original and JS method names
+type ToolNameMapper struct {
+	toJS       map[string]string // original -> jsName
+	toOriginal map[string]string // jsName -> original
+}
+
+// NewToolNameMapper creates a mapper from a list of tools
+func NewToolNameMapper(tools []*mcp.Tool) *ToolNameMapper {
+	m := &ToolNameMapper{
+		toJS:       make(map[string]string),
+		toOriginal: make(map[string]string),
+	}
+	for _, tool := range tools {
+		jsName := toJSMethodName(tool.Name)
+		m.toJS[tool.Name] = jsName
+		m.toOriginal[jsName] = tool.Name
+	}
+	return m
+}
+
+// ToJSName converts an original tool name to its JS method name
+func (m *ToolNameMapper) ToJSName(original string) string {
+	if jsName, ok := m.toJS[original]; ok {
+		return jsName
+	}
+	return toJSMethodName(original)
+}
+
+// ToOriginal converts a JS method name back to its original tool name
+// Returns the input unchanged if not found (allows pass-through)
+func (m *ToolNameMapper) ToOriginal(jsName string) string {
+	if original, ok := m.toOriginal[jsName]; ok {
+		return original
+	}
+	return jsName
+}
+
+// toJSMethodName converts a tool name to a valid JS method name (camelCase)
+// Examples:
+//   - get_code_context_exa -> getCodeContextExa
+//   - web_search_exa -> webSearchExa
+//   - searchGitHub -> searchGitHub (already valid)
+//   - my-tool-name -> myToolName
+func toJSMethodName(name string) string {
+	if name == "" {
+		return name
+	}
+
+	var result strings.Builder
+	capitalizeNext := false
+	isFirstChar := true
+
+	for _, r := range name {
+		// Treat underscores and hyphens as word separators
+		if r == '_' || r == '-' {
+			capitalizeNext = true
+			continue
+		}
+
+		// Handle the character
+		if isFirstChar {
+			// First character should always be lowercase for camelCase
+			result.WriteRune(unicode.ToLower(r))
+			isFirstChar = false
+			capitalizeNext = false
+		} else if capitalizeNext && unicode.IsLetter(r) {
+			result.WriteRune(unicode.ToUpper(r))
+			capitalizeNext = false
+		} else {
+			result.WriteRune(r)
+		}
+	}
+
+	return result.String()
 }

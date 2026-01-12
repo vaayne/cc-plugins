@@ -49,23 +49,43 @@ func runInspect(cmd *cobra.Command, args []string) error {
 	}
 	defer client.Close()
 
-	// Get tool
-	tool, err := client.GetTool(ctx, toolName)
+	// Build name mapper to resolve JS name to original
+	tools, err := client.ListTools(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list tools: %w", err)
+	}
+	mapper := NewToolNameMapper(tools)
+	originalName := mapper.ToOriginal(toolName)
+
+	// Get tool using original name
+	tool, err := client.GetTool(ctx, originalName)
 	if err != nil {
 		return err // Error message from RemoteClient is already user-friendly
 	}
 
+	// Get JS name for display
+	jsName := mapper.ToJSName(tool.Name)
+
 	// Output
 	if jsonOutput {
-		// JSON output: full tool object
-		output, err := json.MarshalIndent(tool, "", "  ")
+		// JSON output: full tool object with JS name
+		type toolOutput struct {
+			Name        string `json:"name"`
+			Description string `json:"description"`
+			InputSchema any    `json:"inputSchema,omitempty"`
+		}
+		output, err := json.MarshalIndent(toolOutput{
+			Name:        jsName,
+			Description: tool.Description,
+			InputSchema: tool.InputSchema,
+		}, "", "  ")
 		if err != nil {
 			return fmt.Errorf("failed to marshal JSON: %w", err)
 		}
 		fmt.Println(string(output))
 	} else {
 		// Text output: pretty-print tool schema
-		fmt.Printf("Name: %s\n", tool.Name)
+		fmt.Printf("Name: %s\n", jsName)
 		fmt.Printf("Description: %s\n", tool.Description)
 
 		if tool.InputSchema != nil {

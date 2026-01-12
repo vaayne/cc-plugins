@@ -92,8 +92,16 @@ func runInvoke(cmd *cobra.Command, args []string) error {
 	}
 	defer client.Close()
 
-	// Call tool
-	result, err := client.CallTool(ctx, toolName, params)
+	// Build name mapper to resolve JS name to original
+	tools, err := client.ListTools(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list tools: %w", err)
+	}
+	mapper := NewToolNameMapper(tools)
+	originalName := mapper.ToOriginal(toolName)
+
+	// Call tool using original name
+	result, err := client.CallTool(ctx, originalName, params)
 	if err != nil {
 		return err
 	}

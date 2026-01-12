@@ -54,9 +54,12 @@ func runList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Sort tools by name once for consistent output
+	// Create name mapper for consistent JS method names
+	mapper := NewToolNameMapper(tools)
+
+	// Sort tools by JS name for consistent output
 	sort.Slice(tools, func(i, j int) bool {
-		return tools[i].Name < tools[j].Name
+		return mapper.ToJSName(tools[i].Name) < mapper.ToJSName(tools[j].Name)
 	})
 
 	// Output
@@ -70,7 +73,7 @@ func runList(cmd *cobra.Command, args []string) error {
 		toolList := make([]toolInfo, 0, len(tools))
 		for _, tool := range tools {
 			toolList = append(toolList, toolInfo{
-				Name:        tool.Name,
+				Name:        mapper.ToJSName(tool.Name),
 				Description: tool.Description,
 			})
 		}
@@ -88,11 +91,12 @@ func runList(cmd *cobra.Command, args []string) error {
 		}
 
 		for _, tool := range tools {
+			jsName := mapper.ToJSName(tool.Name)
 			desc := tool.Description
 			if strings.TrimSpace(desc) == "" {
-				desc = tool.Name
+				desc = jsName
 			}
-			fmt.Printf("- %s: %s\n", tool.Name, truncateDescription(desc, 50))
+			fmt.Printf("- %s: %s\n", jsName, truncateDescription(desc, 50))
 		}
 	}
 
