@@ -18,10 +18,10 @@ var ListDescription string
 
 // ListToolResult represents a tool in the list (kept for internal use)
 type ListToolResult struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Server      string                 `json:"server"`
-	InputSchema map[string]interface{} `json:"inputSchema,omitempty"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Server      string         `json:"server"`
+	InputSchema map[string]any `json:"inputSchema,omitempty"`
 }
 
 // ListToolsResponse represents the response from the list tool (kept for internal use)
@@ -31,7 +31,7 @@ type ListToolsResponse struct {
 }
 
 // jsonSchemaTypeToJS converts JSON Schema types to JavaScript types for JSDoc
-func jsonSchemaTypeToJS(schemaType interface{}) string {
+func jsonSchemaTypeToJS(schemaType any) string {
 	switch t := schemaType.(type) {
 	case string:
 		switch t {
@@ -54,7 +54,7 @@ func jsonSchemaTypeToJS(schemaType interface{}) string {
 }
 
 // schemaToJSDoc generates a JSDoc comment and function stub from a tool's schema
-func schemaToJSDoc(toolName, description string, inputSchema map[string]interface{}) string {
+func schemaToJSDoc(toolName, description string, inputSchema map[string]any) string {
 	var sb strings.Builder
 
 	sb.WriteString("/**\n")
@@ -67,7 +67,7 @@ func schemaToJSDoc(toolName, description string, inputSchema map[string]interfac
 
 	// Extract properties from schema
 	if inputSchema != nil {
-		if props, ok := inputSchema["properties"].(map[string]interface{}); ok && len(props) > 0 {
+		if props, ok := inputSchema["properties"].(map[string]any); ok && len(props) > 0 {
 			sb.WriteString(" * @param {Object} params - Parameters\n")
 
 			// Sort property names for consistent output
@@ -79,7 +79,7 @@ func schemaToJSDoc(toolName, description string, inputSchema map[string]interfac
 
 			for _, propName := range propNames {
 				propDef := props[propName]
-				propMap, ok := propDef.(map[string]interface{})
+				propMap, ok := propDef.(map[string]any)
 				if !ok {
 					continue
 				}
@@ -91,7 +91,7 @@ func schemaToJSDoc(toolName, description string, inputSchema map[string]interfac
 				}
 
 				// Handle enum values
-				if enum, ok := propMap["enum"].([]interface{}); ok && len(enum) > 0 {
+				if enum, ok := propMap["enum"].([]any); ok && len(enum) > 0 {
 					enumStrs := make([]string, 0, len(enum))
 					for _, e := range enum {
 						enumStrs = append(enumStrs, fmt.Sprintf("%v", e))
@@ -149,10 +149,10 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 		}
 
 		// Extract server ID from namespaced name (format: serverID__toolName)
-		separatorIndex := strings.Index(namespacedName, "__")
+		before, _, ok := strings.Cut(namespacedName, "__")
 		serverID := "unknown"
-		if separatorIndex != -1 {
-			serverID = namespacedName[:separatorIndex]
+		if ok {
+			serverID = before
 		}
 
 		// Filter by server if specified
@@ -172,9 +172,9 @@ func HandleListTool(ctx context.Context, manager *client.Manager, req *mcp.CallT
 		}
 
 		// Convert InputSchema to map if possible
-		var inputSchema map[string]interface{}
+		var inputSchema map[string]any
 		if tool.InputSchema != nil {
-			if schema, ok := tool.InputSchema.(map[string]interface{}); ok {
+			if schema, ok := tool.InputSchema.(map[string]any); ok {
 				inputSchema = schema
 			}
 		}

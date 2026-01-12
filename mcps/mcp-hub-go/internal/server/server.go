@@ -172,14 +172,14 @@ func (s *Server) Stop() error {
 // registerBuiltinTools registers all built-in tools
 func (s *Server) registerBuiltinTools() {
 	// Schema for list tool
-	listSchema := map[string]interface{}{
+	listSchema := map[string]any{
 		"type": "object",
-		"properties": map[string]interface{}{
-			"server": map[string]interface{}{
+		"properties": map[string]any{
+			"server": map[string]any{
 				"type":        "string",
 				"description": "Optional: filter tools by server name",
 			},
-			"query": map[string]interface{}{
+			"query": map[string]any{
 				"type":        "string",
 				"description": "Optional: comma-separated keywords for fulltext search (e.g., 'file,read,write'). Tool matches if any keyword appears in name or description.",
 				"maxLength":   1000,
@@ -198,10 +198,10 @@ func (s *Server) registerBuiltinTools() {
 	s.builtinRegistry.RegisterTool(config.BuiltinTool{
 		Name:        "exec",
 		Description: tools.ExecDescription,
-		InputSchema: map[string]interface{}{
+		InputSchema: map[string]any{
 			"type": "object",
-			"properties": map[string]interface{}{
-				"code": map[string]interface{}{
+			"properties": map[string]any{
+				"code": map[string]any{
 					"type":        "string",
 					"minLength":   1,
 					"description": "JavaScript to execute (async/await, timers, require for node:* built-ins). Use mcp.callTool() for MCP tools.",
@@ -215,12 +215,12 @@ func (s *Server) registerBuiltinTools() {
 	s.builtinRegistry.RegisterTool(config.BuiltinTool{
 		Name:        "refreshTools",
 		Description: tools.RefreshDescription,
-		InputSchema: map[string]interface{}{
+		InputSchema: map[string]any{
 			"type": "object",
-			"properties": map[string]interface{}{
-				"serverIds": map[string]interface{}{
+			"properties": map[string]any{
+				"serverIds": map[string]any{
 					"type": "array",
-					"items": map[string]interface{}{
+					"items": map[string]any{
 						"type": "string",
 					},
 					"description": "Optional list of server IDs to refresh. If not provided, refreshes all connected servers.",

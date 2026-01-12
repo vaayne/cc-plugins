@@ -81,7 +81,7 @@ func TestBuiltinToolRegistry_ThreadSafety(t *testing.T) {
 	done := make(chan bool)
 
 	// Concurrent writes
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		go func(id int) {
 			tool := config.BuiltinTool{
 				Name:        string(rune('a' + id)),
@@ -91,19 +91,19 @@ func TestBuiltinToolRegistry_ThreadSafety(t *testing.T) {
 			done <- true
 		}(i)
 	}
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 
 	// Concurrent reads
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		go func() {
 			_ = registry.GetAllTools()
 			_, _ = registry.GetTool("a")
 			done <- true
 		}()
 	}
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		<-done
 	}
 }

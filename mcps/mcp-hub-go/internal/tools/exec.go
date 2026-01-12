@@ -18,7 +18,7 @@ var ExecDescription string
 
 // ExecuteToolResponse represents the response from the execute tool
 type ExecuteToolResponse struct {
-	Result interface{}   `json:"result"`
+	Result any           `json:"result"`
 	Logs   []js.LogEntry `json:"logs"`
 }
 
@@ -52,7 +52,7 @@ func HandleExecuteTool(ctx context.Context, logger *zap.Logger, manager *client.
 		if runtimeErr, ok := err.(*js.RuntimeError); ok {
 			// Return error as part of response for better UX
 			response := ExecuteToolResponse{
-				Result: map[string]interface{}{
+				Result: map[string]any{
 					"error": map[string]string{
 						"type":    string(runtimeErr.Type),
 						"message": runtimeErr.Message,

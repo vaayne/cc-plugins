@@ -63,4 +63,3 @@ func truncateWords(s string, maxWords int) string {
 	}
 	return strings.Join(words[:maxWords], " ") + "…"
 }
-

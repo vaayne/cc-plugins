@@ -18,7 +18,7 @@ func TestHandleRefreshToolsTool_AllServers(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	argsJSON, err := json.Marshal(map[string]interface{}{})
+	argsJSON, err := json.Marshal(map[string]any{})
 	require.NoError(t, err)
 
 	req := &mcp.CallToolRequest{
@@ -48,7 +48,7 @@ func TestHandleRefreshToolsTool_SpecificServers(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"serverIds": []string{"server1", "server2"},
 	}
 	argsJSON, err := json.Marshal(args)
