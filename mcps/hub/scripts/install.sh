@@ -11,7 +11,7 @@
 set -e
 
 # Configuration
-REPO="weliu/cc-plugins"
+REPO="vaayne/cc-plugins"
 BINARY_NAME="hub"
 RELEASES_URL="https://github.com/${REPO}/releases"
 
@@ -94,14 +94,14 @@ detect_arch() {
 get_latest_version() {
     if command -v curl >/dev/null 2>&1; then
         curl -fsSL "https://api.github.com/repos/${REPO}/releases" | \
-            grep -o '"tag_name": *"hub/v[^"]*"' | \
+            grep -o '"tag_name": *"v[^"]*"' | \
             head -1 | \
-            sed 's/.*"hub\/\(v[^"]*\)".*/\1/'
+            sed 's/.*"\(v[^"]*\)".*/\1/'
     elif command -v wget >/dev/null 2>&1; then
         wget -qO- "https://api.github.com/repos/${REPO}/releases" | \
-            grep -o '"tag_name": *"hub/v[^"]*"' | \
+            grep -o '"tag_name": *"v[^"]*"' | \
             head -1 | \
-            sed 's/.*"hub\/\(v[^"]*\)".*/\1/'
+            sed 's/.*"\(v[^"]*\)".*/\1/'
     else
         error "Neither curl nor wget found. Please install one of them."
     fi
@@ -212,8 +212,8 @@ main() {
     # Build download URLs
     VERSION_NUM="${VERSION#v}"  # Remove 'v' prefix for archive name
     ARCHIVE_NAME="${BINARY_NAME}_${VERSION_NUM}_${OS}_${ARCH}.${EXT}"
-    ARCHIVE_URL="${RELEASES_URL}/download/hub/${VERSION}/${ARCHIVE_NAME}"
-    CHECKSUMS_URL="${RELEASES_URL}/download/hub/${VERSION}/checksums.txt"
+    ARCHIVE_URL="${RELEASES_URL}/download/${VERSION}/${ARCHIVE_NAME}"
+    CHECKSUMS_URL="${RELEASES_URL}/download/${VERSION}/checksums.txt"
     
     # Create temp directory
     TMP_DIR=$(mktemp -d)

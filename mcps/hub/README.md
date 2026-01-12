@@ -168,13 +168,13 @@ Log format:
 
 ```bash
 # Install latest version
-curl -fsSL https://raw.githubusercontent.com/weliu/cc-plugins/main/mcps/hub/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scripts/install.sh | sh
 
 # Install specific version
-curl -fsSL https://raw.githubusercontent.com/weliu/cc-plugins/main/mcps/hub/scripts/install.sh | sh -s -- -v v1.0.0
+curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scripts/install.sh | sh -s -- -v v1.0.0
 
 # Install to custom directory
-curl -fsSL https://raw.githubusercontent.com/weliu/cc-plugins/main/mcps/hub/scripts/install.sh | sh -s -- -d /usr/local/bin
+curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scripts/install.sh | sh -s -- -d /usr/local/bin
 ```
 
 The script automatically:
@@ -185,7 +185,7 @@ The script automatically:
 
 ### Option 2: Download Binary
 
-Download the latest release from the [releases page](https://github.com/weliu/cc-plugins/releases?q=hub) and extract it to your PATH.
+Download the latest release from the [releases page](https://github.com/vaayne/cc-plugins/releases?q=hub) and extract it to your PATH.
 
 Available platforms:
 - `hub_VERSION_linux_amd64.tar.gz`
@@ -202,7 +202,7 @@ Requirements:
 
 ```bash
 # Clone the repository
-git clone https://github.com/weliu/cc-plugins.git
+git clone https://github.com/vaayne/cc-plugins.git
 cd cc-plugins/mcps/hub
 
 # Build with version info
