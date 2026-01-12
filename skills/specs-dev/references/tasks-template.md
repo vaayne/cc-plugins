@@ -5,16 +5,22 @@
 - [ ] Pending
 - [x] Completed
 
+**Task States:** `PENDING` | `IMPLEMENTING` | `VALIDATING` | `REVIEWING` | `APPROVED`
+
 ## Phase 1: {Phase Name}
 
 - [ ] Task 1: {Description}
   - **Files:** `path/to/file1.ts`, `path/to/file2.ts`
-  - **Approach:** (filled after completion)
-  - **Gotchas:** (filled after completion)
-  - **Commit:** (filled after completion)
+  - **State:** PENDING
+  - **Iterations:** 0
+  - **Approach:** (after completion)
+  - **Gotchas:** (after completion)
+  - **Commit:** (after completion)
 
 - [ ] Task 2: {Description}
   - **Files:** `path/to/file.ts`
+  - **State:** PENDING
+  - **Iterations:** 0
   - **Approach:**
   - **Gotchas:**
   - **Commit:**
@@ -23,6 +29,8 @@
 
 - [ ] Task 3: {Description}
   - **Files:** `path/to/file.ts`
+  - **State:** PENDING
+  - **Iterations:** 0
   - **Approach:**
   - **Gotchas:**
   - **Commit:**

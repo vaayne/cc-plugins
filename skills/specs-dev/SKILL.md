@@ -84,53 +84,97 @@ Present the reviewed plan to user. Only after explicit approval:
 
 ## Phase 3: Implementation
 
-**Goal:** Implement tasks iteratively with review gates.
+**Goal:** Implement tasks iteratively with approval-gated review loops.
 
-### Task Loop
+### Task Loop State Machine
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  IMPLEMENTING ◄───────────────────┐                      │
+│  (subagent)                       │                      │
+│       │                           │                      │
+│       ▼                           │                      │
+│  VALIDATING ──── fail ────────────┤                      │
+│  (tests/lint)                     │                      │
+│       │ pass                      │                      │
+│       ▼                           │                      │
+│  REVIEWING ───── not approved ────┤ (iteration < 3)      │
+│  (subagent)                       │                      │
+│       │                           │                      │
+│       │ approved       iteration >= 3                    │
+│       │                           │                      │
+│       │                    ┌──────┴──────┐               │
+│       │                    │  ESCALATE   │               │
+│       │                    │ (ask user)  │               │
+│       │                    └──────┬──────┘               │
+│       │◄──────────────────────────┘                      │
+│       ▼                                                  │
+│  COMMITTING                                              │
+│       │                                                  │
+│       ▼                                                  │
+│  DOCUMENTING ────► NEXT TASK                             │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Loop Steps
 
 For each task in `tasks.md`:
 
-#### 1. Start Task
+#### 1. Start
 
-- Mark task as in-progress
-- Read task context from `plan.md` and `tasks.md`
+- Set task state: `IMPLEMENTING`
+- Read context from `plan.md` and `tasks.md`
+- Initialize iteration counter: `0`
 
-#### 2. Implement
+#### 2. Implement (Subagent)
 
 Delegate to implementer subagent:
 
-- Load `references/implementer-agent.md` for implementation context
-- Provide: task objective, files to modify, acceptance criteria
-- Implementer follows pattern-first, test-driven approach
+- Context: `references/implementer-agent.md`
+- Input: task objective, files, acceptance criteria
+- Input (if iteration > 0): previous feedback to address
 
 #### 3. Validate
 
-- Run relevant tests
-- Verify no linting/type errors
+- Set task state: `VALIDATING`
+- Run tests, check lint/type errors
+- **If fail:** Increment iteration, loop to step 2 with error output
+- **If pass:** Continue to step 4
 
-#### 4. Review
+#### 4. Review (Subagent)
 
-Delegate to analyzer subagent:
+- Set task state: `REVIEWING`
+- Delegate to analyzer subagent
+- Context: `references/analyzer-agent.md`
+- Request structured verdict (approved/blockers/suggestions)
 
-- Request severity-ranked review of changes
-- Focus: bugs, security, performance, patterns
+#### 5. Evaluate Verdict
 
-#### 5. Address Feedback
+Check analyzer verdict:
 
-- Apply fixes from review
-- Re-run tests
-- Re-review if changes significant
+- **If `approved: true`:** Continue to step 6
+- **If `approved: false` and iteration < 3:** Increment iteration, loop to step 2 with blockers
+- **If `approved: false` and iteration >= 3:** Escalate to user
+
+### Fix Routing
+
+| Condition | Action |
+|-----------|--------|
+| Validation failure | Implementer subagent with error output |
+| Review blockers (critical/important) | Implementer subagent with feedback |
+| Review suggestions only | Orchestrator quick-fix or defer |
+| Iteration >= 3 | Pause, ask user for guidance |
 
 #### 6. Commit
 
-Create clean commit with emoji + conventional format:
-
-- `✨ feat:` - New features
-- `🐛 fix:` - Bug fixes
-- `♻️ refactor:` - Code restructuring
-- `📝 docs:` - Documentation
-- `✅ test:` - Tests
-- `⚡️ perf:` - Performance
+- Set task state: `APPROVED`
+- Create commit with emoji + conventional format:
+  - `✨ feat:` - New features
+  - `🐛 fix:` - Bug fixes
+  - `♻️ refactor:` - Code restructuring
+  - `📝 docs:` - Documentation
+  - `✅ test:` - Tests
+  - `⚡️ perf:` - Performance
 
 #### 7. Document
 
@@ -139,6 +183,8 @@ Update `tasks.md`:
 ```markdown
 - [x] Task name
   - **Files:** `file1.ts`, `file2.ts`
+  - **State:** APPROVED
+  - **Iterations:** 2
   - **Approach:** Brief description
   - **Gotchas:** Any surprises discovered
   - **Commit:** {hash}
@@ -150,18 +196,18 @@ Update `plan.md` only if:
 - New architectural decisions made
 - Risks discovered affecting future work
 
-#### 8. Complete
+#### 8. Next Task
 
-- Mark task done
-- Move to next task
+- Mark task checkbox complete
+- Move to next task, repeat from step 1
 
 ### Quality Gates Per Task
 
 - [ ] Tests covering change added/updated and passing
-- [ ] Review feedback addressed
+- [ ] Analyzer verdict: `approved: true`
 - [ ] No TODOs or commented-out code
 - [ ] Commit follows emoji + conventional format
-- [ ] `tasks.md` updated with implementation notes
+- [ ] `tasks.md` updated with state, iterations, notes
 
 ## Phase 4: Completion
 
