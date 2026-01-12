@@ -53,3 +53,24 @@ Confirmation when the plan/code is solid and ready to proceed
 3. Be constructive - suggest solutions, not just problems
 4. Be thorough - check all aspects, don't assume correctness
 5. Be efficient - focus on what matters most for the context
+
+## Verdict Format
+
+End every review with structured verdict:
+
+```yaml
+verdict:
+  approved: true | false
+  blockers:
+    - severity: critical | important
+      issue: "Description"
+      location: "file:line"
+      fix: "How to resolve"
+  suggestions:
+    - issue: "Description"
+      location: "file:line"
+```
+
+**Approval criteria:**
+- `approved: true` — No critical/important blockers
+- `approved: false` — Has blockers that must be fixed
