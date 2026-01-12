@@ -45,11 +45,11 @@ jobs:
           echo "Using version: ${VERSION}"
 
       - name: Create tag for goreleaser
-        if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "${{ steps.version.outputs.version }}" -m "Release ${{ steps.version.outputs.version }}"
+          # Create a local tag for GoReleaser (it expects v1.2.0, not hub/v1.2.0)
+          git tag -f "${{ steps.version.outputs.version }}" -m "Release ${{ steps.version.outputs.version }}"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
