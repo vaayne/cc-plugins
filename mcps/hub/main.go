@@ -9,15 +9,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version information - injected at build time via ldflags
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 var rootCmd = &cobra.Command{
-	Use:   "hub",
-	Short: "MCP Hub - Go implementation of Model Context Protocol hub",
+	Use:     "hub",
+	Short:   "MCP Hub - Go implementation of Model Context Protocol hub",
+	Version: version,
 	Long: `MCP Hub aggregates multiple MCP servers and built-in tools,
 providing a unified interface for tool execution and management.
 
 Use 'hub serve' to start the hub server, or other commands to interact
 with remote MCP services.`,
 	PersistentPreRunE: validateGlobalFlags,
+}
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print version information",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("hub %s\n", version)
+		fmt.Printf("  commit: %s\n", commit)
+		fmt.Printf("  built:  %s\n", date)
+	},
 }
 
 func init() {
@@ -35,6 +53,10 @@ func init() {
 	rootCmd.AddCommand(cli.ListCmd)
 	rootCmd.AddCommand(cli.InspectCmd)
 	rootCmd.AddCommand(cli.InvokeCmd)
+	rootCmd.AddCommand(versionCmd)
+
+	// Set version template
+	rootCmd.SetVersionTemplate("hub {{.Version}}\n")
 }
 
 func validateGlobalFlags(cmd *cobra.Command, args []string) error {
