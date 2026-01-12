@@ -78,9 +78,11 @@ func NewRemoteClient(ctx context.Context, opts RemoteClientOpts) (*RemoteClient,
 			MaxRetries: 3,
 		}
 	case "sse":
+		// SSE transport must use nil HTTPClient to use the default http.DefaultClient.
+		// Custom HTTP clients with timeouts or transport configuration interfere with
+		// SSE's dual-use pattern (long-lived GET stream + POST requests).
 		mcpTransport = &mcp.SSEClientTransport{
-			Endpoint:   opts.ServerURL,
-			HTTPClient: httpClient,
+			Endpoint: opts.ServerURL,
 		}
 	}
 
@@ -95,8 +97,13 @@ func NewRemoteClient(ctx context.Context, opts RemoteClientOpts) (*RemoteClient,
 	}, nil)
 
 	// Connect with timeout
+	// For SSE, we must not cancel the context after connect returns, because
+	// the SSE transport uses a background goroutine that reads from the context.
+	// Canceling would close the SSE stream and cause subsequent RPC calls to fail with EOF.
 	connectCtx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
-	defer cancel()
+	if transport != "sse" {
+		defer cancel()
+	}
 
 	session, err := client.Connect(connectCtx, mcpTransport, nil)
 	if err != nil {

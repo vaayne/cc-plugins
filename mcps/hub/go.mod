@@ -7,7 +7,7 @@ toolchain go1.24.7
 require (
 	github.com/dop251/goja v0.0.0-20251121114222-56b1242a5f86
 	github.com/dop251/goja_nodejs v0.0.0-20251015164255-5e94316bedaf
-	github.com/modelcontextprotocol/go-sdk v1.1.0
+	github.com/modelcontextprotocol/go-sdk v1.2.0
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.27.1
