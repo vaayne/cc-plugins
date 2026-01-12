@@ -40,3 +40,6 @@ mcp-hub.log
 *.tmp
 bin/
 tmp/
+
+# Goreleaser
+dist/

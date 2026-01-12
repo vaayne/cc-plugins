@@ -1,5 +1,5 @@
 [tools]
-# dprint = "latest"
+"ubi:goreleaser/goreleaser" = "2.5.0"
 
 [tasks.format]
 description = "Format code"
@@ -29,4 +29,16 @@ run = """
 description = "run tests"
 run = """
 go test ./... -coverprofile=coverage.out
+"""
+
+[tasks.release-snapshot]
+description = "Build snapshot release locally"
+run = """
+goreleaser build --snapshot --clean
+"""
+
+[tasks.release-check]
+description = "Check goreleaser config"
+run = """
+goreleaser check
 """
