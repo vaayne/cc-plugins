@@ -14,8 +14,8 @@ import (
 type MockTool struct {
 	Name        string
 	Description string
-	InputSchema map[string]interface{}
-	Handler     func(ctx context.Context, args map[string]interface{}) (*mcp.CallToolResult, error)
+	InputSchema map[string]any
+	Handler     func(ctx context.Context, args map[string]any) (*mcp.CallToolResult, error)
 }
 
 // MockServerConfig holds configuration for a mock server
@@ -39,7 +39,7 @@ type MockServer struct {
 // CallRecord tracks a tool call
 type CallRecord struct {
 	ToolName  string
-	Arguments map[string]interface{}
+	Arguments map[string]any
 	Timestamp time.Time
 }
 
@@ -81,7 +81,7 @@ func (ms *MockServer) registerTool(tool MockTool) {
 
 	handler := func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Track call history
-		var args map[string]interface{}
+		var args map[string]any
 		if len(req.Params.Arguments) > 0 {
 			if err := json.Unmarshal(req.Params.Arguments, &args); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal arguments: %w", err)
@@ -189,23 +189,23 @@ func CreateEchoTool(name string) MockTool {
 	return MockTool{
 		Name:        name,
 		Description: fmt.Sprintf("Echo tool named %s", name),
-		InputSchema: map[string]interface{}{
+		InputSchema: map[string]any{
 			"type": "object",
-			"properties": map[string]interface{}{
-				"message": map[string]interface{}{
+			"properties": map[string]any{
+				"message": map[string]any{
 					"type":        "string",
 					"description": "Message to echo",
 				},
 			},
 			"required": []string{"message"},
 		},
-		Handler: func(ctx context.Context, args map[string]interface{}) (*mcp.CallToolResult, error) {
+		Handler: func(ctx context.Context, args map[string]any) (*mcp.CallToolResult, error) {
 			message, ok := args["message"].(string)
 			if !ok {
 				return nil, fmt.Errorf("message must be a string")
 			}
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"echoed": message,
 			}
 			jsonBytes, err := json.Marshal(response)
@@ -229,26 +229,26 @@ func CreateCalculatorTool() MockTool {
 	return MockTool{
 		Name:        "calculate",
 		Description: "Perform simple calculations",
-		InputSchema: map[string]interface{}{
+		InputSchema: map[string]any{
 			"type": "object",
-			"properties": map[string]interface{}{
-				"operation": map[string]interface{}{
+			"properties": map[string]any{
+				"operation": map[string]any{
 					"type":        "string",
 					"description": "Operation to perform (add, subtract, multiply, divide)",
 					"enum":        []string{"add", "subtract", "multiply", "divide"},
 				},
-				"a": map[string]interface{}{
+				"a": map[string]any{
 					"type":        "number",
 					"description": "First operand",
 				},
-				"b": map[string]interface{}{
+				"b": map[string]any{
 					"type":        "number",
 					"description": "Second operand",
 				},
 			},
 			"required": []string{"operation", "a", "b"},
 		},
-		Handler: func(ctx context.Context, args map[string]interface{}) (*mcp.CallToolResult, error) {
+		Handler: func(ctx context.Context, args map[string]any) (*mcp.CallToolResult, error) {
 			operation, ok := args["operation"].(string)
 			if !ok {
 				return nil, fmt.Errorf("operation must be a string")
@@ -281,7 +281,7 @@ func CreateCalculatorTool() MockTool {
 				return nil, fmt.Errorf("unknown operation: %s", operation)
 			}
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"result": result,
 			}
 			jsonBytes, err := json.Marshal(response)
@@ -305,16 +305,16 @@ func CreateDelayTool(delay time.Duration) MockTool {
 	return MockTool{
 		Name:        "delayed-tool",
 		Description: "Tool that responds after a delay",
-		InputSchema: map[string]interface{}{
+		InputSchema: map[string]any{
 			"type": "object",
-			"properties": map[string]interface{}{
-				"value": map[string]interface{}{
+			"properties": map[string]any{
+				"value": map[string]any{
 					"type":        "string",
 					"description": "Value to return",
 				},
 			},
 		},
-		Handler: func(ctx context.Context, args map[string]interface{}) (*mcp.CallToolResult, error) {
+		Handler: func(ctx context.Context, args map[string]any) (*mcp.CallToolResult, error) {
 			select {
 			case <-time.After(delay):
 			case <-ctx.Done():
@@ -342,10 +342,10 @@ func CreateToolWithDotsInName() MockTool {
 	return MockTool{
 		Name:        "tool.with.dots.in.name",
 		Description: "Tool with dots in name for namespace collision testing",
-		InputSchema: map[string]interface{}{
+		InputSchema: map[string]any{
 			"type": "object",
 		},
-		Handler: func(ctx context.Context, args map[string]interface{}) (*mcp.CallToolResult, error) {
+		Handler: func(ctx context.Context, args map[string]any) (*mcp.CallToolResult, error) {
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{
 					&mcp.TextContent{

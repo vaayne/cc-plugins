@@ -203,7 +203,7 @@ func TestIntegration_JSExecutionAsyncSupport(t *testing.T) {
 	tests := []struct {
 		name     string
 		script   string
-		expected interface{}
+		expected any
 		wantErr  bool
 	}{
 		{
@@ -363,11 +363,11 @@ func TestIntegration_ConcurrentToolCalls(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(numCalls)
 
-	for i := 0; i < numCalls; i++ {
+	for i := range numCalls {
 		go func(index int) {
 			defer wg.Done()
 
-			args := map[string]interface{}{
+			args := map[string]any{
 				"query": fmt.Sprintf("search-%d", index),
 			}
 			argsJSON, err := json.Marshal(args)
@@ -398,7 +398,7 @@ func TestIntegration_ConcurrentJSExecutions(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(numExecutions)
 
-	for i := 0; i < numExecutions; i++ {
+	for i := range numExecutions {
 		go func(index int) {
 			defer wg.Done()
 
@@ -468,7 +468,7 @@ func TestIntegration_ToolRefresh(t *testing.T) {
 	server.registerBuiltinTools()
 
 	// Test refreshTools with empty server list
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
 
@@ -507,7 +507,7 @@ func TestIntegration_ToolRefreshWithServerIDs(t *testing.T) {
 	server.registerBuiltinTools()
 
 	// Test refreshTools with non-existent servers
-	args := map[string]interface{}{
+	args := map[string]any{
 		"serverIds": []string{"server1", "server2"},
 	}
 	argsJSON, err := json.Marshal(args)
@@ -647,7 +647,7 @@ func TestIntegration_ExecuteToolWithError(t *testing.T) {
 	server.registerBuiltinTools()
 
 	// Execute code that throws an error
-	args := map[string]interface{}{
+	args := map[string]any{
 		"code": "throw new Error('test error');",
 	}
 	argsJSON, err := json.Marshal(args)
@@ -672,9 +672,9 @@ func TestIntegration_ExecuteToolWithError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should have error in result
-	resultMap, ok := response.Result.(map[string]interface{})
+	resultMap, ok := response.Result.(map[string]any)
 	require.True(t, ok)
-	errorMap, ok := resultMap["error"].(map[string]interface{})
+	errorMap, ok := resultMap["error"].(map[string]any)
 	require.True(t, ok)
 	assert.NotEmpty(t, errorMap["message"])
 }
@@ -696,7 +696,7 @@ func TestIntegration_BuiltinToolTimeout(t *testing.T) {
 	server.registerBuiltinTools()
 
 	// Execute code that runs longer than timeout
-	args := map[string]interface{}{
+	args := map[string]any{
 		"code": "while(true) { /* infinite loop */ }",
 	}
 	argsJSON, err := json.Marshal(args)
@@ -720,9 +720,9 @@ func TestIntegration_BuiltinToolTimeout(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should have timeout error
-	resultMap, ok := response.Result.(map[string]interface{})
+	resultMap, ok := response.Result.(map[string]any)
 	require.True(t, ok)
-	errorMap, ok := resultMap["error"].(map[string]interface{})
+	errorMap, ok := resultMap["error"].(map[string]any)
 	require.True(t, ok)
 	assert.Equal(t, string(js.ErrorTypeTimeout), errorMap["type"])
 }

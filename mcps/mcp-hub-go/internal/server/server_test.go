@@ -180,7 +180,7 @@ func TestHandleBuiltinTool_Search(t *testing.T) {
 	server.registerBuiltinTools()
 
 	// Create request
-	args := map[string]interface{}{
+	args := map[string]any{
 		"query": "list",
 	}
 	argsJSON, err := json.Marshal(args)
@@ -214,7 +214,7 @@ func TestHandleBuiltinTool_Exec(t *testing.T) {
 	server.registerBuiltinTools()
 
 	// Create request
-	args := map[string]interface{}{
+	args := map[string]any{
 		"code": "1 + 1;",
 	}
 	argsJSON, err := json.Marshal(args)
@@ -248,7 +248,7 @@ func TestHandleBuiltinTool_RefreshTools(t *testing.T) {
 	server.registerBuiltinTools()
 
 	// Create request
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
 
@@ -306,10 +306,10 @@ func TestRegisterBuiltinToolHandler(t *testing.T) {
 	builtinTool := config.BuiltinTool{
 		Name:        "test-tool",
 		Description: "Test tool",
-		InputSchema: map[string]interface{}{
+		InputSchema: map[string]any{
 			"type": "object",
-			"properties": map[string]interface{}{
-				"param": map[string]interface{}{
+			"properties": map[string]any{
+				"param": map[string]any{
 					"type": "string",
 				},
 			},

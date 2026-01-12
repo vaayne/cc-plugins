@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -253,10 +254,7 @@ func (m *Manager) maintainConnection(ctx context.Context, serverID string, serve
 
 			// Increase backoff
 			info.mu.Lock()
-			info.backoff = time.Duration(float64(info.backoff) * backoffFactor)
-			if info.backoff > maxBackoff {
-				info.backoff = maxBackoff
-			}
+			info.backoff = min(time.Duration(float64(info.backoff)*backoffFactor), maxBackoff)
 			info.mu.Unlock()
 		} else {
 			// Reset backoff on successful connection
@@ -373,9 +371,7 @@ func (m *Manager) GetTools(serverID string) (map[string]*mcp.Tool, error) {
 
 	// Return a copy to avoid concurrent modification
 	tools := make(map[string]*mcp.Tool, len(info.tools))
-	for name, tool := range info.tools {
-		tools[name] = tool
-	}
+	maps.Copy(tools, info.tools)
 
 	return tools, nil
 }

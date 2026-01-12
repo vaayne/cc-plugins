@@ -19,7 +19,7 @@ func TestHandleListTool_NoResults(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"query": "nonexistent",
 	}
 	argsJSON, err := json.Marshal(args)

@@ -63,7 +63,7 @@ func TestInitLogger_WithFileLogging(t *testing.T) {
 	assert.Contains(t, string(content), "value")
 
 	// Verify JSON format
-	var logEntry map[string]interface{}
+	var logEntry map[string]any
 	err = json.Unmarshal(content, &logEntry)
 	assert.NoError(t, err, "log output should be valid JSON")
 	assert.Equal(t, "info", logEntry["level"])
@@ -218,7 +218,7 @@ func TestInitLogger_JSONFormat(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Parse JSON
-	var logEntry map[string]interface{}
+	var logEntry map[string]any
 	err = json.Unmarshal(content, &logEntry)
 	assert.NoError(t, err, "log output should be valid JSON")
 
@@ -324,7 +324,7 @@ func TestWithRequestID(t *testing.T) {
 	content, err := os.ReadFile(logFile)
 	assert.NoError(t, err)
 
-	var logEntry map[string]interface{}
+	var logEntry map[string]any
 	err = json.Unmarshal(content, &logEntry)
 	assert.NoError(t, err)
 	assert.Equal(t, requestID, logEntry["request_id"])
@@ -417,7 +417,7 @@ func TestInitLogger_CallerInformation(t *testing.T) {
 	content, err := os.ReadFile(logFile)
 	assert.NoError(t, err)
 
-	var logEntry map[string]interface{}
+	var logEntry map[string]any
 	err = json.Unmarshal(content, &logEntry)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, logEntry["caller"])
@@ -446,7 +446,7 @@ func TestInitLogger_Stacktrace(t *testing.T) {
 	content, err := os.ReadFile(logFile)
 	assert.NoError(t, err)
 
-	var logEntry map[string]interface{}
+	var logEntry map[string]any
 	err = json.Unmarshal(content, &logEntry)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, logEntry["stacktrace"])

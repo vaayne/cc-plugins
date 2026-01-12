@@ -109,7 +109,7 @@ func TestDisconnectAll(t *testing.T) {
 	manager := NewManager(logger)
 
 	// Add multiple mock clients
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		_, cancel := context.WithCancel(manager.ctx)
 		info := &clientInfo{
 			serverID:      fmt.Sprintf("server-%d", i),
@@ -504,10 +504,7 @@ func TestBackoffCalculation(t *testing.T) {
 		if i > 0 {
 			// Simulate failed reconnection attempt
 			info.mu.Lock()
-			info.backoff = time.Duration(float64(info.backoff) * backoffFactor)
-			if info.backoff > maxBackoff {
-				info.backoff = maxBackoff
-			}
+			info.backoff = min(time.Duration(float64(info.backoff)*backoffFactor), maxBackoff)
 			info.mu.Unlock()
 		}
 
@@ -526,7 +523,7 @@ func TestThreadSafety(t *testing.T) {
 	defer manager.DisconnectAll()
 
 	// Add initial clients
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		_, cancel := context.WithCancel(manager.ctx)
 		defer cancel()
 
@@ -549,7 +546,7 @@ func TestThreadSafety(t *testing.T) {
 	operations := 100
 
 	// Concurrent reads
-	for i := 0; i < operations; i++ {
+	for i := range operations {
 		wg.Add(1)
 		go func(idx int) {
 			defer wg.Done()
@@ -608,7 +605,7 @@ func TestClientInfo_ThreadSafety(t *testing.T) {
 	operations := 100
 
 	// Concurrent reads and writes
-	for i := 0; i < operations; i++ {
+	for range operations {
 		wg.Add(3)
 
 		// Reader 1: Read session
