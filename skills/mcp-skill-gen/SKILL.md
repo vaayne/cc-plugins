@@ -5,7 +5,13 @@ description: Generate standalone skills from MCP servers. Use when users want to
 
 # MCP Skill Generator
 
-Generate reusable skills from any MCP server using `hub` CLI. Prerequisites: `hub` CLI in PATH (from `@mcps/mcp-hub-go`).
+Generate reusable skills from any MCP server using `hub` CLI.
+
+## Prerequisites
+- `hub` CLI must be installed. If not available, install with:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scripts/install.sh | sh
+  ```
 
 ## Workflow
 
