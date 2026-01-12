@@ -36,4 +36,3 @@ func TestRenderListDescription_NoToolsShowsNone(t *testing.T) {
 	rendered := RenderListDescription(base, map[string]*mcp.Tool{})
 	assert.Contains(t, rendered, "- (none)")
 }
-

@@ -18,7 +18,7 @@ func TestHandleExecuteTool_Success(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"code": "1 + 1",
 	}
 	argsJSON, err := json.Marshal(args)
@@ -52,7 +52,7 @@ func TestHandleExecuteTool_WithLogs(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"code": "mcp.log('info', 'test message'); 42",
 	}
 	argsJSON, err := json.Marshal(args)
@@ -86,7 +86,7 @@ func TestHandleExecuteTool_AsyncSuccess(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"code": "async function test() { return 42; } test();",
 	}
 	argsJSON, err := json.Marshal(args)
@@ -118,7 +118,7 @@ func TestHandleExecuteTool_MissingCode(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
 
@@ -144,7 +144,7 @@ func TestHandleExecuteTool_CodeTooLarge(t *testing.T) {
 		largeCode[i] = 'a'
 	}
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"code": string(largeCode),
 	}
 	argsJSON, err := json.Marshal(args)

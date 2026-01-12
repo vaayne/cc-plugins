@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"maps"
 	"sync"
 
 	"mcp-hub-go/internal/config"
@@ -45,8 +46,6 @@ func (r *BuiltinToolRegistry) GetAllTools() map[string]config.BuiltinTool {
 	defer r.mu.RUnlock()
 	// Return a copy to prevent external modification
 	toolsCopy := make(map[string]config.BuiltinTool, len(r.tools))
-	for k, v := range r.tools {
-		toolsCopy[k] = v
-	}
+	maps.Copy(toolsCopy, r.tools)
 	return toolsCopy
 }

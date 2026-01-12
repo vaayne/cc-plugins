@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -65,10 +66,10 @@ func (s *MCPServer) GetTransport() string {
 
 // BuiltinTool represents a built-in tool configuration
 type BuiltinTool struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Script      string                 `json:"script"`
-	InputSchema map[string]interface{} `json:"inputSchema,omitempty"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Script      string         `json:"script"`
+	InputSchema map[string]any `json:"inputSchema,omitempty"`
 }
 
 // LoadConfig loads configuration from a JSON file
@@ -316,10 +317,8 @@ func validateCommandPath(command string) error {
 	// Block shell interpreters
 	bannedCommands := []string{"sh", "bash", "zsh", "ksh", "csh", "tcsh", "fish", "dash", "ash"}
 	commandBase := filepath.Base(command)
-	for _, banned := range bannedCommands {
-		if commandBase == banned {
-			return fmt.Errorf("shell interpreters are not allowed: %s", commandBase)
-		}
+	if slices.Contains(bannedCommands, commandBase) {
+		return fmt.Errorf("shell interpreters are not allowed: %s", commandBase)
 	}
 
 	return nil
@@ -347,10 +346,8 @@ func validateEnvironment(serverName string, env map[string]string) error {
 
 	for key, value := range env {
 		keyUpper := strings.ToUpper(key)
-		for _, dangerous := range dangerousEnvVars {
-			if keyUpper == dangerous {
-				return fmt.Errorf("server %q: dangerous environment variable not allowed: %s", serverName, key)
-			}
+		if slices.Contains(dangerousEnvVars, keyUpper) {
+			return fmt.Errorf("server %q: dangerous environment variable not allowed: %s", serverName, key)
 		}
 
 		// Validate env values for shell metacharacters

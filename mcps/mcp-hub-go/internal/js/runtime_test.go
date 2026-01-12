@@ -351,7 +351,7 @@ func TestExecute_ConcurrentExecutionNoBlocking(t *testing.T) {
 
 	start := time.Now()
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		go func(id int) {
 			script := `
 				let sum = 0;
@@ -366,7 +366,7 @@ func TestExecute_ConcurrentExecutionNoBlocking(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < numGoroutines; i++ {
+	for range numGoroutines {
 		err := <-results
 		require.NoError(t, err)
 	}
@@ -494,7 +494,7 @@ func TestExecute_ReturnTypes(t *testing.T) {
 	tests := []struct {
 		name     string
 		script   string
-		expected interface{}
+		expected any
 	}{
 		{
 			name:     "number",
@@ -519,12 +519,12 @@ func TestExecute_ReturnTypes(t *testing.T) {
 		{
 			name:     "object",
 			script:   `({key: 'value'})`,
-			expected: map[string]interface{}{"key": "value"},
+			expected: map[string]any{"key": "value"},
 		},
 		{
 			name:     "array",
 			script:   `[1, 2, 3]`,
-			expected: []interface{}{int64(1), int64(2), int64(3)},
+			expected: []any{int64(1), int64(2), int64(3)},
 		},
 	}
 
@@ -729,7 +729,7 @@ func TestThreadSafety(t *testing.T) {
 	done := make(chan bool, numGoroutines)
 	errors := make(chan error, numGoroutines)
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		go func(id int) {
 			script := `1 + 1`
 			result, logs, err := runtime.Execute(context.Background(), script)
@@ -745,7 +745,7 @@ func TestThreadSafety(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < numGoroutines; i++ {
+	for range numGoroutines {
 		<-done
 	}
 
@@ -893,7 +893,7 @@ func TestExecute_TimeoutDoesNotLeakGoroutines(t *testing.T) {
 	runtime := NewRuntime(logger, manager, cfg)
 
 	// Run multiple timeouts
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		script := `while(true) { var x = 1 + 1; }`
 		_, _, err := runtime.Execute(context.Background(), script)
 		require.Error(t, err)
@@ -924,7 +924,7 @@ func TestExecute_ConcurrentTimeouts(t *testing.T) {
 	const numGoroutines = 5
 	results := make(chan error, numGoroutines)
 
-	for i := 0; i < numGoroutines; i++ {
+	for range numGoroutines {
 		go func() {
 			script := `while(true) { let x = 1 + 1; }`
 			_, _, err := runtime.Execute(context.Background(), script)
@@ -933,7 +933,7 @@ func TestExecute_ConcurrentTimeouts(t *testing.T) {
 	}
 
 	// All should timeout
-	for i := 0; i < numGoroutines; i++ {
+	for range numGoroutines {
 		err := <-results
 		require.Error(t, err)
 		runtimeErr, ok := err.(*RuntimeError)

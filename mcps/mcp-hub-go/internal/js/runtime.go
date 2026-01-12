@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -54,9 +55,9 @@ func (e *RuntimeError) Error() string {
 
 // LogEntry represents a log entry from mcp.log()
 type LogEntry struct {
-	Level   string                 `json:"level"`
-	Message string                 `json:"message"`
-	Fields  map[string]interface{} `json:"fields,omitempty"`
+	Level   string         `json:"level"`
+	Message string         `json:"message"`
+	Fields  map[string]any `json:"fields,omitempty"`
 }
 
 // Runtime represents a JavaScript runtime for executing tool scripts
@@ -94,7 +95,7 @@ func NewRuntime(logger *zap.Logger, manager *client.Manager, cfg *Config) *Runti
 }
 
 // Execute executes a JavaScript script with sync-only enforcement
-func (r *Runtime) Execute(ctx context.Context, script string) (interface{}, []LogEntry, error) {
+func (r *Runtime) Execute(ctx context.Context, script string) (any, []LogEntry, error) {
 	// Validate script size
 	if len(script) > MaxScriptSize {
 		return nil, nil, &RuntimeError{
@@ -114,7 +115,7 @@ func (r *Runtime) Execute(ctx context.Context, script string) (interface{}, []Lo
 	var (
 		logs      []LogEntry
 		logsMu    sync.Mutex
-		result    interface{}
+		result    any
 		runErr    error
 		vmPtr     *goja.Runtime
 		vmReady   = make(chan struct{})
@@ -268,13 +269,13 @@ func (r *Runtime) injectMCPHelpers(ctx context.Context, vm *goja.Runtime, logs *
 		params := call.Argument(1).Export()
 
 		// Parse serverID__toolName format
-		separatorIndex := strings.Index(fullToolName, "__")
-		if separatorIndex == -1 {
+		before, after, ok := strings.Cut(fullToolName, "__")
+		if !ok {
 			panic(vm.NewTypeError("toolName must be in format 'serverID__toolName' (e.g., 'github__createIssue')"))
 		}
 
-		serverID := fullToolName[:separatorIndex]
-		toolName := fullToolName[separatorIndex+2:] // +2 to skip "__"
+		serverID := before
+		toolName := after // +2 to skip "__"
 
 		// Call the tool
 		result, err := r.callTool(ctx, serverID, toolName, params)
@@ -310,11 +311,11 @@ func (r *Runtime) injectMCPHelpers(ctx context.Context, vm *goja.Runtime, logs *
 		// Sanitize log message
 		message = sanitizeLogMessage(message)
 
-		var fields map[string]interface{}
+		var fields map[string]any
 
 		if len(call.Arguments) > 2 && !goja.IsUndefined(call.Argument(2)) && !goja.IsNull(call.Argument(2)) {
 			exported := call.Argument(2).Export()
-			if f, ok := exported.(map[string]interface{}); ok {
+			if f, ok := exported.(map[string]any); ok {
 				// Sanitize field values
 				fields = sanitizeLogFields(f)
 			}
@@ -422,8 +423,8 @@ func sanitizeLogMessage(msg string) string {
 }
 
 // sanitizeLogFields sanitizes all field values in a map
-func sanitizeLogFields(fields map[string]interface{}) map[string]interface{} {
-	sanitized := make(map[string]interface{})
+func sanitizeLogFields(fields map[string]any) map[string]any {
+	sanitized := make(map[string]any)
 
 	for k, v := range fields {
 		// Sanitize key
@@ -433,7 +434,7 @@ func sanitizeLogFields(fields map[string]interface{}) map[string]interface{} {
 		switch val := v.(type) {
 		case string:
 			sanitized[k] = sanitizeLogMessage(val)
-		case map[string]interface{}:
+		case map[string]any:
 			sanitized[k] = sanitizeLogFields(val)
 		default:
 			sanitized[k] = v
@@ -444,7 +445,7 @@ func sanitizeLogFields(fields map[string]interface{}) map[string]interface{} {
 }
 
 // callTool calls a proxied MCP tool
-func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, params interface{}) (interface{}, error) {
+func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, params any) (any, error) {
 	fullToolName := serverID + "." + toolName
 
 	// Validate inputs
@@ -457,10 +458,10 @@ func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, param
 
 	// Convert params to map for CallToolParams - do this BEFORE authorization/client checks
 	// so we get proper type error messages
-	var paramsMap map[string]interface{}
+	var paramsMap map[string]any
 	if params != nil {
 		var ok bool
-		paramsMap, ok = params.(map[string]interface{})
+		paramsMap, ok = params.(map[string]any)
 		if !ok {
 			// Proper error for type mismatch instead of silent failure
 			return nil, fmt.Errorf("params must be an object, got %T", params)
@@ -503,7 +504,7 @@ func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, param
 	switch content := result.Content[0].(type) {
 	case *mcp.TextContent:
 		// Try to parse as JSON, otherwise return as string
-		var jsonResult interface{}
+		var jsonResult any
 		if err := json.Unmarshal([]byte(content.Text), &jsonResult); err == nil {
 			return jsonResult, nil
 		}
@@ -624,10 +625,5 @@ func sanitizeError(msg string) string {
 
 // contains checks if a slice contains a string
 func contains(slice []string, str string) bool {
-	for _, s := range slice {
-		if s == str {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(slice, str)
 }

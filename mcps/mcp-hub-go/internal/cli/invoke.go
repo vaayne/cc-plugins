@@ -155,4 +155,3 @@ func printEmbeddedResource(r *mcp.EmbeddedResource) {
 		fmt.Println("[Resource: empty]")
 	}
 }
-
