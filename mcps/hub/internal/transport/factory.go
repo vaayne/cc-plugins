@@ -12,7 +12,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
-	"mcp-hub-go/internal/config"
+	"hub/internal/config"
 )
 
 // Factory creates appropriate transport based on server configuration

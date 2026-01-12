@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"mcp-hub-go/internal/config"
-	"mcp-hub-go/internal/logging"
-	"mcp-hub-go/internal/server"
+	"hub/internal/config"
+	"hub/internal/logging"
+	"hub/internal/server"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"

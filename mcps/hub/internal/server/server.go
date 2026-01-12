@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"mcp-hub-go/internal/client"
-	"mcp-hub-go/internal/config"
-	"mcp-hub-go/internal/tools"
+	"hub/internal/client"
+	"hub/internal/config"
+	"hub/internal/tools"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
@@ -63,7 +63,7 @@ func (s *Server) Start(ctx context.Context, transportCfg TransportConfig) error 
 
 	// Create MCP server
 	s.mcpServer = mcp.NewServer(&mcp.Implementation{
-		Name:    "mcp-hub-go",
+		Name:    "hub",
 		Version: "v1.0.0",
 	}, nil)
 

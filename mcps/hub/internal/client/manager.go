@@ -9,8 +9,8 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
-	"mcp-hub-go/internal/config"
-	"mcp-hub-go/internal/transport"
+	"hub/internal/config"
+	"hub/internal/transport"
 )
 
 // clientInfo holds information about a connected client
@@ -127,7 +127,7 @@ func (m *Manager) connectClient(ctx context.Context, info *clientInfo, serverCfg
 
 	// Create client
 	client := mcp.NewClient(&mcp.Implementation{
-		Name:    "mcp-hub-go",
+		Name:    "hub",
 		Version: "v1.0.0",
 	}, nil)
 

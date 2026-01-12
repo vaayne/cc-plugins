@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"mcp-hub-go/internal/cli"
+	"hub/internal/cli"
 
 	"github.com/spf13/cobra"
 )

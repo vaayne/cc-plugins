@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"mcp-hub-go/internal/client"
-	"mcp-hub-go/internal/js"
+	"hub/internal/client"
+	"hub/internal/js"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"

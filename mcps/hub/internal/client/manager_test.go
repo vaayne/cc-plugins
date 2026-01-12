@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"mcp-hub-go/internal/config"
+	"hub/internal/config"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"

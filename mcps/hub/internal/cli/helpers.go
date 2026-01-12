@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"mcp-hub-go/internal/logging"
+	"hub/internal/logging"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"

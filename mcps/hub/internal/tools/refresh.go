@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"mcp-hub-go/internal/client"
+	"hub/internal/client"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )

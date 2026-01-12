@@ -6,7 +6,7 @@
 *.dylib
 
 # Main binary
-mcp-hub-go
+hub
 
 # Test binary, built with `go test -c`
 *.test

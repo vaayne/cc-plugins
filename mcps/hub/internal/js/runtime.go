@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"mcp-hub-go/internal/client"
+	"hub/internal/client"
 
 	"github.com/dop251/goja"
 	_ "github.com/dop251/goja_nodejs/buffer"
