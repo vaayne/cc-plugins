@@ -39,20 +39,20 @@ A disciplined, review-gated development workflow ensuring quality through struct
 
 **Goal:** Create a comprehensive, reviewed implementation plan.
 
-1. Draft plan using `references/templates/plan-template.md`
-2. Review loop with analyzer (max 3 rounds) — see `references/agents/analyzer-agent.md`
+1. Draft plan using `references/templates/plan.md`
+2. Review loop with reviewer (max 3 rounds) — see `references/agents/reviewer.md`
 3. Integrate feedback, iterate until approved
 4. **Gate B:** Present to user, wait for approval
 5. Create session: `.agents/sessions/{YYYY-MM-DD}-{feature-name}/`
-6. Save `plan.md` and `tasks.md` (use templates in `references/templates/`)
+6. Save `plan.md` and `tasks.md` (use `references/templates/`)
 
-Quality checklist: see `references/checklists.md`
+Quality gates: see `references/gates.md`
 
 ## Phase 3: Implementation
 
 **Goal:** Implement tasks iteratively with approval-gated review loops.
 
-> 📖 **Read `references/implementation-loop.md`** for full state machine and steps.
+> 📖 **Read `references/loop.md`** for full state machine and steps.
 
 **Summary:** For each task:
 
@@ -61,9 +61,9 @@ IMPLEMENTING → VALIDATING → REVIEWING → loop until approved → COMMITTING
 ```
 
 - Max 3 iterations per task before escalating to user
-- Subagents: `references/agents/implementer-agent.md`, `references/agents/analyzer-agent.md`
+- Subagents: `references/agents/worker.md`, `references/agents/reviewer.md`
 
-Quality checklist: see `references/checklists.md`
+Quality gates: see `references/gates.md`
 
 ## Phase 4: Completion
 
@@ -75,19 +75,19 @@ Quality checklist: see `references/checklists.md`
 4. Summarize completed work, risks, outcomes
 5. Confirm with user — session ready for merge/release
 
-Quality checklist: see `references/checklists.md`
+Quality gates: see `references/gates.md`
 
 ## Subagent Delegation
 
-**Analyzer** — Plan reviews, code reviews:
+**Reviewer** — Plan reviews, code reviews:
 ```
-Context: references/agents/analyzer-agent.md
+Context: references/agents/reviewer.md
 Task: Review [plan/code] for completeness, security, performance, patterns
 ```
 
-**Implementer** — Focused implementation:
+**Worker** — Focused implementation:
 ```
-Context: references/agents/implementer-agent.md
+Context: references/agents/worker.md
 Task: Implement [objective] in [files] with [acceptance criteria]
 ```
 
@@ -103,23 +103,23 @@ Task: Implement [objective] in [files] with [acceptance criteria]
 
 ```
 references/
-├── implementation-loop.md   # Phase 3 state machine, steps, fix routing
-├── checklists.md            # Quality gates for all phases
-├── troubleshooting.md       # Common issues, best practices
+├── loop.md          # Phase 3 state machine, steps, fix routing
+├── gates.md         # Quality gates for all phases
+├── help.md          # Common issues, best practices
 ├── agents/
-│   ├── analyzer-agent.md    # Analyzer subagent context
-│   └── implementer-agent.md # Implementer subagent context
+│   ├── reviewer.md  # Reviewer subagent context
+│   └── worker.md    # Worker subagent context
 └── templates/
-    ├── plan-template.md     # Plan document template
-    └── tasks-template.md    # Tasks document template
+    ├── plan.md      # Plan document template
+    └── tasks.md     # Tasks document template
 ```
 
 | File | When to Read |
 |------|--------------|
-| `implementation-loop.md` | Phase 3 |
-| `agents/analyzer-agent.md` | Plan/code reviews |
-| `agents/implementer-agent.md` | Task implementation |
-| `templates/plan-template.md` | Phase 2 |
-| `templates/tasks-template.md` | Phase 2 |
-| `checklists.md` | Each phase exit |
-| `troubleshooting.md` | When stuck |
+| `loop.md` | Phase 3 |
+| `agents/reviewer.md` | Plan/code reviews |
+| `agents/worker.md` | Task implementation |
+| `templates/plan.md` | Phase 2 |
+| `templates/tasks.md` | Phase 2 |
+| `gates.md` | Each phase exit |
+| `help.md` | When stuck |
