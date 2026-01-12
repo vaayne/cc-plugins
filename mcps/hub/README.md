@@ -178,6 +178,7 @@ curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scr
 ```
 
 The script automatically:
+
 - Detects your OS (Linux, macOS, Windows) and architecture (amd64, arm64)
 - Downloads the appropriate binary from GitHub Releases
 - Verifies SHA256 checksum
@@ -188,6 +189,7 @@ The script automatically:
 Download the latest release from the [releases page](https://github.com/vaayne/cc-plugins/releases?q=hub) and extract it to your PATH.
 
 Available platforms:
+
 - `hub_VERSION_linux_amd64.tar.gz`
 - `hub_VERSION_linux_arm64.tar.gz`
 - `hub_VERSION_darwin_amd64.tar.gz`
@@ -198,6 +200,7 @@ Available platforms:
 ### Option 3: Build from Source
 
 Requirements:
+
 - Go 1.23.0 or later
 
 ```bash

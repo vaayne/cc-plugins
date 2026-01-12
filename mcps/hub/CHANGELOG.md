@@ -8,11 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+
 - **BREAKING**: Project renamed from `mcp-hub-go` to `hub`
 - Go module path changed from `mcp-hub-go` to `hub`
 - Binary renamed from `mcp-hub-go` to `hub`
 
 ### Added
+
 - Version information embedded at build time via ldflags
 - `hub version` subcommand showing version, commit, and build date
 - `--version` flag for quick version check
@@ -29,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2026-01-12
 
 ### Added
+
 - CLI subcommands for interacting with remote MCP services (#14):
   - `hub serve` - Start the MCP hub server (was default behavior)
   - `hub list` - List tools from a remote MCP service
@@ -40,20 +43,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proxy environment variable support (`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`)
 
 ### Changed
+
 - Modernized codebase with Go 1.18+ features (`maps.Copy`, `slices.Contains`, `any` type)
 
 ## [1.1.0] - 2025-12-15
 
 ### Added
+
 - Dynamic "Available Tools" section in `list` tool description (#12)
 - JavaScript function stubs output from `list` tool for easier scripting (#11)
 - Strict server name validation (must start with letter, alphanumeric + underscore only)
 
 ### Changed
+
 - Tool namespace separator changed from `.` to `__` (double underscore) for valid JS identifiers
   - Example: `github__createIssue` instead of `github.createIssue`
 
 ### Security
+
 - Bump `golang.org/x/net` from 0.27.0 to 0.38.0 (#10)
 
 ## [1.0.0] - 2025-12-10
@@ -61,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial release of MCP Hub Go.
 
 ### Added
+
 - **Multi-server aggregation**: Connect multiple MCP servers through a single hub
 - **Transport support**:
   - Stdio for local MCP servers
@@ -90,6 +98,7 @@ Initial release of MCP Hub Go.
 - **Comprehensive configuration validation** on startup
 
 ### Security
+
 - Thread-safe connection management with mutex protection
 - SSRF protection for HTTP/SSE transports
 - TLS verification enabled by default

@@ -2,14 +2,14 @@
 
 ## Common Issues
 
-| Problem | Solution |
-|---------|----------|
-| Requirements keep changing | More time in Phase 1; update summary until sign-off |
-| Plan too high-level | Add file names, interfaces, data contracts, test outlines |
-| Task too large | Split into smaller vertical slices |
-| Review requests major rework | Pause, revisit plan with user, update before continuing |
-| Persistent test failures | Deep-dive analysis on failing module |
-| Documentation debt | Pause and catch up if 3+ tasks without doc updates |
+| Problem                      | Solution                                                  |
+| ---------------------------- | --------------------------------------------------------- |
+| Requirements keep changing   | More time in Phase 1; update summary until sign-off       |
+| Plan too high-level          | Add file names, interfaces, data contracts, test outlines |
+| Task too large               | Split into smaller vertical slices                        |
+| Review requests major rework | Pause, revisit plan with user, update before continuing   |
+| Persistent test failures     | Deep-dive analysis on failing module                      |
+| Documentation debt           | Pause and catch up if 3+ tasks without doc updates        |
 
 ## Best Practices
 

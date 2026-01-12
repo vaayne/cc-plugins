@@ -72,5 +72,6 @@ verdict:
 ```
 
 **Approval criteria:**
+
 - `approved: true` — No critical/important blockers
 - `approved: false` — Has blockers that must be fixed

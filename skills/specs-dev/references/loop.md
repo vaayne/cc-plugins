@@ -98,12 +98,12 @@ Update `plan.md` only if implementation deviated or new decisions made.
 
 ## Fix Routing
 
-| Condition | Action |
-|-----------|--------|
-| Validation failure | Implementer subagent with error output |
-| Review blockers (critical/important) | Implementer subagent with feedback |
-| Review suggestions only | Orchestrator quick-fix or defer |
-| Iteration >= 3 | Pause, ask user for guidance |
+| Condition                            | Action                                 |
+| ------------------------------------ | -------------------------------------- |
+| Validation failure                   | Implementer subagent with error output |
+| Review blockers (critical/important) | Implementer subagent with feedback     |
+| Review suggestions only              | Orchestrator quick-fix or defer        |
+| Iteration >= 3                       | Pause, ask user for guidance           |
 
 ## Commit Format
 

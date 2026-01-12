@@ -17,12 +17,12 @@ A disciplined, review-gated development workflow ensuring quality through struct
 
 ## Workflow Overview
 
-| Phase | Purpose | Exit Criteria |
-|-------|---------|---------------|
-| 1. Discovery | Understand requirements | User approves summary |
-| 2. Planning | Create reviewed plan | Plan reviewed and approved |
+| Phase             | Purpose                       | Exit Criteria                |
+| ----------------- | ----------------------------- | ---------------------------- |
+| 1. Discovery      | Understand requirements       | User approves summary        |
+| 2. Planning       | Create reviewed plan          | Plan reviewed and approved   |
 | 3. Implementation | Iterative coding with reviews | All tasks complete, reviewed |
-| 4. Completion | Final validation | Tests pass, docs updated |
+| 4. Completion     | Final validation              | Tests pass, docs updated     |
 
 ## Phase 1: Discovery
 
@@ -80,12 +80,14 @@ Quality gates: see `references/gates.md`
 ## Subagent Delegation
 
 **Reviewer** — Plan reviews, code reviews:
+
 ```
 Context: references/agents/reviewer.md
 Task: Review [plan/code] for completeness, security, performance, patterns
 ```
 
 **Worker** — Focused implementation:
+
 ```
 Context: references/agents/worker.md
 Task: Implement [objective] in [files] with [acceptance criteria]
@@ -114,12 +116,12 @@ references/
     └── tasks.md     # Tasks document template
 ```
 
-| File | When to Read |
-|------|--------------|
-| `loop.md` | Phase 3 |
-| `agents/reviewer.md` | Plan/code reviews |
-| `agents/worker.md` | Task implementation |
-| `templates/plan.md` | Phase 2 |
-| `templates/tasks.md` | Phase 2 |
-| `gates.md` | Each phase exit |
-| `help.md` | When stuck |
+| File                 | When to Read        |
+| -------------------- | ------------------- |
+| `loop.md`            | Phase 3             |
+| `agents/reviewer.md` | Plan/code reviews   |
+| `agents/worker.md`   | Task implementation |
+| `templates/plan.md`  | Phase 2             |
+| `templates/tasks.md` | Phase 2             |
+| `gates.md`           | Each phase exit     |
+| `help.md`            | When stuck          |
