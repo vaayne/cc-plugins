@@ -191,6 +191,7 @@ func createHTTPClient(headers map[string]string, timeout int) *http.Client {
 	// Create transport with custom headers
 	transport := &headerRoundTripper{
 		Base: &http.Transport{
+			Proxy:           http.ProxyFromEnvironment,
 			TLSClientConfig: tlsConfig,
 			MaxIdleConns:    10,
 			IdleConnTimeout: 90 * time.Second,
