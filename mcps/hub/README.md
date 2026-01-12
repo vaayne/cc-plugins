@@ -1,10 +1,10 @@
-# MCP Hub Go
+# Hub
 
 A Go implementation of the Model Context Protocol (MCP) hub server that aggregates multiple MCP servers and built-in tools, providing a unified interface for tool execution and management.
 
 ## Overview
 
-MCP Hub Go is a secure, production-ready hub that:
+Hub is a secure, production-ready hub that:
 
 - **Aggregates multiple MCP servers** into a single unified interface
 - **Provides built-in tools** for search, JavaScript execution, and tool management
@@ -141,13 +141,13 @@ Structured JSON logging with configurable levels:
 
 ```bash
 # Enable debug logging
-mcp-hub-go -c config.json -v
+hub -c config.json -v
 
 # Specify custom log file
-mcp-hub-go -c config.json --log-file=/var/log/mcp-hub.log
+hub -c config.json --log-file=/var/log/mcp-hub.log
 
 # Disable file logging (stdout only)
-mcp-hub-go -c config.json --log-file=""
+hub -c config.json --log-file=""
 ```
 
 Log format:
@@ -164,35 +164,53 @@ Log format:
 
 ## Installation
 
-### Option 1: Download Binary
+### Option 1: Install Script (Recommended)
 
-Download the latest release from the releases page and place it in your PATH.
+```bash
+# Install latest version
+curl -fsSL https://raw.githubusercontent.com/weliu/cc-plugins/main/mcps/hub/scripts/install.sh | sh
 
-### Option 2: Build from Source
+# Install specific version
+curl -fsSL https://raw.githubusercontent.com/weliu/cc-plugins/main/mcps/hub/scripts/install.sh | sh -s -- -v v1.0.0
+
+# Install to custom directory
+curl -fsSL https://raw.githubusercontent.com/weliu/cc-plugins/main/mcps/hub/scripts/install.sh | sh -s -- -d /usr/local/bin
+```
+
+The script automatically:
+- Detects your OS (Linux, macOS, Windows) and architecture (amd64, arm64)
+- Downloads the appropriate binary from GitHub Releases
+- Verifies SHA256 checksum
+- Installs to `~/.local/bin` (or `$XDG_BIN_HOME`)
+
+### Option 2: Download Binary
+
+Download the latest release from the [releases page](https://github.com/weliu/cc-plugins/releases?q=hub) and extract it to your PATH.
+
+Available platforms:
+- `hub_VERSION_linux_amd64.tar.gz`
+- `hub_VERSION_linux_arm64.tar.gz`
+- `hub_VERSION_darwin_amd64.tar.gz`
+- `hub_VERSION_darwin_arm64.tar.gz`
+- `hub_VERSION_windows_amd64.zip`
+- `hub_VERSION_windows_arm64.zip`
+
+### Option 3: Build from Source
 
 Requirements:
-
 - Go 1.23.0 or later
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd mcp-hub-go
+git clone https://github.com/weliu/cc-plugins.git
+cd cc-plugins/mcps/hub
 
-# Install dependencies
-go mod download
+# Build with version info
+VERSION=v1.0.0
+go build -ldflags "-X main.version=${VERSION} -X main.commit=$(git rev-parse --short HEAD) -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o hub .
 
-# Build
-go build -o mcp-hub-go cmd/mcp-hub-go/main.go
-
-# Or install to $GOPATH/bin
-go install ./cmd/mcp-hub-go
-```
-
-### Option 3: Go Get
-
-```bash
-go install github.com/your-org/mcp-hub-go/cmd/mcp-hub-go@latest
+# Or use mise
+mise run build
 ```
 
 ## Configuration
@@ -250,19 +268,19 @@ See [config.example.json](config.example.json) for a complete example.
 ### Start the Hub
 
 ```bash
-mcp-hub-go -c config.json
+hub -c config.json
 ```
 
 With verbose logging:
 
 ```bash
-mcp-hub-go -c config.json -v
+hub -c config.json -v
 ```
 
 With custom log file:
 
 ```bash
-mcp-hub-go -c config.json --log-file=/var/log/mcp-hub.log
+hub -c config.json --log-file=/var/log/mcp-hub.log
 ```
 
 ### Calling Tools
@@ -299,9 +317,9 @@ See [docs/js-authoring.md](docs/js-authoring.md) for JavaScript authoring guide.
 ### Project Structure
 
 ```
-mcp-hub-go/
+hub/
 ├── cmd/
-│   └── mcp-hub-go/          # Main entry point
+│   └── hub/          # Main entry point
 │       └── main.go
 ├── internal/
 │   ├── client/              # Remote MCP client manager
@@ -346,10 +364,10 @@ go test ./internal/js
 
 ```bash
 # Build
-go build -o mcp-hub-go cmd/mcp-hub-go/main.go
+go build -o hub cmd/hub/main.go
 
 # Run with example config
-./mcp-hub-go -c config.example.json -v
+./hub -c config.example.json -v
 ```
 
 ## Dependencies
