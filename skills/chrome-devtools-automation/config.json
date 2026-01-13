@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "chrome_devtools": {
+      "command": "bunx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}

@@ -27,17 +27,20 @@ Generate reusable skills from any MCP server using `hub` CLI.
 | Output    | No       | `./<name>/SKILL.md` | `./skills/exa-search/SKILL.md` |
 
 Notes:
+
 - `--url/-u` and `--config/-c` are mutually exclusive
 - Config mode uses the tool names returned by `hub list`, with JS-style name mapping and collision checks
 
 ### 2. Discover Tools
 
 URL mode:
+
 ```bash
 hub -u <url> -t <transport> list
 ```
 
 Config mode:
+
 ```bash
 hub -c <config> list
 ```
@@ -49,6 +52,7 @@ Read `references/skill-template.md`, fill placeholders: `{skill-name}`, `{descri
 Usage blocks:
 
 URL mode:
+
 ```
 List tools: `hub -u {url} -t {transport} list`
 Get tool details: `hub -u {url} -t {transport} inspect <tool-name>`
@@ -56,6 +60,7 @@ Invoke tool: `hub -u {url} -t {transport} invoke <tool-name> '{"param": "value"}
 ```
 
 Config mode (use local config file name):
+
 ```
 List tools: `hub -c {config-file} list`
 Get tool details: `hub -c {config-file} inspect <tool-name>`
@@ -65,12 +70,14 @@ Invoke tool: `hub -c {config-file} invoke <tool-name> '{"param": "value"}'`
 Notes blocks:
 
 URL mode:
+
 ```
 - Run `inspect` before invoking unfamiliar tools to get full parameter schema
 - Timeout: 30s default, use `--timeout <seconds>` to adjust
 ```
 
 Config mode:
+
 ```
 - Run `inspect` before invoking unfamiliar tools to get full parameter schema
 - Timeout: 30s default, use `--timeout <seconds>` to adjust
@@ -80,7 +87,7 @@ Config mode:
 
 Save to output path, create directories if needed.
 
-If input is a config file, copy it into the generated skill folder as `config.json` and set `{config-file}` in the usage block to `./config.json`.
+If input is a config file, copy it into the generated skill folder as `config.json` and set `{config-file}` in the usage block to `./config.json`, relative to the generated `SKILL.md` location.
 
 ## Naming Guidelines
 
