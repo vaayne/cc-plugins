@@ -12,8 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING**: Project renamed from `mcp-hub-go` to `hub`
 - Go module path changed from `mcp-hub-go` to `hub`
 - Binary renamed from `mcp-hub-go` to `hub`
+- **BREAKING**: Rename CLI flag `--server/-s` to `--url/-u` for remote commands
 
 ### Added
+
+- `list`, `inspect`, and `invoke` support `--config/-c` for stdio/http/sse servers
 
 - Version information embedded at build time via ldflags
 - `hub version` subcommand showing version, commit, and build date

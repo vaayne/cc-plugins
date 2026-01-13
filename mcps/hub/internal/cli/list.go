@@ -7,55 +7,85 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
 )
 
-// ListCmd is the list subcommand that lists tools from a remote MCP service
+// ListCmd is the list subcommand that lists tools from an MCP service
 var ListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List tools from a remote MCP service",
-	Long: `List all available tools from a remote MCP service.
+	Short: "List tools from an MCP service",
+	Long: `List all available tools from an MCP service.
 
-Requires --server (-s) flag to specify the remote MCP service URL.
+Provide --url (-u) for a remote MCP service, or --config (-c) to load local
+stdio/http/sse servers from config.
 
 Examples:
   # List tools from a remote server
-  hub -s http://localhost:3000 list
+  hub -u http://localhost:3000 list
 
   # List tools with JSON output
-  hub -s http://localhost:3000 list --json
+  hub -u http://localhost:3000 list --json
 
   # List tools using SSE transport
-  hub -s http://localhost:3000 -t sse list`,
+  hub -u http://localhost:3000 -t sse list
+
+  # List tools from config (stdio/http/sse)
+  hub -c config.json list`,
 	RunE: runList,
 }
 
+func init() {
+	ListCmd.Flags().StringP("config", "c", "", "path to configuration file")
+}
+
 func runList(cmd *cobra.Command, args []string) error {
-	// Check if --server is provided
-	server, _ := cmd.Flags().GetString("server")
-	if server == "" {
-		return fmt.Errorf("--server is required for list command")
+	url, _ := cmd.Flags().GetString("url")
+	configPath, _ := cmd.Flags().GetString("config")
+	if url == "" && configPath == "" {
+		return fmt.Errorf("--url or --config is required for list command")
+	}
+	if url != "" && configPath != "" {
+		return fmt.Errorf("--url and --config are mutually exclusive")
 	}
 
 	jsonOutput, _ := cmd.Flags().GetBool("json")
 
 	ctx := context.Background()
 
-	// Create remote client
-	client, err := createRemoteClient(ctx, cmd)
-	if err != nil {
-		return err
-	}
-	defer client.Close()
+	var tools []*mcp.Tool
+	var mapper *ToolNameMapper
 
-	// List tools
-	tools, err := client.ListTools(ctx)
-	if err != nil {
-		return err
-	}
+	if configPath != "" {
+		client, err := createConfigClient(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
 
-	// Create name mapper for consistent JS method names
-	mapper := NewToolNameMapper(tools)
+		tools, err = client.ListTools(ctx)
+		if err != nil {
+			return err
+		}
+
+		mapper, err = NewToolNameMapperWithCollisionCheck(tools)
+		if err != nil {
+			return err
+		}
+	} else {
+		client, err := createRemoteClient(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
+
+		tools, err = client.ListTools(ctx)
+		if err != nil {
+			return err
+		}
+
+		mapper = NewToolNameMapper(tools)
+	}
 
 	// Sort tools by JS name for consistent output
 	sort.Slice(tools, func(i, j int) bool {
