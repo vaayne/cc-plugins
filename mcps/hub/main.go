@@ -40,7 +40,7 @@ var versionCmd = &cobra.Command{
 
 func init() {
 	// Global flags (PersistentFlags) - shared across all subcommands
-	rootCmd.PersistentFlags().StringP("server", "s", "", "remote MCP service URL")
+	rootCmd.PersistentFlags().StringP("url", "u", "", "remote MCP service URL")
 	rootCmd.PersistentFlags().StringP("transport", "t", "", "transport type (http/sse for remote; stdio/http/sse for serve)")
 	rootCmd.PersistentFlags().Int("timeout", 30, "connection timeout in seconds")
 	rootCmd.PersistentFlags().StringArray("header", []string{}, "HTTP headers (repeatable, format: \"Key: Value\")")
@@ -60,8 +60,8 @@ func init() {
 }
 
 func validateGlobalFlags(cmd *cobra.Command, args []string) error {
-	// Get the server flag
-	server, _ := cmd.Flags().GetString("server")
+	// Get the url flag
+	url, _ := cmd.Flags().GetString("url")
 	transport, _ := cmd.Flags().GetString("transport")
 	timeout, _ := cmd.Flags().GetInt("timeout")
 
@@ -70,14 +70,14 @@ func validateGlobalFlags(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("timeout must be positive, got: %d", timeout)
 	}
 
-	// When -s/--server is provided (remote commands), transport must be http or sse
-	if server != "" {
+	// When -u/--url is provided (remote commands), transport must be http or sse
+	if url != "" {
 		// Default to http for remote commands when transport not specified
 		if transport == "" {
 			transport = "http"
 		}
 		if transport != "http" && transport != "sse" {
-			return fmt.Errorf("invalid transport type for remote server: %s (must be http or sse)", transport)
+			return fmt.Errorf("invalid transport type for remote url: %s (must be http or sse)", transport)
 		}
 	}
 

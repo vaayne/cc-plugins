@@ -2,7 +2,9 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"strings"
+	"time"
 	"unicode"
 
 	"hub/internal/logging"
@@ -15,7 +17,7 @@ import (
 
 // createRemoteClient creates a RemoteClient from command flags
 func createRemoteClient(ctx context.Context, cmd *cobra.Command) (*RemoteClient, error) {
-	server, _ := cmd.Flags().GetString("server")
+	url, _ := cmd.Flags().GetString("url")
 	transport, _ := cmd.Flags().GetString("transport")
 	timeout, _ := cmd.Flags().GetInt("timeout")
 	headers, _ := cmd.Flags().GetStringArray("header")
@@ -42,7 +44,7 @@ func createRemoteClient(ctx context.Context, cmd *cobra.Command) (*RemoteClient,
 	}
 
 	opts := RemoteClientOpts{
-		ServerURL: server,
+		ServerURL: url,
 		Transport: transport,
 		Headers:   parseHeaders(headers),
 		Timeout:   timeout,
@@ -50,6 +52,14 @@ func createRemoteClient(ctx context.Context, cmd *cobra.Command) (*RemoteClient,
 	}
 
 	return NewRemoteClient(ctx, opts)
+}
+
+func createConfigClient(ctx context.Context, cmd *cobra.Command) (*ConfigClient, error) {
+	configPath, _ := cmd.Flags().GetString("config")
+	timeout, _ := cmd.Flags().GetInt("timeout")
+	logger := getLogger(cmd)
+
+	return NewConfigClient(ctx, configPath, logger, time.Duration(timeout)*time.Second)
 }
 
 // parseHeaders parses headers from []string in format "Key: Value" into map[string]string.
@@ -108,6 +118,27 @@ func NewToolNameMapper(tools []*mcp.Tool) *ToolNameMapper {
 	return m
 }
 
+func NewToolNameMapperWithCollisionCheck(tools []*mcp.Tool) (*ToolNameMapper, error) {
+	collisions := make(map[string][]string)
+	for _, tool := range tools {
+		jsName := toJSMethodName(tool.Name)
+		collisions[jsName] = append(collisions[jsName], tool.Name)
+	}
+
+	var parts []string
+	for jsName, originals := range collisions {
+		if len(originals) > 1 {
+			parts = append(parts, fmt.Sprintf("%s: %s", jsName, strings.Join(originals, ", ")))
+		}
+	}
+
+	if len(parts) > 0 {
+		return nil, fmt.Errorf("tool name mapping collision: %s", strings.Join(parts, "; "))
+	}
+
+	return NewToolNameMapper(tools), nil
+}
+
 // ToJSName converts an original tool name to its JS method name
 func (m *ToolNameMapper) ToJSName(original string) string {
 	if jsName, ok := m.toJS[original]; ok {
@@ -123,6 +154,13 @@ func (m *ToolNameMapper) ToOriginal(jsName string) string {
 		return original
 	}
 	return jsName
+}
+
+func ensureNamespacedToolName(name string) error {
+	if !strings.Contains(name, "__") {
+		return fmt.Errorf("tool name must include server prefix (server__tool) when using --config")
+	}
+	return nil
 }
 
 // toJSMethodName converts a tool name to a valid JS method name (camelCase)

@@ -12,13 +12,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// InvokeCmd is the invoke subcommand that invokes a tool on a remote MCP service
+// InvokeCmd is the invoke subcommand that invokes a tool on an MCP service
 var InvokeCmd = &cobra.Command{
 	Use:   "invoke <tool-name> [params-json | -]",
-	Short: "Invoke a tool on a remote MCP service",
-	Long: `Invoke a tool on a remote MCP service with optional JSON parameters.
+	Short: "Invoke a tool on an MCP service",
+	Long: `Invoke a tool on an MCP service with optional JSON parameters.
 
-Requires --server (-s) flag to specify the remote MCP service URL.
+Provide --url (-u) for a remote MCP service, or --config (-c) to load local
+stdio/http/sse servers from config.
 Takes tool name as a required positional argument.
 Parameters can be provided as:
   - A JSON string argument
@@ -27,25 +28,35 @@ Parameters can be provided as:
 
 Examples:
   # Invoke a tool with no parameters
-  hub -s http://localhost:3000 invoke my-tool
+  hub -u http://localhost:3000 invoke my-tool
 
   # Invoke a tool with JSON parameters
-  hub -s http://localhost:3000 invoke my-tool '{"key": "value"}'
+  hub -u http://localhost:3000 invoke my-tool '{"key": "value"}'
 
   # Invoke a tool with parameters from stdin
-  echo '{"key": "value"}' | hub -s http://localhost:3000 invoke my-tool -
+  echo '{"key": "value"}' | hub -u http://localhost:3000 invoke my-tool -
 
   # Invoke a tool with JSON output
-  hub -s http://localhost:3000 invoke my-tool '{"key": "value"}' --json`,
+  hub -u http://localhost:3000 invoke my-tool '{"key": "value"}' --json
+
+  # Invoke a tool from config (stdio/http/sse)
+  hub -c config.json invoke github__search_repos '{"query": "mcp"}'`,
 	Args: cobra.RangeArgs(1, 2),
 	RunE: runInvoke,
 }
 
+func init() {
+	InvokeCmd.Flags().StringP("config", "c", "", "path to configuration file")
+}
+
 func runInvoke(cmd *cobra.Command, args []string) error {
-	// Check if --server is provided
-	server, _ := cmd.Flags().GetString("server")
-	if server == "" {
-		return fmt.Errorf("--server is required for invoke command")
+	url, _ := cmd.Flags().GetString("url")
+	configPath, _ := cmd.Flags().GetString("config")
+	if url == "" && configPath == "" {
+		return fmt.Errorf("--url or --config is required for invoke command")
+	}
+	if url != "" && configPath != "" {
+		return fmt.Errorf("--url and --config are mutually exclusive")
 	}
 
 	toolName := args[0]
@@ -85,25 +96,50 @@ func runInvoke(cmd *cobra.Command, args []string) error {
 
 	ctx := context.Background()
 
-	// Create remote client
-	client, err := createRemoteClient(ctx, cmd)
-	if err != nil {
-		return err
-	}
-	defer client.Close()
+	var result *mcp.CallToolResult
 
-	// Build name mapper to resolve JS name to original
-	tools, err := client.ListTools(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to list tools: %w", err)
-	}
-	mapper := NewToolNameMapper(tools)
-	originalName := mapper.ToOriginal(toolName)
+	if configPath != "" {
+		client, err := createConfigClient(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
 
-	// Call tool using original name
-	result, err := client.CallTool(ctx, originalName, params)
-	if err != nil {
-		return err
+		tools, err := client.ListTools(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to list tools: %w", err)
+		}
+		mapper, err := NewToolNameMapperWithCollisionCheck(tools)
+		if err != nil {
+			return err
+		}
+		originalName := mapper.ToOriginal(toolName)
+		if err := ensureNamespacedToolName(originalName); err != nil {
+			return err
+		}
+
+		result, err = client.CallTool(ctx, originalName, params)
+		if err != nil {
+			return err
+		}
+	} else {
+		client, err := createRemoteClient(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
+
+		tools, err := client.ListTools(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to list tools: %w", err)
+		}
+		mapper := NewToolNameMapper(tools)
+		originalName := mapper.ToOriginal(toolName)
+
+		result, err = client.CallTool(ctx, originalName, params)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Output

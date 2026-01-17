@@ -46,6 +46,12 @@
       "description": "Search the web using Exa AI for real-time information retrieval. Use when users ask to search online, find current information, look up recent events, or need data beyond knowledge cutoff.",
       "source": "./skills/web-search",
       "category": "utility"
+    },
+    {
+      "name": "chrome-devtools-automation",
+      "description": "Automate Chrome DevTools browser actions like navigation, forms, screenshots, and performance traces. Use when users need browser automation or page inspection.",
+      "source": "./skills/chrome-devtools-automation",
+      "category": "development"
     }
   ]
 }

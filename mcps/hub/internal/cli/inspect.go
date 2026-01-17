@@ -5,36 +5,48 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
 )
 
 // InspectCmd is the inspect subcommand that shows details of a specific tool
 var InspectCmd = &cobra.Command{
 	Use:   "inspect <tool-name>",
-	Short: "Inspect a tool from a remote MCP service",
-	Long: `Show detailed information about a specific tool from a remote MCP service.
+	Short: "Inspect a tool from an MCP service",
+	Long: `Show detailed information about a specific tool from an MCP service.
 
-Requires --server (-s) flag to specify the remote MCP service URL.
+Provide --url (-u) for a remote MCP service, or --config (-c) to load local
+stdio/http/sse servers from config.
 Takes tool name as a required positional argument.
 
 Examples:
   # Inspect a tool
-  hub -s http://localhost:3000 inspect my-tool
+  hub -u http://localhost:3000 inspect my-tool
 
   # Inspect a tool with JSON output
-  hub -s http://localhost:3000 inspect my-tool --json
+  hub -u http://localhost:3000 inspect my-tool --json
 
   # Inspect a tool using SSE transport
-  hub -s http://localhost:3000 -t sse inspect my-tool`,
+  hub -u http://localhost:3000 -t sse inspect my-tool
+
+  # Inspect a tool from config (stdio/http/sse)
+  hub -c config.json inspect github__search_repos`,
 	Args: cobra.ExactArgs(1),
 	RunE: runInspect,
 }
 
+func init() {
+	InspectCmd.Flags().StringP("config", "c", "", "path to configuration file")
+}
+
 func runInspect(cmd *cobra.Command, args []string) error {
-	// Check if --server is provided
-	server, _ := cmd.Flags().GetString("server")
-	if server == "" {
-		return fmt.Errorf("--server is required for inspect command")
+	url, _ := cmd.Flags().GetString("url")
+	configPath, _ := cmd.Flags().GetString("config")
+	if url == "" && configPath == "" {
+		return fmt.Errorf("--url or --config is required for inspect command")
+	}
+	if url != "" && configPath != "" {
+		return fmt.Errorf("--url and --config are mutually exclusive")
 	}
 
 	toolName := args[0]
@@ -42,25 +54,51 @@ func runInspect(cmd *cobra.Command, args []string) error {
 
 	ctx := context.Background()
 
-	// Create remote client
-	client, err := createRemoteClient(ctx, cmd)
-	if err != nil {
-		return err
-	}
-	defer client.Close()
+	var tool *mcp.Tool
+	var mapper *ToolNameMapper
 
-	// Build name mapper to resolve JS name to original
-	tools, err := client.ListTools(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to list tools: %w", err)
-	}
-	mapper := NewToolNameMapper(tools)
-	originalName := mapper.ToOriginal(toolName)
+	if configPath != "" {
+		client, err := createConfigClient(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
 
-	// Get tool using original name
-	tool, err := client.GetTool(ctx, originalName)
-	if err != nil {
-		return err // Error message from RemoteClient is already user-friendly
+		tools, err := client.ListTools(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to list tools: %w", err)
+		}
+		mapper, err = NewToolNameMapperWithCollisionCheck(tools)
+		if err != nil {
+			return err
+		}
+		originalName := mapper.ToOriginal(toolName)
+		if err := ensureNamespacedToolName(originalName); err != nil {
+			return err
+		}
+
+		tool, err = client.GetTool(ctx, originalName)
+		if err != nil {
+			return err
+		}
+	} else {
+		client, err := createRemoteClient(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
+
+		tools, err := client.ListTools(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to list tools: %w", err)
+		}
+		mapper = NewToolNameMapper(tools)
+		originalName := mapper.ToOriginal(toolName)
+
+		tool, err = client.GetTool(ctx, originalName)
+		if err != nil {
+			return err // Error message from RemoteClient is already user-friendly
+		}
 	}
 
 	// Get JS name for display

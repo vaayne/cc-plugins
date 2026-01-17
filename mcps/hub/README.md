@@ -286,6 +286,29 @@ With custom log file:
 hub -c config.json --log-file=/var/log/mcp-hub.log
 ```
 
+### CLI Commands
+
+Use `list`, `inspect`, and `invoke` to interact with MCP services without
+starting the hub server. Provide `--url` for remote HTTP/SSE services, or
+`--config` to load local stdio/http/sse servers.
+
+```bash
+# List tools from a remote MCP service
+hub -u http://localhost:3000 list
+
+# List tools from config
+hub -c config.json list
+
+# Inspect a tool from config (namespaced)
+hub -c config.json inspect github__search_repos
+
+# Invoke a tool from config
+hub -c config.json invoke github__search_repos '{"query": "mcp"}'
+```
+
+The CLI prints JS-style tool names; you can use those names directly with
+`inspect` and `invoke`.
+
 ### Calling Tools
 
 Once running, the hub exposes all tools via the MCP protocol on stdio. Use an MCP client to call tools:
