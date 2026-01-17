@@ -1,5 +1,5 @@
 [tools]
-"ubi:goreleaser/goreleaser" = "2.5.0"
+"ubi:goreleaser/goreleaser" = "2.13.3"
 
 [tasks.format]
 description = "Format code"
