@@ -39,6 +39,9 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
+	// Set version for update command
+	cli.CurrentVersion = version
+
 	// Global flags (PersistentFlags) - shared across all subcommands
 	rootCmd.PersistentFlags().StringP("url", "u", "", "remote MCP service URL")
 	rootCmd.PersistentFlags().StringP("transport", "t", "", "transport type (http/sse for remote; stdio/http/sse for serve)")
@@ -53,6 +56,7 @@ func init() {
 	rootCmd.AddCommand(cli.ListCmd)
 	rootCmd.AddCommand(cli.InspectCmd)
 	rootCmd.AddCommand(cli.InvokeCmd)
+	rootCmd.AddCommand(cli.UpdateCmd)
 	rootCmd.AddCommand(versionCmd)
 
 	// Set version template
