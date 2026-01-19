@@ -18,8 +18,8 @@ var InvokeCmd = &cobra.Command{
 	Short: "Invoke a tool on an MCP service",
 	Long: `Invoke a tool on an MCP service with optional JSON parameters.
 
-Provide --url (-u) for a remote MCP service, or --config (-c) to load local
-stdio/http/sse servers from config.
+Provide --url (-u) for a remote MCP service, --config (-c) to load local
+stdio/http/sse servers from config, or --stdio to spawn a subprocess.
 Takes tool name as a required positional argument.
 Parameters can be provided as:
   - A JSON string argument
@@ -40,8 +40,18 @@ Examples:
   hub -u http://localhost:3000 invoke my-tool '{"key": "value"}' --json
 
   # Invoke a tool from config (stdio/http/sse)
-  hub -c config.json invoke github__search_repos '{"query": "mcp"}'`,
-	Args: cobra.RangeArgs(1, 2),
+  hub -c config.json invoke github__search_repos '{"query": "mcp"}'
+
+  # Invoke a tool from a stdio MCP server
+  hub --stdio invoke echo '{"message": "hello"}' -- npx @modelcontextprotocol/server-everything`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		// Filter out args after "--" (used for stdio command)
+		filteredArgs := filterArgsBeforeDash(args)
+		if len(filteredArgs) < 1 || len(filteredArgs) > 2 {
+			return fmt.Errorf("accepts between 1 and 2 arg(s), received %d", len(filteredArgs))
+		}
+		return nil
+	},
 	RunE: runInvoke,
 }
 
@@ -52,20 +62,36 @@ func init() {
 func runInvoke(cmd *cobra.Command, args []string) error {
 	url, _ := cmd.Flags().GetString("url")
 	configPath, _ := cmd.Flags().GetString("config")
-	if url == "" && configPath == "" {
-		return fmt.Errorf("--url or --config is required for invoke command")
+	stdio, _ := cmd.Flags().GetBool("stdio")
+
+	// Count how many modes are specified
+	modeCount := 0
+	if url != "" {
+		modeCount++
 	}
-	if url != "" && configPath != "" {
-		return fmt.Errorf("--url and --config are mutually exclusive")
+	if configPath != "" {
+		modeCount++
+	}
+	if stdio {
+		modeCount++
 	}
 
-	toolName := args[0]
+	if modeCount == 0 {
+		return fmt.Errorf("--url, --config, or --stdio is required for invoke command")
+	}
+	if modeCount > 1 {
+		return fmt.Errorf("--url, --config, and --stdio are mutually exclusive")
+	}
+
+	// Filter args to get only those before "--"
+	filteredArgs := filterArgsBeforeDash(args)
+	toolName := filteredArgs[0]
 	jsonOutput, _ := cmd.Flags().GetBool("json")
 
 	// Parse parameters
 	var params json.RawMessage
-	if len(args) > 1 {
-		paramsArg := args[1]
+	if len(filteredArgs) > 1 {
+		paramsArg := filteredArgs[1]
 		if paramsArg == "-" {
 			// Check if stdin is a TTY (would hang waiting for input)
 			stat, _ := os.Stdin.Stat()
@@ -117,6 +143,24 @@ func runInvoke(cmd *cobra.Command, args []string) error {
 		if err := ensureNamespacedToolName(originalName); err != nil {
 			return err
 		}
+
+		result, err = client.CallTool(ctx, originalName, params)
+		if err != nil {
+			return err
+		}
+	} else if stdio {
+		client, err := createStdioClientFromCmd(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
+
+		tools, err := client.ListTools(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to list tools: %w", err)
+		}
+		mapper := NewToolNameMapper(tools)
+		originalName := mapper.ToOriginal(toolName)
 
 		result, err = client.CallTool(ctx, originalName, params)
 		if err != nil {

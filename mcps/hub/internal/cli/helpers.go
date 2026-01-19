@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 	"unicode"
@@ -200,4 +201,59 @@ func toJSMethodName(name string) string {
 	}
 
 	return result.String()
+}
+
+// getStdioCommand extracts the stdio command from os.Args after the "--" separator.
+// Returns the command slice and an error if --stdio is used without a command.
+func getStdioCommand() ([]string, error) {
+	args := os.Args
+	for i, arg := range args {
+		if arg == "--" {
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--stdio requires a command after --")
+			}
+			return args[i+1:], nil
+		}
+	}
+	return nil, fmt.Errorf("--stdio requires -- followed by a command (e.g., hub --stdio list -- npx @mcp/server)")
+}
+
+// getStdioCommandLength returns the number of args that belong to the stdio command
+// (everything after "--" in os.Args). Returns 0 if no "--" is found.
+func getStdioCommandLength() int {
+	for i, arg := range os.Args {
+		if arg == "--" {
+			return len(os.Args) - i - 1
+		}
+	}
+	return 0
+}
+
+// filterArgsBeforeDash returns only the args that come before "--" separator.
+// Since Cobra strips "--" from the args it passes to commands, we need to
+// calculate how many args belong to the stdio command and exclude them.
+func filterArgsBeforeDash(args []string) []string {
+	stdioLen := getStdioCommandLength()
+	if stdioLen == 0 {
+		return args
+	}
+	// Remove the last stdioLen args (they belong to stdio command)
+	if stdioLen >= len(args) {
+		return []string{}
+	}
+	return args[:len(args)-stdioLen]
+}
+
+// createStdioClientFromCmd creates a StdioClient using command flags and the stdio command from os.Args
+func createStdioClientFromCmd(ctx context.Context, cmd *cobra.Command) (*StdioClient, error) {
+	timeout, _ := cmd.Flags().GetInt("timeout")
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	logFile, _ := cmd.Flags().GetString("log-file")
+
+	stdioCmd, err := getStdioCommand()
+	if err != nil {
+		return nil, err
+	}
+
+	return createStdioClient(ctx, stdioCmd, timeout, verbose, logFile)
 }

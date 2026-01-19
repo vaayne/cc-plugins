@@ -17,8 +17,8 @@ var ListCmd = &cobra.Command{
 	Short: "List tools from an MCP service",
 	Long: `List all available tools from an MCP service.
 
-Provide --url (-u) for a remote MCP service, or --config (-c) to load local
-stdio/http/sse servers from config.
+Provide --url (-u) for a remote MCP service, --config (-c) to load local
+stdio/http/sse servers from config, or --stdio to spawn a subprocess.
 
 Examples:
   # List tools from a remote server
@@ -31,7 +31,10 @@ Examples:
   hub -u http://localhost:3000 -t sse list
 
   # List tools from config (stdio/http/sse)
-  hub -c config.json list`,
+  hub -c config.json list
+
+  # List tools from a stdio MCP server
+  hub --stdio list -- npx @modelcontextprotocol/server-everything`,
 	RunE: runList,
 }
 
@@ -42,11 +45,25 @@ func init() {
 func runList(cmd *cobra.Command, args []string) error {
 	url, _ := cmd.Flags().GetString("url")
 	configPath, _ := cmd.Flags().GetString("config")
-	if url == "" && configPath == "" {
-		return fmt.Errorf("--url or --config is required for list command")
+	stdio, _ := cmd.Flags().GetBool("stdio")
+
+	// Count how many modes are specified
+	modeCount := 0
+	if url != "" {
+		modeCount++
 	}
-	if url != "" && configPath != "" {
-		return fmt.Errorf("--url and --config are mutually exclusive")
+	if configPath != "" {
+		modeCount++
+	}
+	if stdio {
+		modeCount++
+	}
+
+	if modeCount == 0 {
+		return fmt.Errorf("--url, --config, or --stdio is required for list command")
+	}
+	if modeCount > 1 {
+		return fmt.Errorf("--url, --config, and --stdio are mutually exclusive")
 	}
 
 	jsonOutput, _ := cmd.Flags().GetBool("json")
@@ -72,6 +89,19 @@ func runList(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+	} else if stdio {
+		client, err := createStdioClientFromCmd(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
+
+		tools, err = client.ListTools(ctx)
+		if err != nil {
+			return err
+		}
+
+		mapper = NewToolNameMapper(tools)
 	} else {
 		client, err := createRemoteClient(ctx, cmd)
 		if err != nil {
