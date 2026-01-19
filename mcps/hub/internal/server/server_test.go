@@ -49,7 +49,7 @@ func TestRegisterBuiltinTools(t *testing.T) {
 
 	// Verify all built-in tools are registered
 	allTools := server.builtinRegistry.GetAllTools()
-	assert.Len(t, allTools, 3)
+	assert.Len(t, allTools, 4)
 
 	// Verify list tool
 	listTool, exists := server.builtinRegistry.GetTool("list")
@@ -64,6 +64,13 @@ func TestRegisterBuiltinTools(t *testing.T) {
 	assert.Equal(t, "inspect", inspectTool.Name)
 	assert.Contains(t, inspectTool.Description, "Inspect a specific MCP tool")
 	assert.NotNil(t, inspectTool.InputSchema)
+
+	// Verify invoke tool
+	invokeTool, exists := server.builtinRegistry.GetTool("invoke")
+	assert.True(t, exists)
+	assert.Equal(t, "invoke", invokeTool.Name)
+	assert.Contains(t, invokeTool.Description, "Invoke a single MCP tool")
+	assert.NotNil(t, invokeTool.InputSchema)
 
 	// Verify exec tool
 	execTool, exists := server.builtinRegistry.GetTool("exec")

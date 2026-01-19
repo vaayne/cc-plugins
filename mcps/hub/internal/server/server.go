@@ -211,6 +211,27 @@ func (s *Server) registerBuiltinTools() {
 		},
 	})
 
+	// Register invoke tool
+	s.builtinRegistry.RegisterTool(config.BuiltinTool{
+		Name:        "invoke",
+		Description: tools.InvokeDescription,
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"name": map[string]any{
+					"type":        "string",
+					"description": "Namespaced tool name (serverID__toolName)",
+					"maxLength":   500,
+				},
+				"params": map[string]any{
+					"type":        "object",
+					"description": "Optional parameters to pass to the tool",
+				},
+			},
+			"required": []string{"name"},
+		},
+	})
+
 	// Register exec tool
 	s.builtinRegistry.RegisterTool(config.BuiltinTool{
 		Name:        "exec",
@@ -318,6 +339,8 @@ func (s *Server) handleBuiltinTool(ctx context.Context, toolName string, req *mc
 		return tools.HandleListTool(callCtx, s.clientManager, req)
 	case "inspect":
 		return tools.HandleInspectTool(callCtx, s.clientManager, req)
+	case "invoke":
+		return tools.HandleInvokeTool(callCtx, s.clientManager, req)
 	case "exec":
 		return tools.HandleExecuteTool(callCtx, s.logger, s.clientManager, req)
 	default:

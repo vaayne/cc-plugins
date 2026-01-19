@@ -104,9 +104,10 @@ func TestIntegration_MultipleTools(t *testing.T) {
 
 	// Verify built-in tools are registered
 	builtinTools := server.builtinRegistry.GetAllTools()
-	assert.Len(t, builtinTools, 3)
+	assert.Len(t, builtinTools, 4)
 	assert.Contains(t, builtinTools, "list")
 	assert.Contains(t, builtinTools, "inspect")
+	assert.Contains(t, builtinTools, "invoke")
 	assert.Contains(t, builtinTools, "exec")
 
 	// Test that mock server has tools registered
