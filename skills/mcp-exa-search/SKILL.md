@@ -1,5 +1,5 @@
 ---
-name: exa-search
+name: mcp-exa-search
 description: Search the web and code context via Exa. Use when you need Exa web search, Exa code context, or Exa MCP tools. Triggers on "Exa", "web search", "search the web", "code context", "mcp exa".
 ---
 

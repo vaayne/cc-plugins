@@ -1,5 +1,5 @@
 ---
-name: grep-code-search
+name: mcp-grep-code-search
 description: Search real-world code examples from millions of GitHub repositories using literal patterns. Use when users need to find implementation examples, API usage patterns, or production code snippets. Triggers on "search code for", "find code examples", "how do developers use", "show me real examples of", "grep code".
 ---
 

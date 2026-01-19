@@ -1,5 +1,5 @@
 ---
-name: chrome-devtools-automation
+name: mcp-chrome-devtools-automation
 description: Automate Chrome DevTools browser actions like navigation, forms, screenshots, and performance traces. Use when users need browser automation or page inspection. Triggers on "Chrome DevTools", "take a screenshot", "fill out the form", "performance trace", "click on".
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: jetbrains-ide
+name: mcp-jetbrains-ide
 description: Control JetBrains IDE programmatically for file operations, code analysis, refactoring, and terminal execution. Use when users want to interact with IntelliJ/WebStorm/PyCharm, run configurations, refactor code, or analyze files. Triggers on "open file in IDE", "run configuration", "refactor", "find files in project", "IDE terminal".
 ---
 

@@ -34,7 +34,7 @@ mkdir -p ~/.pi/agent/agents
 for agent in ./agents/*.md; do
   if [ -e "$agent" ]; then
     agent_name=$(basename "$agent")
-    ln -sfn "$(pwd)/pi/agents/$agent_name" ~/.pi/agent/agents/"$agent_name"
+    ln -sfn "$(pwd)/agents/$agent_name" ~/.pi/agent/agents/"$agent_name"
     echo "Linked: $agent_name -> ~/.pi/agent/agents/$agent_name"
   fi
 done
