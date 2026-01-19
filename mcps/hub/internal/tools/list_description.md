@@ -4,9 +4,9 @@ Use this tool when you want the **full tool signature** (name, description, and 
 
 ## When To Use
 
-- After picking a tool from **Avaliable Tools**, call `list` to get full JSDoc + parameter details.
+- After picking a tool from **Available Tools**, call `list` to get full JSDoc + parameter details.
 - Call `list` once to get **multiple tools** at the same time (it returns a combined set of stubs). Use `server` / `query` to fetch the batch you need.
-- If tools may have changed, call `refreshTools` first, then `list`.
+- Use `inspect` to get detailed schema for a single specific tool.
 
 ## Usage
 

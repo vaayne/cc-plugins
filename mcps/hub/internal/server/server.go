@@ -194,6 +194,23 @@ func (s *Server) registerBuiltinTools() {
 		InputSchema: listSchema,
 	})
 
+	// Register inspect tool
+	s.builtinRegistry.RegisterTool(config.BuiltinTool{
+		Name:        "inspect",
+		Description: tools.InspectDescription,
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"name": map[string]any{
+					"type":        "string",
+					"description": "Namespaced tool name (serverID__toolName)",
+					"maxLength":   500,
+				},
+			},
+			"required": []string{"name"},
+		},
+	})
+
 	// Register exec tool
 	s.builtinRegistry.RegisterTool(config.BuiltinTool{
 		Name:        "exec",
@@ -208,24 +225,6 @@ func (s *Server) registerBuiltinTools() {
 				},
 			},
 			"required": []string{"code"},
-		},
-	})
-
-	// Register refreshTools tool
-	s.builtinRegistry.RegisterTool(config.BuiltinTool{
-		Name:        "refreshTools",
-		Description: tools.RefreshDescription,
-		InputSchema: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"serverIds": map[string]any{
-					"type": "array",
-					"items": map[string]any{
-						"type": "string",
-					},
-					"description": "Optional list of server IDs to refresh. If not provided, refreshes all connected servers.",
-				},
-			},
 		},
 	})
 }
@@ -317,32 +316,13 @@ func (s *Server) handleBuiltinTool(ctx context.Context, toolName string, req *mc
 	switch toolName {
 	case "list":
 		return tools.HandleListTool(callCtx, s.clientManager, req)
+	case "inspect":
+		return tools.HandleInspectTool(callCtx, s.clientManager, req)
 	case "exec":
 		return tools.HandleExecuteTool(callCtx, s.logger, s.clientManager, req)
-	case "refreshTools":
-		result, err := tools.HandleRefreshToolsTool(callCtx, s.clientManager, req)
-		if err != nil {
-			return nil, err
-		}
-		// Update the list tool description to reflect refreshed tool metadata.
-		s.updateListToolDescription()
-		return result, nil
 	default:
 		return nil, fmt.Errorf("unknown built-in tool: %s", toolName)
 	}
 }
 
-func (s *Server) updateListToolDescription() {
-	listTool, ok := s.builtinRegistry.GetTool("list")
-	if !ok || s.mcpServer == nil || s.clientManager == nil {
-		return
-	}
 
-	s.mcpServer.AddTool(&mcp.Tool{
-		Name:        "list",
-		Description: tools.RenderListDescription(listTool.Description, s.clientManager.GetAllTools()),
-		InputSchema: listTool.InputSchema,
-	}, func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		return s.handleBuiltinTool(ctx, "list", req)
-	})
-}

@@ -422,45 +422,4 @@ func (m *Manager) DetectNameCollisions() map[string][]string {
 	return collisions
 }
 
-// RefreshTools reloads tool manifests from a specific server
-func (m *Manager) RefreshTools(serverID string) error {
-	m.mu.RLock()
-	info, ok := m.clients[serverID]
-	m.mu.RUnlock()
 
-	if !ok {
-		return fmt.Errorf("server not found: %s", serverID)
-	}
-
-	info.mu.RLock()
-	session := info.session
-	info.mu.RUnlock()
-
-	if session == nil {
-		return fmt.Errorf("server not connected: %s", serverID)
-	}
-
-	// List tools with timeout
-	ctx, cancel := context.WithTimeout(m.ctx, m.timeout)
-	defer cancel()
-
-	toolsResult, err := session.ListTools(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("failed to list tools: %w", err)
-	}
-
-	// Update tools
-	info.mu.Lock()
-	info.tools = make(map[string]*mcp.Tool)
-	for _, tool := range toolsResult.Tools {
-		info.tools[tool.Name] = tool
-	}
-	info.mu.Unlock()
-
-	m.logger.Info("Refreshed tools",
-		zap.String("serverID", serverID),
-		zap.Int("toolCount", len(toolsResult.Tools)),
-	)
-
-	return nil
-}

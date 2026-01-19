@@ -58,19 +58,19 @@ func TestRegisterBuiltinTools(t *testing.T) {
 	assert.Contains(t, listTool.Description, "List MCP tools")
 	assert.NotNil(t, listTool.InputSchema)
 
+	// Verify inspect tool
+	inspectTool, exists := server.builtinRegistry.GetTool("inspect")
+	assert.True(t, exists)
+	assert.Equal(t, "inspect", inspectTool.Name)
+	assert.Contains(t, inspectTool.Description, "Inspect a specific MCP tool")
+	assert.NotNil(t, inspectTool.InputSchema)
+
 	// Verify exec tool
 	execTool, exists := server.builtinRegistry.GetTool("exec")
 	assert.True(t, exists)
 	assert.Equal(t, "exec", execTool.Name)
 	assert.Contains(t, execTool.Description, "Execute JavaScript code")
 	assert.NotNil(t, execTool.InputSchema)
-
-	// Verify refreshTools tool
-	refreshTool, exists := server.builtinRegistry.GetTool("refreshTools")
-	assert.True(t, exists)
-	assert.Equal(t, "refreshTools", refreshTool.Name)
-	assert.Contains(t, refreshTool.Description, "Refresh tool lists")
-	assert.NotNil(t, refreshTool.InputSchema)
 }
 
 // TestConnectToRemoteServers_EmptyConfig verifies handling of empty config
@@ -233,8 +233,8 @@ func TestHandleBuiltinTool_Exec(t *testing.T) {
 	assert.Len(t, result.Content, 1)
 }
 
-// TestHandleBuiltinTool_RefreshTools verifies refreshTools routing
-func TestHandleBuiltinTool_RefreshTools(t *testing.T) {
+// TestHandleBuiltinTool_Inspect verifies inspect tool routing
+func TestHandleBuiltinTool_Inspect(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	cfg := &config.Config{
 		MCPServers: make(map[string]config.MCPServer),
@@ -247,22 +247,23 @@ func TestHandleBuiltinTool_RefreshTools(t *testing.T) {
 
 	server.registerBuiltinTools()
 
-	// Create request
-	args := map[string]any{}
+	// Create request for non-existent tool (should return error)
+	args := map[string]any{
+		"name": "server__nonexistent",
+	}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
 
 	req := &mcp.CallToolRequest{
 		Params: &mcp.CallToolParamsRaw{
-			Name:      "refreshTools",
+			Name:      "inspect",
 			Arguments: argsJSON,
 		},
 	}
 
-	result, err := server.handleBuiltinTool(context.Background(), "refreshTools", req)
-	require.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Len(t, result.Content, 1)
+	_, err = server.handleBuiltinTool(context.Background(), "inspect", req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "tool not found")
 }
 
 // TestHandleBuiltinTool_UnknownTool verifies error on unknown tool

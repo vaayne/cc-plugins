@@ -431,45 +431,6 @@ func TestDetectNameCollisions_NoCollisions(t *testing.T) {
 	assert.Empty(t, collisions)
 }
 
-// TestRefreshTools_ServerNotFound verifies error handling
-func TestRefreshTools_ServerNotFound(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := NewManager(logger)
-	defer manager.DisconnectAll()
-
-	err := manager.RefreshTools("nonexistent-server")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "server not found")
-}
-
-// TestRefreshTools_NotConnected verifies error when not connected
-func TestRefreshTools_NotConnected(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := NewManager(logger)
-	defer manager.DisconnectAll()
-
-	// Add client info without session
-	_, cancel := context.WithCancel(manager.ctx)
-	defer cancel()
-
-	info := &clientInfo{
-		serverID:      "test-server",
-		session:       nil, // No session
-		tools:         make(map[string]*mcp.Tool),
-		backoff:       initialBackoff,
-		lastConnected: time.Now(),
-		cancelFunc:    cancel,
-	}
-
-	manager.mu.Lock()
-	manager.clients["test-server"] = info
-	manager.mu.Unlock()
-
-	err := manager.RefreshTools("test-server")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "server not connected")
-}
-
 // TestBackoffCalculation verifies exponential backoff
 func TestBackoffCalculation(t *testing.T) {
 	logger := zaptest.NewLogger(t)

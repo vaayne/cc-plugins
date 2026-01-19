@@ -106,8 +106,8 @@ func TestIntegration_MultipleTools(t *testing.T) {
 	builtinTools := server.builtinRegistry.GetAllTools()
 	assert.Len(t, builtinTools, 3)
 	assert.Contains(t, builtinTools, "list")
+	assert.Contains(t, builtinTools, "inspect")
 	assert.Contains(t, builtinTools, "exec")
-	assert.Contains(t, builtinTools, "refreshTools")
 
 	// Test that mock server has tools registered
 	assert.NotNil(t, mockServer)
@@ -452,8 +452,8 @@ func TestIntegration_ContextCancellation(t *testing.T) {
 	}
 }
 
-// TestIntegration_ToolRefresh tests tool refresh functionality
-func TestIntegration_ToolRefresh(t *testing.T) {
+// TestIntegration_InspectTool tests inspect tool functionality
+func TestIntegration_InspectTool(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 
 	cfg := &config.Config{
@@ -467,32 +467,27 @@ func TestIntegration_ToolRefresh(t *testing.T) {
 
 	server.registerBuiltinTools()
 
-	// Test refreshTools with empty server list
-	args := map[string]any{}
+	// Test inspect with non-existent tool
+	args := map[string]any{
+		"name": "server__nonexistent",
+	}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
 
 	req := &mcp.CallToolRequest{
 		Params: &mcp.CallToolParamsRaw{
-			Name:      "refreshTools",
+			Name:      "inspect",
 			Arguments: argsJSON,
 		},
 	}
 
-	result, err := server.handleBuiltinTool(context.Background(), "refreshTools", req)
-	require.NoError(t, err)
-	assert.NotNil(t, result)
-
-	// Parse response
-	var response tools.RefreshToolsResponse
-	content := result.Content[0].(*mcp.TextContent)
-	err = json.Unmarshal([]byte(content.Text), &response)
-	require.NoError(t, err)
-	assert.Empty(t, response.Refreshed)
+	_, err = server.handleBuiltinTool(context.Background(), "inspect", req)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "tool not found")
 }
 
-// TestIntegration_ToolRefreshWithServerIDs tests tool refresh with specific server IDs
-func TestIntegration_ToolRefreshWithServerIDs(t *testing.T) {
+// TestIntegration_InspectToolValidation tests inspect tool input validation
+func TestIntegration_InspectToolValidation(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 
 	cfg := &config.Config{
@@ -506,33 +501,23 @@ func TestIntegration_ToolRefreshWithServerIDs(t *testing.T) {
 
 	server.registerBuiltinTools()
 
-	// Test refreshTools with non-existent servers
+	// Test inspect without namespace separator
 	args := map[string]any{
-		"serverIds": []string{"server1", "server2"},
+		"name": "invalidname",
 	}
 	argsJSON, err := json.Marshal(args)
 	require.NoError(t, err)
 
 	req := &mcp.CallToolRequest{
 		Params: &mcp.CallToolParamsRaw{
-			Name:      "refreshTools",
+			Name:      "inspect",
 			Arguments: argsJSON,
 		},
 	}
 
-	result, err := server.handleBuiltinTool(context.Background(), "refreshTools", req)
-	require.NoError(t, err)
-	assert.NotNil(t, result)
-
-	// Parse response
-	var response tools.RefreshToolsResponse
-	content := result.Content[0].(*mcp.TextContent)
-	err = json.Unmarshal([]byte(content.Text), &response)
-	require.NoError(t, err)
-
-	// Should have errors for non-existent servers
-	assert.Empty(t, response.Refreshed)
-	assert.Len(t, response.Errors, 2)
+	_, err = server.handleBuiltinTool(context.Background(), "inspect", req)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "must be namespaced")
 }
 
 // TestIntegration_JSExecutionSyntaxError tests JS syntax error handling
