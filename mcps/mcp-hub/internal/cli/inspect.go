@@ -21,19 +21,19 @@ Takes tool name as a required positional argument.
 
 Examples:
   # Inspect a tool
-  hub -u http://localhost:3000 inspect my-tool
+  mh -u http://localhost:3000 inspect my-tool
 
   # Inspect a tool with JSON output
-  hub -u http://localhost:3000 inspect my-tool --json
+  mh -u http://localhost:3000 inspect my-tool --json
 
   # Inspect a tool using SSE transport
-  hub -u http://localhost:3000 -t sse inspect my-tool
+  mh -u http://localhost:3000 -t sse inspect my-tool
 
   # Inspect a tool from config (stdio/http/sse)
-  hub -c config.json inspect github__search_repos
+  mh -c config.json inspect github__search_repos
 
   # Inspect a tool from a stdio MCP server
-  hub --stdio inspect echo -- npx @modelcontextprotocol/server-everything`,
+  mh --stdio inspect echo -- npx @modelcontextprotocol/server-everything`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		// Filter out args after "--" (used for stdio command)
 		filteredArgs := filterArgsBeforeDash(args)

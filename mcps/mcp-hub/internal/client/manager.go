@@ -9,8 +9,8 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
-	"hub/internal/config"
-	"hub/internal/transport"
+	"mcphub/internal/config"
+	"mcphub/internal/transport"
 )
 
 // clientInfo holds information about a connected client

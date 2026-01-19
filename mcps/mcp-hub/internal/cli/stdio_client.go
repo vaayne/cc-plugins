@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"time"
 
-	"hub/internal/logging"
+	"mcphub/internal/logging"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
@@ -59,7 +59,7 @@ func NewStdioClient(ctx context.Context, opts StdioClientOpts) (*StdioClient, er
 
 	// Create MCP client
 	client := mcp.NewClient(&mcp.Implementation{
-		Name:    "mcp-hub-cli",
+		Name:    "mh-cli",
 		Version: "v1.0.0",
 	}, nil)
 

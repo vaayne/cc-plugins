@@ -92,7 +92,7 @@ func NewRemoteClient(ctx context.Context, opts RemoteClientOpts) (*RemoteClient,
 
 	// Create MCP client
 	client := mcp.NewClient(&mcp.Implementation{
-		Name:    "mcp-hub-cli",
+		Name:    "mh-cli",
 		Version: "v1.0.0",
 	}, nil)
 

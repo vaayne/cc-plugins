@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"hub/internal/cli"
+	"mcphub/internal/cli"
 
 	"github.com/spf13/cobra"
 )
@@ -17,13 +17,13 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:     "hub",
+	Use:     "mh",
 	Short:   "MCP Hub - Go implementation of Model Context Protocol hub",
 	Version: version,
 	Long: `MCP Hub aggregates multiple MCP servers and built-in tools,
 providing a unified interface for tool execution and management.
 
-Use 'hub serve' to start the hub server, or other commands to interact
+Use 'mh serve' to start the hub server, or other commands to interact
 with remote MCP services.`,
 	PersistentPreRunE: validateGlobalFlags,
 }
@@ -32,7 +32,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("hub %s\n", version)
+		fmt.Printf("mh %s\n", version)
 		fmt.Printf("  commit: %s\n", commit)
 		fmt.Printf("  built:  %s\n", date)
 	},
@@ -62,7 +62,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 
 	// Set version template
-	rootCmd.SetVersionTemplate("hub {{.Version}}\n")
+	rootCmd.SetVersionTemplate("mh {{.Version}}\n")
 }
 
 func validateGlobalFlags(cmd *cobra.Command, args []string) error {

@@ -8,7 +8,7 @@ import (
 	"time"
 	"unicode"
 
-	"hub/internal/logging"
+	"mcphub/internal/logging"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
@@ -215,7 +215,7 @@ func getStdioCommand() ([]string, error) {
 			return args[i+1:], nil
 		}
 	}
-	return nil, fmt.Errorf("--stdio requires -- followed by a command (e.g., hub --stdio list -- npx @mcp/server)")
+	return nil, fmt.Errorf("--stdio requires -- followed by a command (e.g., mh --stdio list -- npx @mcp/server)")
 }
 
 // getStdioCommandLength returns the number of args that belong to the stdio command

@@ -1,6 +1,6 @@
 #!/bin/sh
-# Hub installer script
-# Usage: curl -fsSL https://raw.githubusercontent.com/USER/REPO/main/mcps/hub/scripts/install.sh | sh
+# MCP Hub installer script
+# Usage: curl -fsSL https://raw.githubusercontent.com/USER/REPO/main/mcps/mcp-hub/scripts/install.sh | sh
 #    or: curl -fsSL ... | sh -s -- -v v1.0.0 -d /usr/local/bin
 #
 # Options:
@@ -12,7 +12,7 @@ set -e
 
 # Configuration
 REPO="vaayne/cc-plugins"
-BINARY_NAME="hub"
+BINARY_NAME="mh"
 RELEASES_URL="https://github.com/${REPO}/releases"
 
 # Colors (only if terminal supports it)
@@ -49,7 +49,7 @@ error() {
 
 usage() {
     cat <<EOF
-Hub Installer
+MH (MCP Hub) Installer
 
 Usage: $0 [options]
 
@@ -249,7 +249,7 @@ main() {
         chmod +x "$INSTALL_DIR/$BINARY_NAME"
     fi
     
-    success "Hub $VERSION installed successfully!"
+    success "MH (MCP Hub) $VERSION installed successfully!"
     
     # Check PATH
     if ! check_path "$INSTALL_DIR"; then

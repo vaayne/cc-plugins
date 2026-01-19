@@ -8,8 +8,8 @@ import (
 	"io"
 	"os"
 
-	"hub/internal/js"
-	"hub/internal/tools"
+	"mcphub/internal/js"
+	"mcphub/internal/tools"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
@@ -35,19 +35,19 @@ For --url or --stdio mode, use 'default__toolName' as the server prefix.
 
 Examples:
   # Chain tool calls (config mode)
-  hub -c config.json exec 'const user = mcp.callTool("db__getUser", {id: 1}); mcp.callTool("email__send", {to: user.email})'
+  mh -c config.json exec 'const user = mcp.callTool("db__getUser", {id: 1}); mcp.callTool("email__send", {to: user.email})'
 
   # Read code from stdin
-  cat script.js | hub -c config.json exec -
+  cat script.js | mh -c config.json exec -
 
   # With remote server
-  hub -u http://localhost:3000 exec 'const a = mcp.callTool("default__add", {x: 1, y: 2}); mcp.callTool("default__multiply", {x: a, y: 3})'
+  mh -u http://localhost:3000 exec 'const a = mcp.callTool("default__add", {x: 1, y: 2}); mcp.callTool("default__multiply", {x: a, y: 3})'
 
   # With stdio server
-  hub --stdio exec 'mcp.callTool("default__echo", {message: "hello"})' -- npx @modelcontextprotocol/server-everything
+  mh --stdio exec 'mcp.callTool("default__echo", {message: "hello"})' -- npx @modelcontextprotocol/server-everything
 
   # JSON output
-  hub -c config.json exec --json 'mcp.callTool("github__listRepos", {})'`,
+  mh -c config.json exec --json 'mcp.callTool("github__listRepos", {})'`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		filteredArgs := filterArgsBeforeDash(args)
 		if len(filteredArgs) != 1 {

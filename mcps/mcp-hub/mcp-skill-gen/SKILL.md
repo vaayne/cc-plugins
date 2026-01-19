@@ -5,13 +5,13 @@ description: Generate standalone skills from MCP servers. Use when users want to
 
 # MCP Skill Generator
 
-Generate reusable skills from any MCP server using `hub` CLI.
+Generate reusable skills from any MCP server using `mh` CLI.
 
 ## Prerequisites
 
-- `hub` CLI must be installed. If not available, install with:
+- `mh` CLI must be installed. If not available, install with:
   ```bash
-  curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scripts/install.sh | sh
+  curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/mcp-hub/scripts/install.sh | sh
   ```
 
 ## Workflow
@@ -29,26 +29,26 @@ Generate reusable skills from any MCP server using `hub` CLI.
 Notes:
 
 - `--url/-u` and `--config/-c` are mutually exclusive
-- Config mode uses the tool names returned by `hub list`, with JS-style name mapping and collision checks
+- Config mode uses the tool names returned by `mh list`, with JS-style name mapping and collision checks
 
 ### 2. Discover Tools
 
 URL mode:
 
 ```bash
-hub -u <url> -t <transport> list
+mh -u <url> -t <transport> list
 ```
 
 Stdio mode:
 
 ```bash
-hub -t stdio list -- cmd args ...
+mh -t stdio list -- cmd args ...
 ```
 
 Config mode:
 
 ```bash
-hub -c <config> list
+mh -c <config> list
 ```
 
 ### 3. Generate Skill
@@ -60,17 +60,17 @@ Usage blocks:
 URL mode:
 
 ```
-List tools: `hub -u {url} -t {transport} list`
-Get tool details: `hub -u {url} -t {transport} inspect <tool-name>`
-Invoke tool: `hub -u {url} -t {transport} invoke <tool-name> '{"param": "value"}'`
+List tools: `mh -u {url} -t {transport} list`
+Get tool details: `mh -u {url} -t {transport} inspect <tool-name>`
+Invoke tool: `mh -u {url} -t {transport} invoke <tool-name> '{"param": "value"}'`
 ```
 
 Config mode (use local config file name):
 
 ```
-List tools: `hub -c {config-file} list`
-Get tool details: `hub -c {config-file} inspect <tool-name>`
-Invoke tool: `hub -c {config-file} invoke <tool-name> '{"param": "value"}'`
+List tools: `mh -c {config-file} list`
+Get tool details: `mh -c {config-file} inspect <tool-name>`
+Invoke tool: `mh -c {config-file} invoke <tool-name> '{"param": "value"}'`
 ```
 
 Notes blocks:

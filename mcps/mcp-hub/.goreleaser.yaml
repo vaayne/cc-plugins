@@ -1,16 +1,16 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 version: 2
 
-project_name: hub
+project_name: mh
 
 before:
   hooks:
     - go mod tidy
 
 builds:
-  - id: hub
+  - id: mh
     main: .
-    binary: hub
+    binary: mh
     env:
       - CGO_ENABLED=0
     goos:
@@ -62,4 +62,4 @@ release:
   draft: false
   prerelease: auto
   mode: replace
-  name_template: "Hub {{ .Tag }}"
+  name_template: "MCP Hub {{ .Tag }}"

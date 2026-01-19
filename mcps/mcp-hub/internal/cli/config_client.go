@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"hub/internal/config"
-	"hub/internal/transport"
+	"mcphub/internal/config"
+	"mcphub/internal/transport"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
@@ -65,7 +65,7 @@ func NewConfigClient(ctx context.Context, configPath string, logger *zap.Logger,
 		}
 
 		clientInstance := mcp.NewClient(&mcp.Implementation{
-			Name:    "mcp-hub-cli",
+			Name:    "mh-cli",
 			Version: "v1.0.0",
 		}, nil)
 

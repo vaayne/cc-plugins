@@ -7,7 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
-	"hub/internal/config"
+	"mcphub/internal/config"
 )
 
 func TestDefaultFactory_CreateTransport(t *testing.T) {

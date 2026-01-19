@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"hub/internal/client"
+	"mcphub/internal/client"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )

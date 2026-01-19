@@ -15,14 +15,14 @@ run = """
 VERSION="${VERSION:-dev}"
 COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-go build -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" -o bin/hub .
+go build -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" -o bin/mh .
 """
 
 [tasks.run]
 description = "Build the Go project"
 depends = ["build"]
 run = """
-./bin/hub -c config.example.json
+./bin/mh -c config.example.json
 """
 
 [tasks.test]

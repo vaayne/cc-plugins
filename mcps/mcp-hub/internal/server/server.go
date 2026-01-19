@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"hub/internal/client"
-	"hub/internal/config"
-	"hub/internal/tools"
+	"mcphub/internal/client"
+	"mcphub/internal/config"
+	"mcphub/internal/tools"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"

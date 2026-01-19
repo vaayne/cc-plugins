@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"hub/internal/config"
-	"hub/internal/logging"
-	"hub/internal/server"
+	"mcphub/internal/config"
+	"mcphub/internal/logging"
+	"mcphub/internal/server"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -29,16 +29,16 @@ Transport Types:
 
 Examples:
   # Run with stdio transport (default)
-  hub serve -c config.json
+  mh serve -c config.json
 
   # Run with HTTP transport on port 8080
-  hub serve -c config.json -t http -p 8080
+  mh serve -c config.json -t http -p 8080
 
   # Run with SSE transport on custom host and port
-  hub serve -c config.json -t sse --host 0.0.0.0 -p 3000
+  mh serve -c config.json -t sse --host 0.0.0.0 -p 3000
 
   # Run with verbose logging
-  hub serve -c config.json -v`,
+  mh serve -c config.json -v`,
 	RunE: runServe,
 }
 

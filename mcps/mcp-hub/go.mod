@@ -1,4 +1,4 @@
-module hub
+module mcphub
 
 go 1.23.0
 

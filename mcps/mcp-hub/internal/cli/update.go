@@ -22,15 +22,15 @@ var CurrentVersion string
 // UpdateCmd is the update subcommand that updates hub to the latest version
 var UpdateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Update hub to the latest version",
-	Long: `Check for updates and upgrade hub to the latest version.
+	Short: "Update mh to the latest version",
+	Long: `Check for updates and upgrade mh to the latest version.
 
 Examples:
   # Check and update to latest
-  hub update
+  mh update
 
   # Check only (dry run)
-  hub update --check`,
+  mh update --check`,
 	RunE: runUpdate,
 }
 

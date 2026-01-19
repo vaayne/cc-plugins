@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"hub/internal/client"
+	"mcphub/internal/client"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -22,19 +22,19 @@ stdio/http/sse servers from config, or --stdio to spawn a subprocess.
 
 Examples:
   # List tools from a remote server
-  hub -u http://localhost:3000 list
+  mh -u http://localhost:3000 list
 
   # List tools with JSON output
-  hub -u http://localhost:3000 list --json
+  mh -u http://localhost:3000 list --json
 
   # List tools using SSE transport
-  hub -u http://localhost:3000 -t sse list
+  mh -u http://localhost:3000 -t sse list
 
   # List tools from config (stdio/http/sse)
-  hub -c config.json list
+  mh -c config.json list
 
   # List tools from a stdio MCP server
-  hub --stdio list -- npx @modelcontextprotocol/server-everything`,
+  mh --stdio list -- npx @modelcontextprotocol/server-everything`,
 	RunE: runList,
 }
 

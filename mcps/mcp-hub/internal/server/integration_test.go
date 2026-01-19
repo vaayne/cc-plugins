@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"hub/internal/client"
-	"hub/internal/config"
-	"hub/internal/js"
-	mcptesting "hub/internal/testing"
-	"hub/internal/tools"
+	"mcphub/internal/client"
+	"mcphub/internal/config"
+	"mcphub/internal/js"
+	mcptesting "mcphub/internal/testing"
+	"mcphub/internal/tools"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"

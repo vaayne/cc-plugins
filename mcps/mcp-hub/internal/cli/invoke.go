@@ -28,22 +28,22 @@ Parameters can be provided as:
 
 Examples:
   # Invoke a tool with no parameters
-  hub -u http://localhost:3000 invoke my-tool
+  mh -u http://localhost:3000 invoke my-tool
 
   # Invoke a tool with JSON parameters
-  hub -u http://localhost:3000 invoke my-tool '{"key": "value"}'
+  mh -u http://localhost:3000 invoke my-tool '{"key": "value"}'
 
   # Invoke a tool with parameters from stdin
-  echo '{"key": "value"}' | hub -u http://localhost:3000 invoke my-tool -
+  echo '{"key": "value"}' | mh -u http://localhost:3000 invoke my-tool -
 
   # Invoke a tool with JSON output
-  hub -u http://localhost:3000 invoke my-tool '{"key": "value"}' --json
+  mh -u http://localhost:3000 invoke my-tool '{"key": "value"}' --json
 
   # Invoke a tool from config (stdio/http/sse)
-  hub -c config.json invoke github__search_repos '{"query": "mcp"}'
+  mh -c config.json invoke github__search_repos '{"query": "mcp"}'
 
   # Invoke a tool from a stdio MCP server
-  hub --stdio invoke echo '{"message": "hello"}' -- npx @modelcontextprotocol/server-everything`,
+  mh --stdio invoke echo '{"message": "hello"}' -- npx @modelcontextprotocol/server-everything`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		// Filter out args after "--" (used for stdio command)
 		filteredArgs := filterArgsBeforeDash(args)

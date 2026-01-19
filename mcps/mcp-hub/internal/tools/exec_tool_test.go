@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"hub/internal/client"
+	"mcphub/internal/client"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"

@@ -4,7 +4,7 @@ import (
 	"maps"
 	"sync"
 
-	"hub/internal/config"
+	"mcphub/internal/config"
 
 	"go.uber.org/zap"
 )

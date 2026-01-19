@@ -1,10 +1,12 @@
-# Hub
+# MCP Hub (`mh`)
 
 A Go implementation of the Model Context Protocol (MCP) hub server that aggregates multiple MCP servers and built-in tools, providing a unified interface for tool execution and management.
 
+> **Naming Convention**: Following the GitHub/`gh` pattern, this project uses `mh` as the CLI command name while the full product name is "MCP Hub".
+
 ## Overview
 
-Hub is a secure, production-ready hub that:
+MCP Hub is a secure, production-ready hub that:
 
 - **Aggregates multiple MCP servers** into a single unified interface
 - **Provides built-in tools** for search, JavaScript execution, and tool management
@@ -141,13 +143,13 @@ Structured JSON logging with configurable levels:
 
 ```bash
 # Enable debug logging
-hub -c config.json -v
+mh -c config.json -v
 
 # Specify custom log file
-hub -c config.json --log-file=/var/log/mcp-hub.log
+mh -c config.json --log-file=/var/log/mh.log
 
 # Disable file logging (stdout only)
-hub -c config.json --log-file=""
+mh -c config.json --log-file=""
 ```
 
 Log format:
@@ -168,13 +170,13 @@ Log format:
 
 ```bash
 # Install latest version
-curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/mcp-hub/scripts/install.sh | sh
 
 # Install specific version
-curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scripts/install.sh | sh -s -- -v v1.0.0
+curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/mcp-hub/scripts/install.sh | sh -s -- -v v1.0.0
 
 # Install to custom directory
-curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/hub/scripts/install.sh | sh -s -- -d /usr/local/bin
+curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/mcp-hub/scripts/install.sh | sh -s -- -d /usr/local/bin
 ```
 
 The script automatically:
@@ -186,16 +188,16 @@ The script automatically:
 
 ### Option 2: Download Binary
 
-Download the latest release from the [releases page](https://github.com/vaayne/cc-plugins/releases?q=hub) and extract it to your PATH.
+Download the latest release from the [releases page](https://github.com/vaayne/cc-plugins/releases?q=mcp-hub) and extract it to your PATH.
 
 Available platforms:
 
-- `hub_VERSION_linux_amd64.tar.gz`
-- `hub_VERSION_linux_arm64.tar.gz`
-- `hub_VERSION_darwin_amd64.tar.gz`
-- `hub_VERSION_darwin_arm64.tar.gz`
-- `hub_VERSION_windows_amd64.zip`
-- `hub_VERSION_windows_arm64.zip`
+- `mh_VERSION_linux_amd64.tar.gz`
+- `mh_VERSION_linux_arm64.tar.gz`
+- `mh_VERSION_darwin_amd64.tar.gz`
+- `mh_VERSION_darwin_arm64.tar.gz`
+- `mh_VERSION_windows_amd64.zip`
+- `mh_VERSION_windows_arm64.zip`
 
 ### Option 3: Build from Source
 
@@ -206,11 +208,11 @@ Requirements:
 ```bash
 # Clone the repository
 git clone https://github.com/vaayne/cc-plugins.git
-cd cc-plugins/mcps/hub
+cd cc-plugins/mcps/mcp-hub
 
 # Build with version info
 VERSION=v1.0.0
-go build -ldflags "-X main.version=${VERSION} -X main.commit=$(git rev-parse --short HEAD) -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o hub .
+go build -ldflags "-X main.version=${VERSION} -X main.commit=$(git rev-parse --short HEAD) -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o mh .
 
 # Or use mise
 mise run build
@@ -271,39 +273,39 @@ See [config.example.json](config.example.json) for a complete example.
 ### Start the Hub
 
 ```bash
-hub -c config.json
+mh -c config.json
 ```
 
 With verbose logging:
 
 ```bash
-hub -c config.json -v
+mh -c config.json -v
 ```
 
 With custom log file:
 
 ```bash
-hub -c config.json --log-file=/var/log/mcp-hub.log
+mh -c config.json --log-file=/var/log/mh.log
 ```
 
 ### CLI Commands
 
 Use `list`, `inspect`, and `invoke` to interact with MCP services without
-starting the hub server. Provide `--url` for remote HTTP/SSE services, or
+starting the mh server. Provide `--url` for remote HTTP/SSE services, or
 `--config` to load local stdio/http/sse servers.
 
 ```bash
 # List tools from a remote MCP service
-hub -u http://localhost:3000 list
+mh -u http://localhost:3000 list
 
 # List tools from config
-hub -c config.json list
+mh -c config.json list
 
 # Inspect a tool from config (namespaced)
-hub -c config.json inspect github__search_repos
+mh -c config.json inspect github__search_repos
 
 # Invoke a tool from config
-hub -c config.json invoke github__search_repos '{"query": "mcp"}'
+mh -c config.json invoke github__search_repos '{"query": "mcp"}'
 ```
 
 The CLI prints JS-style tool names; you can use those names directly with
@@ -343,10 +345,8 @@ See [docs/js-authoring.md](docs/js-authoring.md) for JavaScript authoring guide.
 ### Project Structure
 
 ```
-hub/
-├── cmd/
-│   └── hub/          # Main entry point
-│       └── main.go
+mcps/mcp-hub/
+├── main.go              # Main entry point
 ├── internal/
 │   ├── client/              # Remote MCP client manager
 │   │   ├── manager.go
@@ -390,10 +390,10 @@ go test ./internal/js
 
 ```bash
 # Build
-go build -o hub cmd/hub/main.go
+go build -ldflags "-X main.version=${VERSION} -X main.commit=$(git rev-parse --short HEAD) -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o mh .
 
 # Run with example config
-./hub -c config.example.json -v
+./mh -c config.example.json -v
 ```
 
 ## Dependencies

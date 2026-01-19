@@ -3,7 +3,7 @@ package tools
 import (
 	"testing"
 
-	"hub/internal/config"
+	"mcphub/internal/config"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
