@@ -1,12 +1,10 @@
 {
   "mcpServers": {
     "grep": {
-      "url": "https://mcp.grep.app",
-      "enable": true
+      "url": "https://mcp.grep.app"
     },
     "exa": {
-      "url": "https://mcp.exa.ai/mcp",
-      "enable": true
+      "url": "https://mcp.exa.ai/mcp"
     },
     "context7": {
       "url": "https://mcp.context7.com/mcp",
@@ -15,27 +13,20 @@
     "jetbrains": {
       "transport": "sse",
       "url": "http://localhost:64342/sse",
-      "required": false,
-      "enable": true
+      "enable": false
     },
-    "chrome-devtools": {
+    "chrome_devtools": {
       "transport": "stdio",
       "command": "bunx",
-      "args": [
-        "chrome-devtools-mcp@latest",
-        "-e",
-        "/Applications/Helium.app/Contents/MacOS/Helium"
-      ],
-      "env": {},
-      "required": false,
-      "enable": false
+      "args": ["chrome-devtools-mcp@latest", "--isolated"],
+      "env": {}
     },
     "memory": {
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {},
-      "enable": true
+      "enable": false
     }
   }
 }
