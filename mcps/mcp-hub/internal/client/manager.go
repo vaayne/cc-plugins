@@ -421,5 +421,3 @@ func (m *Manager) DetectNameCollisions() map[string][]string {
 
 	return collisions
 }
-
-

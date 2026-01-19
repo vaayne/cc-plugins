@@ -10,7 +10,7 @@ Write JavaScript code to call multiple MCP tools in a single request. Use loops,
 - **Async**: Async/await, Promises, and timers (`setTimeout`, `setInterval`, `setImmediate`) are supported.
 - **Require**: `require()` works for core goja_nodejs modules like `node:buffer`, `node:process`, `node:url`, `node:util`, and the built-in `console`.
 - **MCP helpers**:
-  - `mcp.callTool("serverID__toolName", params)` → calls any MCP tool; throws on failure.
+  - `mcp.callTool("toolName", params)` → calls any MCP tool; throws on failure. Use `serverID__toolName` format for multi-server config mode.
   - `mcp.log(level, message, fields?)` or `console.*` → captured in `logs`.
 - **No browser APIs**: `window`, `document`, `page`, `fetch`, etc. are not provided; get data via MCP tools.
 

@@ -347,5 +347,3 @@ func (s *Server) handleBuiltinTool(ctx context.Context, toolName string, req *mc
 		return nil, fmt.Errorf("unknown built-in tool: %s", toolName)
 	}
 }
-
-

@@ -287,7 +287,7 @@ func (r *Runtime) injectMCPHelpers(ctx context.Context, vm *goja.Runtime, logs *
 	// Setup mcp helpers
 	mcpObj := vm.NewObject()
 
-	// mcp.callTool(toolName, params) - toolName format: "serverID__toolName"
+	// mcp.callTool(toolName, params) - toolName format: "serverID__toolName" or just "toolName" for single-server mode
 	if err := mcpObj.Set("callTool", func(call goja.FunctionCall) goja.Value {
 		// Check context cancellation
 		select {
@@ -303,14 +303,16 @@ func (r *Runtime) injectMCPHelpers(ctx context.Context, vm *goja.Runtime, logs *
 		fullToolName := call.Argument(0).String()
 		params := call.Argument(1).Export()
 
-		// Parse serverID__toolName format
-		before, after, ok := strings.Cut(fullToolName, "__")
-		if !ok {
-			panic(vm.NewTypeError("toolName must be in format 'serverID__toolName' (e.g., 'github__createIssue')"))
+		// Parse serverID__toolName format, or use tool name directly for single-server mode
+		var serverID, toolName string
+		if before, after, ok := strings.Cut(fullToolName, "__"); ok {
+			serverID = before
+			toolName = after
+		} else {
+			// Single-server mode: use tool name directly with empty serverID
+			serverID = ""
+			toolName = fullToolName
 		}
-
-		serverID := before
-		toolName := after // +2 to skip "__"
 
 		// Call the tool
 		result, err := r.callTool(ctx, serverID, toolName, params)
@@ -481,14 +483,17 @@ func sanitizeLogFields(fields map[string]any) map[string]any {
 
 // callTool calls a proxied MCP tool
 func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, params any) (any, error) {
-	fullToolName := serverID + "." + toolName
+	// Build display name for error messages
+	var fullToolName string
+	if serverID != "" {
+		fullToolName = serverID + "." + toolName
+	} else {
+		fullToolName = toolName
+	}
 
 	// Validate inputs
-	if serverID == "" {
-		return nil, fmt.Errorf("serverID is required in tool name")
-	}
 	if toolName == "" {
-		return nil, fmt.Errorf("toolName is required after the dot")
+		return nil, fmt.Errorf("toolName is required")
 	}
 
 	// Convert params to map for CallToolParams - do this BEFORE authorization/client checks

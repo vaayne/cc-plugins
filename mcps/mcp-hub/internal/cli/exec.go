@@ -30,8 +30,8 @@ Use this when you need to:
 For single tool calls, use 'invoke' instead.
 
 The 'mcp.callTool(name, params)' function is available to call tools.
-Tool names use the format 'serverID__toolName' (e.g., 'github__searchRepos').
-For --url or --stdio mode, use 'default__toolName' as the server prefix.
+For --url or --stdio mode, use the tool name directly (e.g., 'searchRepos').
+For --config mode with multiple servers, use 'serverID__toolName' format.
 
 Examples:
   # Chain tool calls (config mode)
@@ -40,11 +40,11 @@ Examples:
   # Read code from stdin
   cat script.js | mh -c config.json exec -
 
-  # With remote server
-  mh -u http://localhost:3000 exec 'const a = mcp.callTool("default__add", {x: 1, y: 2}); mcp.callTool("default__multiply", {x: a, y: 3})'
+  # With remote server (use tool names directly)
+  mh -u http://localhost:3000 exec 'const a = mcp.callTool("add", {x: 1, y: 2}); mcp.callTool("multiply", {x: a, y: 3})'
 
-  # With stdio server
-  mh --stdio exec 'mcp.callTool("default__echo", {message: "hello"})' -- npx @modelcontextprotocol/server-everything
+  # With stdio server (use tool names directly)
+  mh --stdio exec 'mcp.callTool("echo", {message: "hello"})' -- npx @modelcontextprotocol/server-everything
 
   # JSON output
   mh -c config.json exec --json 'mcp.callTool("github__listRepos", {})'`,
