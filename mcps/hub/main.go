@@ -57,6 +57,7 @@ func init() {
 	rootCmd.AddCommand(cli.ListCmd)
 	rootCmd.AddCommand(cli.InspectCmd)
 	rootCmd.AddCommand(cli.InvokeCmd)
+	rootCmd.AddCommand(cli.ExecCmd)
 	rootCmd.AddCommand(cli.UpdateCmd)
 	rootCmd.AddCommand(versionCmd)
 

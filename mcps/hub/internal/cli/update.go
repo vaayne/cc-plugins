@@ -141,7 +141,7 @@ func isNewerVersion(latest, current string) bool {
 	latestParts := strings.Split(latest, ".")
 	currentParts := strings.Split(current, ".")
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		var l, c int
 		if i < len(latestParts) {
 			fmt.Sscanf(latestParts[i], "%d", &l)

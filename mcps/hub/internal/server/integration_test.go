@@ -122,7 +122,7 @@ func TestIntegration_JSExecutionWithToolCalls(t *testing.T) {
 	defer manager.DisconnectAll()
 
 	// Create JS runtime
-	runtime := js.NewRuntime(logger, manager, nil)
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), nil)
 	require.NotNil(t, runtime)
 
 	// Test simple JS execution
@@ -143,7 +143,7 @@ func TestIntegration_JSExecutionWithLogging(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := js.NewRuntime(logger, manager, nil)
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), nil)
 
 	script := `
 		mcp.log('info', 'Test message');
@@ -173,7 +173,7 @@ func TestIntegration_JSExecutionTimeout(t *testing.T) {
 	defer manager.DisconnectAll()
 
 	// Create runtime with short timeout
-	runtime := js.NewRuntime(logger, manager, &js.Config{
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), &js.Config{
 		Timeout: 100 * time.Millisecond,
 	})
 
@@ -198,7 +198,7 @@ func TestIntegration_JSExecutionAsyncSupport(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := js.NewRuntime(logger, manager, nil)
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), nil)
 
 	tests := []struct {
 		name     string
@@ -249,7 +249,7 @@ func TestIntegration_JSToolAuthorization(t *testing.T) {
 	defer manager.DisconnectAll()
 
 	// Create runtime with restricted tools
-	runtime := js.NewRuntime(logger, manager, &js.Config{
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), &js.Config{
 		AllowedTools: map[string][]string{
 			"server1": {"tool1", "tool2"},
 		},
@@ -402,7 +402,7 @@ func TestIntegration_ConcurrentJSExecutions(t *testing.T) {
 		go func(index int) {
 			defer wg.Done()
 
-			runtime := js.NewRuntime(logger, manager, nil)
+			runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), nil)
 			script := fmt.Sprintf("const result = %d * 2; result;", index)
 
 			result, _, err := runtime.Execute(context.Background(), script)
@@ -420,7 +420,7 @@ func TestIntegration_ContextCancellation(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := js.NewRuntime(logger, manager, nil)
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), nil)
 
 	// Create context that we'll cancel
 	ctx, cancel := context.WithCancel(context.Background())
@@ -541,7 +541,7 @@ func TestIntegration_JSExecutionSyntaxError(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := js.NewRuntime(logger, manager, nil)
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), nil)
 
 	// Invalid syntax
 	script := "const x = ;"
@@ -560,7 +560,7 @@ func TestIntegration_JSExecutionRuntimeError(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := js.NewRuntime(logger, manager, nil)
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), nil)
 
 	// Runtime error - undefined variable
 	script := "undefinedVariable + 1;"
@@ -579,7 +579,7 @@ func TestIntegration_JSScriptSizeLimit(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := js.NewRuntime(logger, manager, nil)
+	runtime := js.NewRuntime(logger, js.NewManagerCaller(manager), nil)
 
 	// Create script larger than limit
 	largeScript := strings.Repeat("// comment\n", 10000)
@@ -666,17 +666,14 @@ func TestIntegration_ExecuteToolWithError(t *testing.T) {
 	assert.True(t, result.IsError)
 
 	// Parse response
-	var response tools.ExecuteToolResponse
+	var response tools.ExecResult
 	content := result.Content[0].(*mcp.TextContent)
 	err = json.Unmarshal([]byte(content.Text), &response)
 	require.NoError(t, err)
 
-	// Should have error in result
-	resultMap, ok := response.Result.(map[string]any)
-	require.True(t, ok)
-	errorMap, ok := resultMap["error"].(map[string]any)
-	require.True(t, ok)
-	assert.NotEmpty(t, errorMap["message"])
+	// Should have error
+	require.NotNil(t, response.Error)
+	assert.NotEmpty(t, response.Error.Message)
 }
 
 // TestIntegration_BuiltinToolTimeout tests built-in tool timeout
@@ -714,15 +711,12 @@ func TestIntegration_BuiltinToolTimeout(t *testing.T) {
 	assert.True(t, result.IsError)
 
 	// Parse response
-	var response tools.ExecuteToolResponse
+	var response tools.ExecResult
 	content := result.Content[0].(*mcp.TextContent)
 	err = json.Unmarshal([]byte(content.Text), &response)
 	require.NoError(t, err)
 
 	// Should have timeout error
-	resultMap, ok := response.Result.(map[string]any)
-	require.True(t, ok)
-	errorMap, ok := resultMap["error"].(map[string]any)
-	require.True(t, ok)
-	assert.Equal(t, string(js.ErrorTypeTimeout), errorMap["type"])
+	require.NotNil(t, response.Error)
+	assert.Equal(t, string(js.ErrorTypeTimeout), response.Error.Type)
 }

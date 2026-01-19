@@ -39,7 +39,7 @@ func TestHandleExecuteTool_Success(t *testing.T) {
 	textContent, ok := result.Content[0].(*mcp.TextContent)
 	require.True(t, ok)
 
-	var response ExecuteToolResponse
+	var response ExecResult
 	err = json.Unmarshal([]byte(textContent.Text), &response)
 	require.NoError(t, err)
 
@@ -71,7 +71,7 @@ func TestHandleExecuteTool_WithLogs(t *testing.T) {
 	textContent, ok := result.Content[0].(*mcp.TextContent)
 	require.True(t, ok)
 
-	var response ExecuteToolResponse
+	var response ExecResult
 	err = json.Unmarshal([]byte(textContent.Text), &response)
 	require.NoError(t, err)
 
@@ -106,7 +106,7 @@ func TestHandleExecuteTool_AsyncSuccess(t *testing.T) {
 	textContent, ok := result.Content[0].(*mcp.TextContent)
 	require.True(t, ok)
 
-	var response ExecuteToolResponse
+	var response ExecResult
 	err = json.Unmarshal([]byte(textContent.Text), &response)
 	require.NoError(t, err)
 
@@ -131,7 +131,7 @@ func TestHandleExecuteTool_MissingCode(t *testing.T) {
 
 	_, err = HandleExecuteTool(context.Background(), logger, manager, req)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "code parameter is required")
+	assert.Contains(t, err.Error(), "code is required")
 }
 
 func TestHandleExecuteTool_CodeTooLarge(t *testing.T) {

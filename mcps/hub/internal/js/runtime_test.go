@@ -19,7 +19,7 @@ func TestNewRuntime(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 	assert.NotNil(t, runtime)
 	assert.Equal(t, DefaultTimeout, runtime.timeout)
 }
@@ -31,7 +31,7 @@ func TestNewRuntime_CustomTimeout(t *testing.T) {
 	defer manager.DisconnectAll()
 
 	customTimeout := 5 * time.Second
-	runtime := NewRuntime(logger, manager, &Config{Timeout: customTimeout})
+	runtime := NewRuntime(logger, NewManagerCaller(manager), &Config{Timeout: customTimeout})
 	assert.Equal(t, customTimeout, runtime.timeout)
 }
 
@@ -41,7 +41,7 @@ func TestExecute_Simple(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	script := `1 + 1`
 	result, logs, err := runtime.Execute(context.Background(), script)
@@ -56,7 +56,7 @@ func TestExecute_WithLogging(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	script := `
 		mcp.log('info', 'Test message');
@@ -84,7 +84,7 @@ func TestExecute_InvalidLogLevel(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	script := `
 		mcp.log('invalid', 'Test message');
@@ -104,7 +104,7 @@ func TestExecute_AsyncAwait(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	script := `
 		const delay = (ms) => new Promise((resolve) => setTimeout(() => resolve(ms + 1), ms));
@@ -127,7 +127,7 @@ func TestExecute_RequireBuffer(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	script := `
 		const { Buffer } = require("node:buffer");
@@ -147,7 +147,7 @@ func TestExecute_Timeout(t *testing.T) {
 	defer manager.DisconnectAll()
 
 	// Create runtime with very short timeout
-	runtime := NewRuntime(logger, manager, &Config{Timeout: 100 * time.Millisecond})
+	runtime := NewRuntime(logger, NewManagerCaller(manager), &Config{Timeout: 100 * time.Millisecond})
 
 	// Infinite loop
 	script := `while(true) {}`
@@ -166,7 +166,7 @@ func TestExecute_ScriptSizeLimit(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	// Create script larger than MaxScriptSize
 	largeScript := make([]byte, MaxScriptSize+1)
@@ -189,7 +189,7 @@ func TestExecute_SyntaxError(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	script := `const x = {` // Unclosed brace
 	_, _, err := runtime.Execute(context.Background(), script)
@@ -206,7 +206,7 @@ func TestExecute_RuntimeError(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	tests := []struct {
 		name   string
@@ -241,7 +241,7 @@ func TestExecute_TimeoutWithInterrupt(t *testing.T) {
 	defer manager.DisconnectAll()
 
 	// Create runtime with very short timeout
-	runtime := NewRuntime(logger, manager, &Config{Timeout: 100 * time.Millisecond})
+	runtime := NewRuntime(logger, NewManagerCaller(manager), &Config{Timeout: 100 * time.Millisecond})
 
 	// Infinite loop that should be interrupted
 	script := `while(true) { let x = 1 + 1; }`
@@ -268,7 +268,7 @@ func TestExecute_LogSanitization(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	tests := []struct {
 		name          string
@@ -318,7 +318,7 @@ func TestExecute_LogEntryLimit(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	// Try to log more than MaxLogEntries
 	script := `
@@ -343,7 +343,7 @@ func TestExecute_ConcurrentExecutionNoBlocking(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	// Run multiple executions concurrently with different execution times
 	const numGoroutines = 10
@@ -384,7 +384,7 @@ func TestExecute_ContextCancellationDuringExecution(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -420,7 +420,7 @@ func TestExecute_TypeAssertionError(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	// Try to call callTool with invalid params type (number instead of object)
 	script := `mcp.callTool('server__tool', 123)`
@@ -441,7 +441,7 @@ func TestExecute_ComplexScript(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	script := `
 		function fibonacci(n) {
@@ -468,7 +468,7 @@ func TestExecute_ContextCancellation(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately
@@ -489,7 +489,7 @@ func TestExecute_ReturnTypes(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	tests := []struct {
 		name     string
@@ -580,7 +580,7 @@ func TestCallTool_Validation(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	tests := []struct {
 		name   string
@@ -618,7 +618,7 @@ func TestMcpLog_EdgeCases(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	tests := []struct {
 		name         string
@@ -658,7 +658,7 @@ func TestConsoleLog(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	tests := []struct {
 		name          string
@@ -722,7 +722,7 @@ func TestThreadSafety(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	// Run multiple executions concurrently
 	const numGoroutines = 10
@@ -767,7 +767,7 @@ func TestExecute_ToolAuthorization(t *testing.T) {
 		"server1": {"tool1", "tool2"},
 		"server2": {"tool3"},
 	}
-	runtime := NewRuntime(logger, manager, &Config{
+	runtime := NewRuntime(logger, NewManagerCaller(manager), &Config{
 		AllowedTools: allowedTools,
 	})
 
@@ -812,7 +812,7 @@ func TestExecute_ToolAuthorizationNilAllowsAll(t *testing.T) {
 	defer manager.DisconnectAll()
 
 	// Create runtime with nil allowed tools (allow all)
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	// Should not reject based on authorization (but will fail due to missing server)
 	script := `mcp.callTool('anyserver__anytool', {})`
@@ -829,7 +829,7 @@ func TestExecute_ErrorSanitization(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	// Call a non-existent tool to trigger error
 	script := `mcp.callTool('nonexistent__tool', {})`
@@ -851,7 +851,7 @@ func TestExecute_ParamsTypeAssertion(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, nil)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), nil)
 
 	tests := []struct {
 		name   string
@@ -890,7 +890,7 @@ func TestExecute_TimeoutDoesNotLeakGoroutines(t *testing.T) {
 	cfg := &Config{
 		Timeout: 200 * time.Millisecond,
 	}
-	runtime := NewRuntime(logger, manager, cfg)
+	runtime := NewRuntime(logger, NewManagerCaller(manager), cfg)
 
 	// Run multiple timeouts
 	for range 3 {
@@ -919,7 +919,7 @@ func TestExecute_ConcurrentTimeouts(t *testing.T) {
 	manager := client.NewManager(logger)
 	defer manager.DisconnectAll()
 
-	runtime := NewRuntime(logger, manager, &Config{Timeout: 100 * time.Millisecond})
+	runtime := NewRuntime(logger, NewManagerCaller(manager), &Config{Timeout: 100 * time.Millisecond})
 
 	const numGoroutines = 5
 	results := make(chan error, numGoroutines)

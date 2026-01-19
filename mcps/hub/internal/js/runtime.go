@@ -10,8 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"hub/internal/client"
-
 	"github.com/dop251/goja"
 	_ "github.com/dop251/goja_nodejs/buffer"
 	"github.com/dop251/goja_nodejs/eventloop"
@@ -60,10 +58,47 @@ type LogEntry struct {
 	Fields  map[string]any `json:"fields,omitempty"`
 }
 
+// ToolCaller abstracts tool calling for different client types
+type ToolCaller interface {
+	// CallTool calls a tool with the given serverID, toolName, and parameters
+	// For single-server clients, serverID can be ignored or used as a default
+	CallTool(ctx context.Context, serverID, toolName string, params map[string]any) (*mcp.CallToolResult, error)
+}
+
+// SessionGetter abstracts getting a client session by server ID (implemented by client.Manager)
+type SessionGetter interface {
+	GetClient(serverID string) (*mcp.ClientSession, error)
+}
+
+// ManagerCaller adapts a SessionGetter (like client.Manager) to the ToolCaller interface
+type ManagerCaller struct {
+	getter SessionGetter
+}
+
+// NewManagerCaller creates a new ManagerCaller from a SessionGetter
+func NewManagerCaller(getter SessionGetter) *ManagerCaller {
+	return &ManagerCaller{getter: getter}
+}
+
+// CallTool implements ToolCaller for ManagerCaller
+func (m *ManagerCaller) CallTool(ctx context.Context, serverID, toolName string, params map[string]any) (*mcp.CallToolResult, error) {
+	session, err := m.getter.GetClient(serverID)
+	if err != nil {
+		return nil, fmt.Errorf("server '%s' not found", serverID)
+	}
+
+	toolParams := &mcp.CallToolParams{
+		Name:      toolName,
+		Arguments: params,
+	}
+
+	return session.CallTool(ctx, toolParams)
+}
+
 // Runtime represents a JavaScript runtime for executing tool scripts
 type Runtime struct {
 	logger       *zap.Logger
-	manager      *client.Manager
+	caller       ToolCaller
 	timeout      time.Duration
 	allowedTools map[string][]string // nil = allow all
 }
@@ -75,7 +110,7 @@ type Config struct {
 }
 
 // NewRuntime creates a new JavaScript runtime
-func NewRuntime(logger *zap.Logger, manager *client.Manager, cfg *Config) *Runtime {
+func NewRuntime(logger *zap.Logger, caller ToolCaller, cfg *Config) *Runtime {
 	timeout := DefaultTimeout
 	var allowedTools map[string][]string
 
@@ -88,7 +123,7 @@ func NewRuntime(logger *zap.Logger, manager *client.Manager, cfg *Config) *Runti
 
 	return &Runtime{
 		logger:       logger,
-		manager:      manager,
+		caller:       caller,
 		timeout:      timeout,
 		allowedTools: allowedTools,
 	}
@@ -476,19 +511,8 @@ func (r *Runtime) callTool(ctx context.Context, serverID, toolName string, param
 		}
 	}
 
-	// Get client session
-	session, err := r.manager.GetClient(serverID)
-	if err != nil {
-		return nil, fmt.Errorf("server '%s' not found - check server name or run 'search' to find available tools", serverID)
-	}
-
-	// Call tool
-	toolParams := &mcp.CallToolParams{
-		Name:      toolName,
-		Arguments: paramsMap,
-	}
-
-	result, err := session.CallTool(ctx, toolParams)
+	// Call tool via the ToolCaller interface
+	result, err := r.caller.CallTool(ctx, serverID, toolName, paramsMap)
 	if err != nil {
 		// Provide helpful error message with sanitized details
 		errMsg := sanitizeToolError(err)
