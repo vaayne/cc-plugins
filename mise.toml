@@ -20,3 +20,46 @@ for skill in ./skills/*/; do
   echo "Linked: $skill_name -> ~/.codex/skills/$skill_name"
 done
 """
+
+[tasks."sync:pi"]
+description = "Sync Pi components in ~/.pi/agent"
+depends = ["sync:pi:extensions", "sync:pi:agents", "sync:pi:prompts"]
+
+[tasks."sync:pi:extensions"]
+description = "Sync Pi extensions in ~/.pi/agent/extensions"
+run = """
+mkdir -p ~/.pi/agent/extensions
+for extension in ./pi/extensions/*; do
+  if [ -e "$extension" ]; then
+    extension_name=$(basename "$extension")
+    ln -sfn "$(pwd)/pi/extensions/$extension_name" ~/.pi/agent/extensions/"$extension_name"
+    echo "Linked: $extension_name -> ~/.pi/agent/extensions/$extension_name"
+  fi
+done
+"""
+
+[tasks."sync:pi:agents"]
+description = "Sync Pi agents in ~/.pi/agent/agents"
+run = """
+mkdir -p ~/.pi/agent/agents
+for agent in ./pi/agents/*.md; do
+  if [ -e "$agent" ]; then
+    agent_name=$(basename "$agent")
+    ln -sfn "$(pwd)/pi/agents/$agent_name" ~/.pi/agent/agents/"$agent_name"
+    echo "Linked: $agent_name -> ~/.pi/agent/agents/$agent_name"
+  fi
+done
+"""
+
+[tasks."sync:pi:prompts"]
+description = "Sync Pi prompts in ~/.pi/agent/prompts"
+run = """
+mkdir -p ~/.pi/agent/prompts
+for prompt in ./pi/prompts/*.md; do
+  if [ -e "$prompt" ]; then
+    prompt_name=$(basename "$prompt")
+    ln -sfn "$(pwd)/pi/prompts/$prompt_name" ~/.pi/agent/prompts/"$prompt_name"
+    echo "Linked: $prompt_name -> ~/.pi/agent/prompts/$prompt_name"
+  fi
+done
+"""

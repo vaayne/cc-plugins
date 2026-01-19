@@ -13,13 +13,13 @@ Use this tool for simple, one-off tool calls. For chaining multiple tools or add
 Provide the namespaced tool name and optional parameters:
 
 ```json
-{"name": "github__search_repos", "params": {"query": "mcp", "limit": 10}}
+{ "name": "github__search_repos", "params": { "query": "mcp", "limit": 10 } }
 ```
 
 For tools with no parameters:
 
 ```json
-{"name": "server__list_items"}
+{ "name": "server__list_items" }
 ```
 
 ## Output Format
@@ -38,7 +38,7 @@ With `--json` or structured output, returns the full CallToolResult:
 ```json
 {
   "content": [
-    {"type": "text", "text": "Search found 3 repositories..."}
+    { "type": "text", "text": "Search found 3 repositories..." }
   ],
   "isError": false
 }

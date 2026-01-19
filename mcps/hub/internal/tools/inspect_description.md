@@ -13,7 +13,7 @@ Use this tool when you need detailed information about a single tool, including 
 Provide the namespaced tool name in `serverID__toolName` format:
 
 ```json
-{"name": "github__search_repos"}
+{ "name": "github__search_repos" }
 ```
 
 ## Output Format
