@@ -57,9 +57,9 @@ done
 description = "Sync skills in ~/.pi/agent/skills"
 run = """
 mkdir -p ~/.pi/agent/skills
-for skill in ./skills/*.md; do
-  if [ -e "$skill" ]; then
-    skill_name=$(basename "$skill")
+for skill_dir in ./skills/*/; do
+  if [ -e "$skill_dir/SKILL.md" ]; then
+    skill_name=$(basename "$skill_dir")
     ln -sfn "$(pwd)/skills/$skill_name" ~/.pi/agent/skills/"$skill_name"
     echo "Linked: $skill_name -> ~/.pi/agent/skills/$skill_name"
   fi
@@ -70,9 +70,9 @@ done
 description = "Sync skills to ~/.codex/skills"
 run = """
 mkdir -p ~/.codex/skills
-for skill in ./skills/*.md; do
-  if [ -e "$skill" ]; then
-    skill_name=$(basename "$skill")
+for skill_dir in ./skills/*/; do
+  if [ -e "$skill_dir/SKILL.md" ]; then
+    skill_name=$(basename "$skill_dir")
     ln -sfn "$(pwd)/skills/$skill_name" ~/.codex/skills/"$skill_name"
     echo "Linked: $skill_name -> ~/.codex/skills/$skill_name"
   fi
