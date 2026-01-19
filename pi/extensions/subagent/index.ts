@@ -407,6 +407,45 @@ const SubagentParams = Type.Object({
 });
 
 export default function(pi: ExtensionAPI) {
+  // Store discovered agents at session start for system prompt injection
+  let discoveredAgents: AgentConfig[] = [];
+
+  // Discover agents on session start
+  pi.on("session_start", async (_event, ctx) => {
+    const discovery = discoverAgents(ctx.cwd, "user");
+    discoveredAgents = discovery.agents;
+
+    if (discoveredAgents.length > 0) {
+      const agentList = discoveredAgents.map((a) => `  ${a.filePath}`).join("\n");
+      ctx.ui.notify(`Found ${discoveredAgents.length} subagent(s):\n${agentList}`, "info");
+    }
+  });
+
+  // Append available agents to system prompt
+  pi.on("before_agent_start", async (event) => {
+    if (discoveredAgents.length === 0) {
+      return;
+    }
+
+    const agentsList = discoveredAgents
+      .map((a) => `- **${a.name}**: ${a.description}`)
+      .join("\n");
+
+    return {
+      systemPrompt: event.systemPrompt
+        + `
+
+## Available Subagents
+
+The following subagents are available for delegation via the \`subagent\` tool:
+
+${agentsList}
+
+Use the subagent tool to delegate tasks to these specialized agents when appropriate.
+`,
+    };
+  });
+
   pi.registerTool({
     name: "subagent",
     label: "Subagent",
