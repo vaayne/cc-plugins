@@ -11,7 +11,7 @@ Generate reusable skills from any MCP server using `mh` CLI.
 
 - `mh` CLI must be installed. If not available, install with:
   ```bash
-  curl -fsSL https://raw.githubusercontent.com/vaayne/cc-plugins/main/mcps/mcp-hub/scripts/install.sh | sh
+  curl -fsSL https://raw.githubusercontent.com/vaayne/mcphub/main/scripts/install.sh | sh
   ```
 
 ## Workflow
@@ -42,7 +42,7 @@ mh -u <url> -t <transport> list
 Stdio mode:
 
 ```bash
-mh -t stdio list -- cmd args ...
+mh --stdio list -- cmd args ...
 ```
 
 Config mode:
