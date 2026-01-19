@@ -43,19 +43,37 @@ Examples:
 }
 
 func init() {
-	ServeCmd.Flags().StringP("config", "c", "", "path to configuration file (required)")
+	// Note: "config" flag is defined as a persistent flag on root command
+	// to support both "mh -c config.json" and "mh serve -c config.json"
 	ServeCmd.Flags().IntP("port", "p", 3000, "port for HTTP/SSE transport")
 	ServeCmd.Flags().String("host", "localhost", "host for HTTP/SSE transport")
-	ServeCmd.MarkFlagRequired("config")
+}
+
+// RunServeFromRoot allows running serve command when invoked via root command with -c flag
+func RunServeFromRoot(cmd *cobra.Command, args []string) error {
+	return runServeWithCmd(cmd, args)
 }
 
 func runServe(cmd *cobra.Command, args []string) error {
-	// Get flags from command (local flags)
+	return runServeWithCmd(cmd, args)
+}
+
+func runServeWithCmd(cmd *cobra.Command, args []string) error {
+	// Get config flag - works for both persistent (from root) and local flags
 	configPath, _ := cmd.Flags().GetString("config")
+
+	// Get local flags (only on serve command)
 	port, _ := cmd.Flags().GetInt("port")
 	host, _ := cmd.Flags().GetString("host")
+	// Use defaults if not set (when called from root command)
+	if port == 0 {
+		port = 3000
+	}
+	if host == "" {
+		host = "localhost"
+	}
 
-	// Get flags from parent (root command)
+	// Get persistent flags from parent (root command)
 	transport, _ := cmd.Flags().GetString("transport")
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	logFile, _ := cmd.Flags().GetString("log-file")

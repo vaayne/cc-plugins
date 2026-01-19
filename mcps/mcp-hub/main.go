@@ -26,6 +26,7 @@ providing a unified interface for tool execution and management.
 Use 'mh serve' to start the hub server, or other commands to interact
 with remote MCP services.`,
 	PersistentPreRunE: validateGlobalFlags,
+	RunE:              runRoot,
 }
 
 var versionCmd = &cobra.Command{
@@ -43,6 +44,7 @@ func init() {
 	cli.CurrentVersion = version
 
 	// Global flags (PersistentFlags) - shared across all subcommands
+	rootCmd.PersistentFlags().StringP("config", "c", "", "path to configuration file (for serve command)")
 	rootCmd.PersistentFlags().StringP("url", "u", "", "remote MCP service URL")
 	rootCmd.PersistentFlags().StringP("transport", "t", "", "transport type (http/sse for remote; stdio/http/sse for serve)")
 	rootCmd.PersistentFlags().Bool("stdio", false, "use stdio transport (spawn a subprocess); command follows -- separator")
@@ -63,6 +65,21 @@ func init() {
 
 	// Set version template
 	rootCmd.SetVersionTemplate("mh {{.Version}}\n")
+}
+
+func runRoot(cmd *cobra.Command, args []string) error {
+	// If -c/--config is provided, delegate to serve command
+	configPath, _ := cmd.Flags().GetString("config")
+	if configPath != "" {
+		// The serve command inherits the persistent flags from root,
+		// so we need to set its parent to ensure flag inheritance works
+		cli.ServeCmd.SetArgs(args)
+		// Pass the root command so serve can access the persistent config flag
+		return cli.RunServeFromRoot(cmd, args)
+	}
+
+	// Otherwise, show help
+	return cmd.Help()
 }
 
 func validateGlobalFlags(cmd *cobra.Command, args []string) error {
