@@ -39,6 +39,12 @@ URL mode:
 hub -u <url> -t <transport> list
 ```
 
+Stdio mode:
+
+```bash
+hub -t stdio list -- cmd args ...
+```
+
 Config mode:
 
 ```bash
@@ -93,10 +99,10 @@ If input is a config file, copy it into the generated skill folder as `config.js
 
 **Name**: Focus on capability, not source. Pattern: `{source}-{capability}` (kebab-case, 2-3 words)
 
-| URL                               | Tools                           | Good          | Bad           |
-| --------------------------------- | ------------------------------- | ------------- | ------------- |
-| `https://mcp.exa.ai`              | webSearchExa, getCodeContextExa | `exa-search`  | `exa-mcp`     |
-| `https://api.example.com/weather` | getWeather, getForecast         | `weather-api` | `weather-mcp` |
+| URL                               | Tools                           | Good              | Bad       |
+| --------------------------------- | ------------------------------- | ----------------- | --------- |
+| `https://mcp.exa.ai`              | webSearchExa, getCodeContextExa | `mcp-exa-search`  | `exa`     |
+| `https://api.example.com/weather` | getWeather, getForecast         | `mcp-weather-api` | `weather` |
 
 **Description**: `{Action + capability}. Use when {conditions}. Triggers on "{phrase1}", "{phrase2}".`
 

@@ -10,20 +10,9 @@ uvx ruff check --fix
 dprint fmt
 """
 
-[tasks."sync:codex"]
-description = "Sync skills to Codex in ~/.codex/skills"
-run = """
-mkdir -p ~/.codex/skills
-for skill in ./skills/*/; do
-  skill_name=$(basename "$skill")
-  ln -sfn "$(pwd)/skills/$skill_name" ~/.codex/skills/"$skill_name"
-  echo "Linked: $skill_name -> ~/.codex/skills/$skill_name"
-done
-"""
-
 [tasks."sync:pi"]
 description = "Sync Pi components in ~/.pi/agent"
-depends = ["sync:pi:extensions", "sync:pi:agents", "sync:pi:prompts"]
+depends = ["sync:pi:extensions", "sync:pi:agents", "sync:pi:prompts", "sync:pi:skills"]
 
 [tasks."sync:pi:extensions"]
 description = "Sync Pi extensions in ~/.pi/agent/extensions"
@@ -42,7 +31,7 @@ done
 description = "Sync Pi agents in ~/.pi/agent/agents"
 run = """
 mkdir -p ~/.pi/agent/agents
-for agent in ./pi/agents/*.md; do
+for agent in ./agents/*.md; do
   if [ -e "$agent" ]; then
     agent_name=$(basename "$agent")
     ln -sfn "$(pwd)/pi/agents/$agent_name" ~/.pi/agent/agents/"$agent_name"
@@ -55,11 +44,37 @@ done
 description = "Sync Pi prompts in ~/.pi/agent/prompts"
 run = """
 mkdir -p ~/.pi/agent/prompts
-for prompt in ./pi/prompts/*.md; do
+for prompt in ./prompts/*.md; do
   if [ -e "$prompt" ]; then
     prompt_name=$(basename "$prompt")
-    ln -sfn "$(pwd)/pi/prompts/$prompt_name" ~/.pi/agent/prompts/"$prompt_name"
+    ln -sfn "$(pwd)/prompts/$prompt_name" ~/.pi/agent/prompts/"$prompt_name"
     echo "Linked: $prompt_name -> ~/.pi/agent/prompts/$prompt_name"
+  fi
+done
+"""
+
+[tasks."sync:pi:skills"]
+description = "Sync skills in ~/.pi/agent/skills"
+run = """
+mkdir -p ~/.pi/agent/skills
+for skill in ./skills/*.md; do
+  if [ -e "$skill" ]; then
+    skill_name=$(basename "$skill")
+    ln -sfn "$(pwd)/skills/$skill_name" ~/.pi/agent/skills/"$skill_name"
+    echo "Linked: $skill_name -> ~/.pi/agent/skills/$skill_name"
+  fi
+done
+"""
+
+[tasks."sync:codex:skills"]
+description = "Sync skills to ~/.codex/skills"
+run = """
+mkdir -p ~/.codex/skills
+for skill in ./skills/*.md; do
+  if [ -e "$skill" ]; then
+    skill_name=$(basename "$skill")
+    ln -sfn "$(pwd)/skills/$skill_name" ~/.codex/skills/"$skill_name"
+    echo "Linked: $skill_name -> ~/.codex/skills/$skill_name"
   fi
 done
 """
